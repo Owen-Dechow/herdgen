@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+<form method="POST" class="auth-form">
+    <h1>Login</h1>
+    {% csrf_token %}
+    {{form}}
+    <button class="as-btn pad border-radius background-green" type="submit">Login</button> <a class="as-btn pad border-radius background-light-grey" href="/auth/password_reset">Reset Password</a>
+</form>
+
+{% endblock main %}

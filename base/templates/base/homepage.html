@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block main %}
+
+<header class="six-or-fill overflow-hidden">
+    <div class="grid-auto-col height-100 marquee position-relative darken">
+        <img class="height-100" src="{% static 'media/banner5.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner1.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner2.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner4.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner6.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner7.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner8.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner9.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner10.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner11.webp' %}" alt="Header Image">
+        <img class="height-100" src="{% static 'media/banner3.webp' %}" alt="Header Image">
+    </div>
+
+    <div class="center-overlay text-large text-light text-center">
+        <h1>Herd Genetics</h1>
+        <p>Genetic Progress Simulator</p>
+    </div>
+</header>
+
+<div class="classlist">
+    <div class="grid-auto-col gap pad">
+        <a class="border-radius pad as-btn background-green" href="class/create">Create Class</a>
+        <a class="border-radius pad as-btn background-light-grey" href="class/join">Join Class</a>
+    </div>
+</div>
+
+{% endblock main %}
