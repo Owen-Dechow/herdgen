@@ -53,7 +53,7 @@ def get_filter_dict(context: dict[str, Any]) -> dict[str, dict[str, str] | str]:
     return (
         filter_dict
         | {
-            f"<{x.uid}>": {
+            x.uid: {
                 "abbreviation": x.animals[contextcast.animal].abbreviation,
                 "full_name": x.animals[contextcast.animal].full_name,
                 "standard_deviation": x.animals[contextcast.animal].standard_deviation,
@@ -61,9 +61,9 @@ def get_filter_dict(context: dict[str, Any]) -> dict[str, dict[str, str] | str]:
             for x in contextcast.traitset.traits
         }
         | {
-            f"{x.uid}": {
+            x.uid: {
                 "abbreviation": x.animals[contextcast.animal].abbreviation,
-                "recessives": x.animals[contextcast.animal].full_name,
+                "full_name": x.animals[contextcast.animal].full_name,
             }
             for x in contextcast.traitset.recessives
         }

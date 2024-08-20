@@ -12,7 +12,7 @@ async function getHerd(classId, herdId) {
 };
 
 function createAnimalCard(animalId, animalName, animal, classId) {
-    let btn = $("<button></button>", { id: `anim-${animalId}`, class: "animal-btn" });
+    let btn = $("<button></button>", { id: `anim-${animalId}`, class: "animal-btn", autofilter: true });
     btn.text(animalName);
     btn.click(() => {
         $(".animal-btn.selected").removeClass("selected");
@@ -56,25 +56,25 @@ function loadHerd(sortKey, reversed, classId) {
     });
 }
 
-function createSortOptionCard(text, value, autofilter) {
-    let opt = $(`<option></option>`, { value: value, autofilter: autofilter ? "" : null });
+function createSortOptionCard(text, value) {
+    let opt = $(`<option></option>`, { value: value, autofilter: true });
     opt.text(text);
     return opt;
 }
 
 function loadSortOptions() {
-    $("#sort-options").append(createSortOptionCard("Id", `id`, false));
-    $("#sort-options").append(createSortOptionCard("Generation", `generation`, false));
-    $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`, false));
+    $("#sort-options").append(createSortOptionCard("Id", `id`));
+    $("#sort-options").append(createSortOptionCard("Generation", `generation`));
+    $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
 
 
     let traits = Herd["summary"]["genotype"];
     for (let t in traits) {
-        $("#sort-options").append(createSortOptionCard(t, `genotype,${t}`, true));
+        $("#sort-options").append(createSortOptionCard(`<${t}>`, `genotype,${t}`));
     }
 
     for (let t in traits) {
-        $("#sort-options").append(createSortOptionCard("ph: " + t, `phenotype,${t}`, true));
+        $("#sort-options").append(createSortOptionCard(`ph: <${t}>`, `phenotype,${t}`));
     }
 }
 
@@ -87,12 +87,12 @@ async function setUpHerd(classId, herdId) {
     filterAll();
 }
 
-function createInfoCard(field, value, autofilter) {
+function createInfoCard(field, value) {
     let div = $("<div></div>");
-    let span1 = $("<span></span>", { autofilter: autofilter ? "" : null });
+    let span1 = $("<span></span>", { autofilter: true });
     span1.text(field);
 
-    let span2 = $("<span></span>");
+    let span2 = $("<span></span>", { autofilter: true });
     span2.text(value);
 
     div.append(span1);
@@ -106,13 +106,13 @@ function showSummary() {
     let info = $("#info");
     info.html("");
 
-    info.append(createInfoCard("Name", Herd["name"], false));
+    info.append(createInfoCard("Name", Herd["name"]));
     for (let g in Herd["summary"]["genotype"]) {
-        info.append(createInfoCard(g, Herd["summary"]["genotype"][g] * Filter["traits"][g]["standard_deviation"], true));
+        info.append(createInfoCard(`<${g}>`, Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"]));
     }
 
     for (let p in Herd["summary"]["phenotype"]) {
-        info.append(createInfoCard("ph: " + p, Herd["summary"]["phenotype"][p] * Filter["traits"][p]["standard_deviation"], true));
+        info.append(createInfoCard(`ph: <${p}>`, Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"]));
     }
 
     filterAll();
@@ -138,31 +138,31 @@ function animalSelected(animal, classId) {
         });
         info.append(button);
     }
-    info.append(createInfoCard("Id", animal["id"], false));
-    info.append(createInfoCard("Name", animal["name"], false));
-    info.append(createInfoCard("Sex", animal["male"] ? "Male" : "Female", false));
-    info.append(createInfoCard("Generation", animal["generation"], false));
-    info.append(createInfoCard("Sire", animal["sire"] ? animal["sire"] : "N/A", false));
-    info.append(createInfoCard("Dam", animal["dam"] ? animal["dam"] : "N/A", false));
-    info.append(createInfoCard("Inbreeding Percentage", "%" + animal["inbreeding"] * 100, false));
+    info.append(createInfoCard("Id", animal["id"]));
+    info.append(createInfoCard("Name", animal["name"]));
+    info.append(createInfoCard("Sex", animal["male"] ? "Male" : "Female"));
+    info.append(createInfoCard("Generation", animal["generation"]));
+    info.append(createInfoCard("Sire", animal["sire"] ? animal["sire"] : "N/A"));
+    info.append(createInfoCard("Dam", animal["dam"] ? animal["dam"] : "N/A"));
+    info.append(createInfoCard("Inbreeding Percentage", "%" + animal["inbreeding"] * 100));
 
     for (let g in animal["genotype"]) {
-        info.append(createInfoCard(g, animal["genotype"][g] * Filter["traits"][g]["standard_deviation"], true));
+        info.append(createInfoCard(`<${g}>`, animal["genotype"][g] * Filter[g]["standard_deviation"]));
     }
 
     for (let p in animal["phenotype"]) {
-        info.append(createInfoCard("ph: " + p, animal["phenotype"][p] * Filter["traits"][p]["standard_deviation"], true));
+        info.append(createInfoCard(`ph: <${p}>`, animal["phenotype"][p] * Filter[p]["standard_deviation"]));
     }
 
     for (let r in animal["recessives"]) {
         info.append(
             createInfoCard(
-                r,
+                `<${r}>`,
                 {
                     "he": "Heterozygous",
                     "ho(c)": "Homozygous Carrier",
                     "ho(f)": "Homozygous Free"
-                }[animal["recessives"][r]], true
+                }[animal["recessives"][r]]
             )
         );
     }
@@ -178,6 +178,12 @@ function resortAnimals(herdId) {
 
 function loadAssignments() {
     let assignmentSelect = $("<select></select>", { id: "assignment-select" });
+
+    if (Object.keys(Assignments).length == 0) {
+        assignmentSelect.remove();
+        return;
+    }
+
     for (let assignment in Assignments) {
         assignment = Assignments[assignment];
         let option = $("<option></option>", { value: assignment["id"] });
@@ -193,11 +199,15 @@ function loadAssignments() {
 function showAssignment() {
     $("#assignment-steps").remove();
     let assignmentSelected = $("#assignment-select").val();
+    let stepsFulfilled = Assignments[assignmentSelected]["fulfillment"];
+
+    if (!assignmentSelected)
+        return;
 
     let div = $("<div></div>", { id: "assignment-steps", class: ["assignment-steps"].join(" ") });
     for (let stepIdx in Assignments[assignmentSelected]["steps"]) {
         step = Assignments[assignmentSelected]["steps"][stepIdx];
-        let fulfilled = stepIdx < Assignments[assignmentSelected]["fulfillment"] ? "complete" : "incomplete";
+        let fulfilled = stepIdx < stepsFulfilled ? "complete" : "incomplete";
         let span = $("<span></span>", { class: ["pad-small", fulfilled].join(" ") });
         span.text(step["verbose"]);
         div.append(span);
@@ -206,6 +216,13 @@ function showAssignment() {
     let span = $("<span></span>", { class: ["pad-small", "status"].join(" ") });
     span.text(`${Assignments[assignmentSelected]["fulfillment"]}/${Assignments[assignmentSelected]["steps"].length} steps complete`);
     div.append(span);
+
+    let currentStep = Assignments[assignmentSelected]["steps"][stepsFulfilled];
+    if (currentStep && currentStep["key"] == "breed") {
+        $("#breed-herd").removeClass("hide");
+    } else {
+        $("#breed-herd").addClass("hide");
+    }
 
     $("#assignments").append(div);
     $("#id_assignment").val(assignmentSelected);

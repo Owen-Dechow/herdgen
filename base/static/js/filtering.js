@@ -6,18 +6,12 @@ function filterAll() {
                 let val = Filter[key];
                 let elem = query[idx];
 
-                if (typeof val === "string") {
-                    elem.textContent = elem.textContent.replace(key, val);
+                let search_key = "<" + key + ">";
 
-                    let capKey = key.charAt(0).toUpperCase() + key.slice(1);
-                    let capVal = val.charAt(0).toUpperCase() + val.slice(1);
-                    elem.textContent = elem.textContent.replace(capKey, capVal);
+                if (typeof val === "string") {
+                    elem.textContent = elem.textContent.replace(search_key, val);
                 } else if (typeof val == "object") {
-                    for (let key in val) {
-                        if (val.hasOwnProperty(key)) {
-                            elem.textContent = elem.textContent.replace(key, val[key]["abbreviation"]);
-                        }
-                    }
+                    elem.textContent = elem.textContent.replace(search_key, val["full_name"]);
                 }
             }
         }

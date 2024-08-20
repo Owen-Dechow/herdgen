@@ -219,6 +219,7 @@ class Enrollment(models.Model):
         new = cls(
             student=enrollment_request.student,
             connectedclass=enrollment_request.connectedclass,
+            animal=enrollment_request.connectedclass.default_animal,
         )
         new.herd = Herd.generate_starter_herd(
             name, 70, 10, traitset, enrollment_request.connectedclass

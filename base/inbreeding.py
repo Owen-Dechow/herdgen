@@ -17,9 +17,6 @@ class InbreedingCalculator:
         paternal = []
         maternal = []
 
-        for x in paternal + maternal:
-            print(x)
-
         self._map_pedigree(self.pedigree[self.sire_key], [], paternal)
         self._map_pedigree(self.pedigree[self.dam_key], [], maternal)
 

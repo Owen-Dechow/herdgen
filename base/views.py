@@ -215,7 +215,7 @@ def get_breeding_validation(
 @transaction.atomic
 @login_required
 @require_POST
-def breed_herd(request: HttpRequest, classid: int, herdid: int):
+def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseRedirect:
     form = forms.BreedHerd(request.POST)
     class_auth = auth_class(request, classid)
     herd_auth = auth_herd(class_auth, herdid)
@@ -228,6 +228,7 @@ def breed_herd(request: HttpRequest, classid: int, herdid: int):
 
     if form.is_valid(class_auth):
         form.save(class_auth, herd_auth)
+        return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
     else:
         raise Http404(f"Breeding is invalid: {form.errors}")
 
