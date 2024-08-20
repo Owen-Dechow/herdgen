@@ -1,11 +1,18 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+{% endblock head %}
 
 {% block main %}
 
-<form method="POST" class="auth-form">
+<form method="POST" class="std-form margin-auto">
+    <h1>Signup</h1>
     {% csrf_token %}
     {{form}}
-    <button type="submit">Signup</button>
+    <button type="submit" class="pad border-radius as-btn background-green">Signup</button>
+    <a href="/auth/login" class="pad border-radius as-btn background-light-grey">Login</a>
 </form>
 
 {% endblock main %}

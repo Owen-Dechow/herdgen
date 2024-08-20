@@ -14,14 +14,23 @@
         {% endblock title %}
     </title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="{% static 'js/loading.js' %}"></script>
+    <script src="{% static 'js/filtering.js' %}"></script>
+    <script src="{% static 'js/cookies.js' %}"></script>
+
+    {% block head %}
+
+    {% endblock head %}
+
 </head>
 
 <body>
-    <nav class="dark-to-light pad">
-        <div class="path grid-auto-col">
+    <nav class="background-dark-grey pad">
+        <div class="path grid-auto-col gap">
             <a class="pad-small" href="/">Herd Genetics</a>
         </div>
-        <div class="auth grid-auto-col">
+        <div class="auth grid-auto-col gap">
             {% if user.is_authenticated %}
             {% if user.is_superuser %}
             <a class="pad-small" href="/admin/">Admin</a>
@@ -41,9 +50,13 @@
 
         {% endblock main %}
     </main>
-    <footer>
+    <footer class="pad-small background-dark-grey">
         Created by Owen Dechow
     </footer>
+
+    {% block end %}
+
+    {% endblock end %}
 </body>
 
 </html>

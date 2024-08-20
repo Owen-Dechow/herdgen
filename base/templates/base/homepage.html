@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/homepage.css' %}" type="text/css">
+{% endblock head %}
+
 {% block main %}
 
-<header class="six-or-fill overflow-hidden">
-    <div class="grid-auto-col height-100 marquee position-relative darken">
+<header>
+    <div class="grid-auto-col height-100 marquee">
         <img class="height-100" src="{% static 'media/banner5.webp' %}" alt="Header Image">
         <img class="height-100" src="{% static 'media/banner1.webp' %}" alt="Header Image">
         <img class="height-100" src="{% static 'media/banner2.webp' %}" alt="Header Image">
@@ -18,14 +23,44 @@
         <img class="height-100" src="{% static 'media/banner3.webp' %}" alt="Header Image">
     </div>
 
-    <div class="center-overlay text-large text-light text-center">
+    <div class="header-text center-text">
         <h1>Herd Genetics</h1>
         <p>Genetic Progress Simulator</p>
     </div>
 </header>
 
-<div class="classlist">
-    <div class="grid-auto-col gap pad">
+<div class="classsection">
+    <div class="classlist pad grid-auto-row gap">
+        {% for class, assignments in classes.items %}
+        <div class="class box-shadow border-radius">
+            <div class="toprow background-dark-grey">
+                <a class="pad display-inline full-width" href="/class/{{class.id}}">
+                    <h2>
+                        {{class.name}}
+                    </h2>
+                    <p>Professor: {{class.teacher.get_full_name}} ({{class.teacher.email}})</p>
+                </a>
+            </div>
+            <div class="classinfo">
+                <div class="pad pre-line">{{class.info}}</div>
+                <ul class="assignment-list">
+                    {% for assignment in assignments %}
+                    <li><a href="">{{assignment.name}} <br> {{assignment.startdate}} - {{assignment.duedate}}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+        {% for class in requested_classes %}
+        <div class="class box-shadow border-radius">
+            <div class="pad background-dark-grey">
+                Request: {{class.classcode}}
+            </div>
+            <div class="pad">You have not yet been accepted into this class.</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class=" pad">
         <a class="border-radius pad as-btn background-green" href="class/create">Create Class</a>
         <a class="border-radius pad as-btn background-light-grey" href="class/join">Join Class</a>
     </div>

@@ -1,0 +1,100 @@
+.main-content {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 20px;
+}
+
+.header {
+    padding: 10px;
+    font-size: 1.5rem;
+}
+
+.header+* {
+    border-top: 2px solid var(--grey);
+}
+
+
+.animal-select {
+    max-height: 50vh;
+    overflow-y: scroll;
+}
+
+.animal-btn {
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: var(--light-grey);
+    border: none;
+    color: inherit;
+    padding: 5px;
+}
+
+.animal-btn:nth-child(even) {
+    background-color: color-mix(in srgb, var(--light-grey) 90%, black)
+}
+
+.animal-btn:hover {
+    filter: brightness(85%);
+}
+
+.animal-btn.selected {
+    background-color: var(--green);
+    color: var(--light-grey)
+}
+
+
+.info div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+}
+
+
+.info div:nth-child(even) {
+    background-color: color-mix(in srgb, var(--light-grey) 90%, black)
+}
+
+.assignments {
+    gap: 10px;
+    align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    padding: 5px;
+}
+
+.assignment-steps {
+    display: flex;
+}
+
+.assignment-steps span {
+    border: 3px solid var(--grey);
+    display: flex;
+    position: relative;
+    border-right: none;
+}
+
+.assignment-steps span.status {
+    border-color: transparent;
+    border-left: 3px solid var(--grey);
+}
+
+.assignment-steps span.complete {
+    background-color: var(--green);
+    color: var(--light-grey);
+    border-color: var(--green);
+}
+
+.malelist div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 5px;
+}
+
+.malelist-validation input {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.malelist-validation span {
+    border-radius: 5px 5px 0 0;
+}

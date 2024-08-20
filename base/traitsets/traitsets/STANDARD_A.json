@@ -1,0 +1,88 @@
+{
+    "traits": [
+        {
+            "uid": "t1",
+            "user_key": "PL",
+            "heritability": 0.08,
+            "net_merit_dollars": 34,
+            "inbreeding_depression_percentage": -0.28
+        },
+        {
+            "uid": "t2",
+            "user_key": "Type",
+            "heritability": 0.25,
+            "net_merit_dollars": 0,
+            "inbreeding_depression_percentage": 0
+        }
+    ],
+    "genotype_correlations": [
+        [
+            1.00,
+            -0.1
+        ],
+        [
+            -0.1,
+            1.00
+        ]
+    ],
+    "phenotype_correlations": [
+        [
+            1.00,
+            -0.1
+        ],
+        [
+            -0.1,
+            1.00
+        ]
+    ],
+    "recessives": [
+        {
+            "uid": "r1",
+            "user_key": "CR",
+            "fatal": true,
+            "prevalence_percent": 10
+        },
+        {
+            "uid": "r2",
+            "user_key": "RED",
+            "fatal": false,
+            "prevalence_percent": 20
+        }
+    ],
+    "animals": {
+        "Bovine (Holstein)": {
+            "traits": {
+                "t1": {
+                    "abbreviation": "PL",
+                    "full_name": "Productive Life",
+                    "standard_deviation": 1.7
+                },
+                "t2": {
+                    "abbreviation": "TYPE",
+                    "full_name": "Type",
+                    "standard_deviation": 1
+                }
+            },
+            "recessives": {
+                "r1": {
+                    "abbreviation": "CR",
+                    "full_name": "Calf Recumbency"
+                },
+                "r2": {
+                    "abbreviation": "RED",
+                    "full_name": "Red"
+                }
+            },
+            "herd": "herd",
+            "male": "bull",
+            "female": "cow",
+            "herds": "herds",
+            "males": "bulls",
+            "females": "cows",
+            "sire": "sire",
+            "sires": "sires",
+            "dam": "dam",
+            "dams": "dams"
+        }
+    }
+}

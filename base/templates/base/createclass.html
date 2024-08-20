@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+{% endblock head %}
+
+{% block main %}
+<form action="" method="POST" class="std-form margin-auto">
+    <h1>Create Class</h1>
+    {% csrf_token %}
+    {{form}}
+    <button type="submit" class="pad border-radius as-btn background-green">Create Class</button>
+    <a href="/class/join" class="pad border-radius as-btn background-light-grey">Join Class</a>
+</form>
+{% endblock main %}
