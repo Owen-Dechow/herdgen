@@ -3,7 +3,7 @@ from typing import Any, Optional
 from django.db import models
 from django.contrib.auth.models import User
 from random import choice
-from django.utils.timezone import now
+from django.utils.timezone import now, datetime
 
 from .traitsets import Traitset
 from .inbreeding import calculate_inbreeding
@@ -77,6 +77,11 @@ class Class(models.Model):
     def decrement_enrollment_tokens(self):
         self.enrollment_tokens -= 1
         self.save()
+
+    def get_open_assignments(self) -> models.manager.BaseManager["Assignment"]:
+        return Assignment.objects.filter(
+            connectedclass=self, startdate__lte=now(), duedate__gte=now()
+        )
 
 
 class Herd(models.Model):
@@ -401,6 +406,39 @@ class Assignment(models.Model):
     startdate = models.DateTimeField(null=True, blank=True)
     duedate = models.DateTimeField(null=True, blank=True)
     name = models.CharField(max_length=255)
+
+    @classmethod
+    def create_new(
+        cls,
+        name: str,
+        startdate: datetime,
+        duedate: datetime,
+        steps: list[str],
+        connectedclass: Class,
+    ) -> "Assignment":
+        new = cls(
+            name=name,
+            startdate=startdate,
+            duedate=duedate,
+            connectedclass=connectedclass,
+        )
+        new.save()
+
+        assignment_fulfillments = []
+        for enrollment in Enrollment.objects.filter(connectedclass=connectedclass):
+            assignment_fulfillments.append(
+                AssignmentFulfillment(enrollment=enrollment, assignment=new)
+            )
+        AssignmentFulfillment.objects.bulk_create(assignment_fulfillments)
+
+        assignment_steps = []
+        for idx, step in enumerate(steps):
+            assignment_steps.append(
+                AssignmentStep(number=idx, assignment=new, step=step)
+            )
+        AssignmentStep.objects.bulk_create(assignment_steps)
+
+        return new
 
 
 class AssignmentStep(models.Model):

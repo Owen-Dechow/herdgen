@@ -34,7 +34,7 @@
         {% for class, assignments in classes.items %}
         <div class="class box-shadow border-radius">
             <div class="toprow background-dark-grey">
-                <a class="pad display-inline full-width" href="/class/{{class.id}}">
+                <a class="pad display-inline full-width as-link" href="/class/{{class.id}}">
                     <h2>
                         {{class.name}}
                     </h2>
@@ -45,7 +45,7 @@
                 <div class="pad pre-line">{{class.info}}</div>
                 <ul class="assignment-list">
                     {% for assignment in assignments %}
-                    <li><a href="">{{assignment.name}} <br> {{assignment.startdate}} - {{assignment.duedate}}</a></li>
+                    <li>{{assignment.name}} <br> {{assignment.startdate}} - {{assignment.duedate}}</li>
                     {% endfor %}
                 </ul>
             </div>

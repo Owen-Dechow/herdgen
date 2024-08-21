@@ -1,5 +1,5 @@
 {% load static %}
-
+{% load path_builder %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -27,21 +27,23 @@
 
 <body>
     <nav class="background-dark-grey pad">
-        <div class="path grid-auto-col gap">
-            <a class="pad-small" href="/">Herd Genetics</a>
+        <div class="path flex">
+            <a class="pad-small as-link" href="/">Herd Genetics/</a>
+            {% block navpath %}
+            {% endblock navpath %}
         </div>
         <div class="auth grid-auto-col gap">
             {% if user.is_authenticated %}
             {% if user.is_superuser %}
-            <a class="pad-small" href="/admin/">Admin</a>
+            <a class="pad-small as-link" href="/admin/">Admin</a>
             {% endif %}
             <form method="POST" action="/auth/logout/" class="pad-small">
                 {% csrf_token %}
                 <button class="as-link" type="submit">Logout</button>
             </form>
             {% else %}
-            <a class="pad-small" href="/auth/login">Login</a>
-            <a class="pad-small" href="/auth/signup">Signup</a>
+            <a class="pad-small as-link" href="/auth/login">Login</a>
+            <a class="pad-small as-link" href="/auth/signup">Signup</a>
             {% endif %}
         </div>
     </nav>
@@ -50,6 +52,7 @@
 
         {% endblock main %}
     </main>
+
     <footer class="pad-small background-dark-grey">
         Created by Owen Dechow
     </footer>

@@ -1,11 +1,17 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load animal_filters %}
+{% load path_builder %}
 
 {% block head %}
 <script src="{% static 'js/enrollments.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/enrollments.css' %}" type="text/css">
 {% endblock head %}
+
+{% block navpath %}
+{% build_class_path "as-link pad-small" %}
+{% build_enrollments_path "as-link pad-small" %}
+{% endblock navpath %}
 
 {% block main %}
 <h1 class="margin-auto">Enrollments</h1>

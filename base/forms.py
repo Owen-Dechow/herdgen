@@ -1,3 +1,4 @@
+from django.utils.timezone import now
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth.models import User
 from django import forms
@@ -29,6 +30,14 @@ class CreateClassForm(forms.ModelForm):
         model = models.Class
         fields = ["name", "info", "traitset"]
 
+    def clean_name(self):
+        name = self.data["name"]
+        error = forms.ValidationError("Name cannot contain < or >")
+        if "<" in name or ">" in name:
+            raise error
+
+        return name
+
     def save(self, user: User) -> models.Class:
         return models.Class.create_new(
             user,
@@ -39,7 +48,6 @@ class CreateClassForm(forms.ModelForm):
 
 
 class UpdateClassForm(forms.ModelForm):
-    name = forms.CharField(disabled=True)
     traitset = forms.CharField(disabled=True)
     classcode = forms.CharField(disabled=True)
     enrollment_tokens = forms.IntegerField(disabled=True)
@@ -55,6 +63,14 @@ class UpdateClassForm(forms.ModelForm):
             "default_animal",
             "allow_other_animals",
         ]
+
+    def clean_name(self):
+        name = self.data["name"]
+        error = forms.ValidationError("Name cannot contain < or >")
+        if "<" in name or ">" in name:
+            raise error
+
+        return name
 
     def __init__(self, *args, **kwargs):
         super(UpdateClassForm, self).__init__(*args, **kwargs)
@@ -310,12 +326,66 @@ class SubmitAnimal(forms.Form):
 
 
 class NewAssignment(forms.ModelForm):
-    startdate = forms.DateField()
-    duedate = forms.DateField()
+    startdate = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
+    )
+    duedate = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
+    )
+    steps = forms.JSONField(widget=forms.HiddenInput, required=False)
 
     class Meta:
         fields = ["name", "startdate", "duedate"]
         model = models.Assignment
 
-    def is_valid(self) -> bool:
-        return super().is_valid()
+    def clean_steps(self) -> list[str]:
+        steps = self.cleaned_data["steps"]
+        possible_steps = [x[0] for x in models.AssignmentStep.CHOICES]
+
+        if type(steps) is not list:
+            raise forms.ValidationError("Invalid steps")
+
+        for step in steps:
+            if step not in possible_steps:
+                raise forms.ValidationError("Invalid step")
+
+        return steps
+
+    def clean_name(self):
+        name = self.data["name"]
+        error = forms.ValidationError("Name cannot contain < or >")
+        if "<" in name or ">" in name:
+            raise error
+
+        return name
+
+    def save(self, connectedclass: models.Class) -> models.Assignment:
+        return models.Assignment.create_new(
+            self.cleaned_data["name"],
+            self.cleaned_data["startdate"],
+            self.cleaned_data["duedate"],
+            self.cleaned_data["steps"],
+            connectedclass,
+        )
+
+
+class UpdateAssignment(forms.ModelForm):
+    startdate = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
+    )
+    duedate = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
+    )
+    steps = forms.JSONField(disabled=True, widget=forms.TextInput, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateAssignment, self).__init__(*args, **kwargs)
+
+        self.fields["steps"].initial = [
+            x.step
+            for x in models.AssignmentStep.objects.filter(assignment=self.instance)
+        ]
+
+    class Meta:
+        fields = ["name", "startdate", "duedate"]
+        model = models.Assignment

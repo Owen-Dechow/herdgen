@@ -11,7 +11,10 @@ body {
     color: var(--dark-grey);
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
-    padding-bottom: 40px;
+
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
 }
 
 nav {
@@ -20,11 +23,6 @@ nav {
     top: 0;
     z-index: 1;
     justify-content: space-between;
-}
-
-a {
-    all: unset;
-    cursor: pointer;
 }
 
 input {
@@ -47,15 +45,12 @@ summary {
     cursor: pointer;
 }
 
-a:hover {
-    text-decoration: underline;
+main {
+    margin-bottom: 20px;
 }
 
 footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    margin-top: auto;
 }
 
 loading-symbol {
@@ -101,10 +96,11 @@ loading-symbol {
 .as-link {
     all: unset;
     cursor: pointer;
+    text-decoration: underline;
 }
 
 .as-link:hover {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .pad {

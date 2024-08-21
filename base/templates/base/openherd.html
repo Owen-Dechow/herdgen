@@ -1,12 +1,18 @@
 {% extends 'base.html' %}
 {% load animal_filters %}
 {% load static %}
+{% load path_builder %}
 
 {% block head %}
 <script src="{% static 'js/herds.js' %}"></script>
 <link rel="stylesheet" href="{% static 'css/openherd.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
 {% endblock head %}
+
+{% block navpath %}
+{% build_class_path "as-link pad-small" %}
+{% build_herd_path "as-link pad-small" %}
+{% endblock navpath %}
 
 {% block main %}
 

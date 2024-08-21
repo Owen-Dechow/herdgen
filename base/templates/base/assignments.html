@@ -1,14 +1,27 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% load animal_filters %}
+{% load assignment_options %}
+{% load path_builder %}
+
+
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
 <link rel="stylesheet" href="{% static 'css/assignments.css' %}" type="text/css">
+<script src="{% static 'js/assignments.js' %}"></script>
 {% endblock head %}
+
+
+{% block navpath %}
+{% build_class_path "as-link pad-small" %}
+{% build_assignments_path "as-link pad-small" %}
+{% endblock navpath %}
 
 {% block main %}
 
 <h1 class="margin-auto">Assignments</h1>
+{% if assignments %}
 <div class="grid-auto-col gap pad margin-auto assignments">
     <div class="grid-auto-row gap">
         <div class="assignment-name"></div>
@@ -20,27 +33,42 @@
     {% for assignment, assignment_steps, fulfillments in assignments %}
     <div class="grid-auto-row gap">
         <div class="assignment-name">
-            {{assignment.name}}
+            <a class="as-link" href="/class/{{class.id}}/assignments/{{assignment.id}}">
+                {{assignment.name}}
+            </a>
         </div>
         {% for fulfillment in fulfillments %}
-        {% if fulfillment.current_step > assignment_steps %}
-        <div class="complete">Y</div>
+        {% if fulfillment.current_step >= assignment_steps %}
+        <div class="complete">✓</div>
         {% elif assignment.duedate > current_date %}
         <div class="inprogress">-</div>
         {% else %}
-        <div class="missed">X</div>
+        <div class="missed">x</div>
         {% endif %}
         {% endfor %}
     </div>
     {% endfor %}
 </div>
-<form class="std-form margin-auto" method="POST">
+{% endif %}
+
+<form onsubmit="submitNewAssignment()" class="std-form margin-auto" method="POST">
     <h2>New Assignment</h2>
     {% csrf_token %}
     {{form}}
+    <fieldset>
+        <input disabled type="text" id="assignment-steps-input" class="full-width" value="[]">
+        <legend>Steps</legend>
+        <p id="assignment-steps"></p>
+        <button onclick="addStep()" class="as-btn pad border-radius background-green full-width" type="button">Add Step</button>
+    </fieldset>
     <button class="as-btn pad background-green border-radius">Create Assignment</button>
 </form>
 
-
-
 {% endblock main %}
+
+{% block end %}
+
+{% load_filter_dict %}
+{% load_assignment_options %}
+
+{% endblock end %}

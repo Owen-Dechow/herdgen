@@ -12,6 +12,11 @@ urlpatterns = [
     path("class/<int:classid>", views.openclass),
     path("class/<int:classid>/enrollments", views.enrollments),
     path("class/<int:classid>/assignments", views.assignments),
+    path("class/<int:classid>/assignments/<int:assignmentid>", views.openassignment),
+    path(
+        "class/<int:classid>/assignments/<int:assignmentid>/delete",
+        views.delete_assignment,
+    ),
     path("class/<int:classid>/delete", views.deleteclass),
     path("class/<int:classid>/get-enrollments", views.get_enrollments),
     path(

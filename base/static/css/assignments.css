@@ -2,7 +2,7 @@
 .inprogress,
 .missed {
     display: block;
-    width: 1em;
+    width: 1.25em;
     aspect-ratio: 1/1;
     background-color: var(--grey);
     border-radius: 50%;
@@ -26,14 +26,14 @@
     max-width: 100%;
     overflow: auto;
     white-space: nowrap;
-    padding-right: 35px;
+    padding-right: 50px;
 }
 
 .assignment-name {
-    height: 100px;
+    height: 150px;
     text-overflow: ellipsis;
     overflow: hidden;
     writing-mode: vertical-rl;
     rotate: 200deg;
-    translate: 15px 0;
+    translate: 25px 0;
 }

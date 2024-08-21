@@ -24,7 +24,7 @@ def homepage(request: HttpRequest) -> HttpResponse:
             student=request.user
         )
         classes = list(owned_classes) + [x.connectedclass for x in enrollments]
-        classes = {x: models.Assignment.objects.all() for x in classes}
+        classes = {x: x.get_open_assignments() for x in classes}
 
         requested_classes = [
             x.connectedclass
@@ -110,14 +110,17 @@ def enrollments(request: HttpRequest, classid: int) -> HttpResponse:
 
 @transaction.atomic
 @login_required
-def assignments(request: HttpRequest, classid: int) -> HttpResponse:
+def assignments(
+    request: HttpRequest, classid: int
+) -> HttpResponse | HttpResponseRedirect:
     class_auth = auth_class(request, classid)
     connectedclass = class_auth.connectedclass
 
     if request.method == "POST":
         form = forms.NewAssignment(request.POST)
         if form.is_valid():
-            ...
+            assignment = form.save(connectedclass)
+            return HttpResponseRedirect(f"/class/{classid}/assignments/{assignment.id}")
     else:
         form = forms.NewAssignment
 
@@ -151,6 +154,49 @@ def assignments(request: HttpRequest, classid: int) -> HttpResponse:
             "form": form,
         },
     )
+
+
+@transaction.atomic
+@login_required
+def openassignment(
+    request: HttpRequest, classid: int, assignmentid: int
+) -> HttpResponse | HttpResponseRedirect:
+    class_auth = auth_class(request, classid)
+    assignment = get_object_or_404(models.Assignment, id=assignmentid)
+
+    if type(class_auth) is not ClassAuth.Teacher:
+        raise Http404("Must be teacher to access assignments page")
+
+    if request.method == "POST":
+        form = forms.UpdateAssignment(request.POST, instance=assignment)
+        if form.is_valid():
+            form.save()
+            HttpResponseRedirect("")
+    else:
+        form = forms.UpdateAssignment(instance=assignment)
+
+    return render(
+        request,
+        "base/openassignment.html",
+        {"form": form, "assignment": assignment, "class": class_auth.connectedclass},
+    )
+
+
+@transaction.atomic
+@login_required
+@require_POST
+def delete_assignment(
+    request: HttpRequest, classid: int, assignmentid: int
+) -> HttpResponseRedirect:
+    class_auth = auth_class(request, classid)
+    assignment = get_object_or_404(models.Assignment, id=assignmentid)
+
+    if type(class_auth) is not ClassAuth.Teacher:
+        raise Http404("Must be teacher to delete assignments")
+
+    assignment.delete()
+
+    return HttpResponseRedirect(f"/class/{classid}/assignments")
 
 
 @transaction.atomic

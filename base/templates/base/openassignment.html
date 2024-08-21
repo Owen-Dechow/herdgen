@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load path_builder %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+{% endblock head %}
+
+{% block navpath %}
+{% build_class_path "as-link pad-small" %}
+{% build_assignments_path "as-link pad-small" %}
+{% build_assignment_path "as-link pad-small" %}
+{% endblock navpath %}
+
+{% block main %}
+<div class="margin-auto">
+    <form method="POST" class="std-form">
+        {% csrf_token %}
+        <h1>{{assignment.name}}</h1>
+        {{form}}
+        <button class="as-btn pad border-radius background-green full-width">Update</button>
+    </form>
+    <form class="pad" action="/class/{{class.id}}/assignments/{{assignment.id}}/delete" method="POST">
+        {% csrf_token %}
+        <button type="submit" onclick="return confirm('Are you sure you want to delete this assignment?')" class="as-btn pad border-radius background-red full-width">Delete</>
+    </form>
+</div>
+{% endblock main %}
