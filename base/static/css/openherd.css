@@ -73,12 +73,20 @@
     border-right: none;
 }
 
-.assignment-steps span.status {
-    border-color: transparent;
-    border-left: 3px solid var(--grey);
+.assignment-steps .step:first-child {
+    border-radius: 5px 0 0 5px;
 }
 
-.assignment-steps span.complete {
+.assignment-steps .step:nth-last-child(2) {
+    border-radius: 0 5px 5px 0;
+    border-right: 3px solid var(--grey);
+}
+
+.assignment-steps .status {
+    border-color: transparent;
+}
+
+.assignment-steps .complete {
     background-color: var(--green);
     color: var(--light-grey);
     border-color: var(--green);

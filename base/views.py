@@ -1,4 +1,3 @@
-from time import sleep
 from django.http import (
     Http404,
     HttpRequest,
@@ -14,6 +13,7 @@ from django.views.decorators.http import require_POST
 from . import forms
 from . import models
 from .views_utils import HerdAuth, auth_class, ClassAuth, auth_herd
+from django.utils.timezone import now
 
 
 # Create your views here.
@@ -97,6 +97,62 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
     )
 
 
+@login_required
+def enrollments(request: HttpRequest, classid: int) -> HttpResponse:
+    class_auth = auth_class(request, classid)
+    connectedclass = class_auth.connectedclass
+
+    if type(class_auth) is not ClassAuth.Teacher:
+        raise Http404("Must be teacher to access enrollment page")
+
+    return render(request, "base/enrollments.html", {"class": connectedclass})
+
+
+@transaction.atomic
+@login_required
+def assignments(request: HttpRequest, classid: int) -> HttpResponse:
+    class_auth = auth_class(request, classid)
+    connectedclass = class_auth.connectedclass
+
+    if request.method == "POST":
+        form = forms.NewAssignment(request.POST)
+        if form.is_valid():
+            ...
+    else:
+        form = forms.NewAssignment
+
+    if type(class_auth) is not ClassAuth.Teacher:
+        raise Http404("Must be teacher to access assignments page")
+
+    enrollments = models.Enrollment.objects.filter(
+        connectedclass=connectedclass
+    ).order_by("student__first_name", "student__last_name")
+    assignments = [
+        (
+            a,
+            models.AssignmentStep.objects.filter(assignment=a).count(),
+            models.AssignmentFulfillment.objects.filter(assignment=a).order_by(
+                "enrollment__student__first_name", "enrollment__student__last_name"
+            ),
+        )
+        for a in models.Assignment.objects.filter(
+            connectedclass=connectedclass
+        ).order_by("duedate")
+    ]
+
+    return render(
+        request,
+        "base/assignments.html",
+        {
+            "class": connectedclass,
+            "assignments": assignments,
+            "current_date": now(),
+            "enrollments": enrollments,
+            "form": form,
+        },
+    )
+
+
 @transaction.atomic
 @login_required
 @require_POST
@@ -139,8 +195,7 @@ def openherd(request: HttpRequest, classid: int, herdid: int) -> HttpResponse:
 
     context["class"] = class_auth.connectedclass
     context["herd_auth"] = herd_auth
-    context["herd_auth_type"] = type(herd_auth)
-    context["enrollment_herd"] = HerdAuth.EnrollmentHerd
+    context["collect_assignments"] = type(herd_auth) is HerdAuth.EnrollmentHerd
     context["breed_form"] = forms.BreedHerd
 
     return render(request, "base/openherd.html", context)
@@ -231,6 +286,32 @@ def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseR
         return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
     else:
         raise Http404(f"Breeding is invalid: {form.errors}")
+
+
+@transaction.atomic
+@login_required
+@require_POST
+def submit_animal(
+    request: HttpRequest, classid: int, herdid: int, animalid: int
+) -> HttpResponseRedirect:
+    form = forms.SubmitAnimal(request.POST)
+    class_auth = auth_class(request, classid)
+    herd_auth = auth_herd(class_auth, herdid)
+    animal = get_object_or_404(
+        models.Animal, connectedclass=classid, herd=herdid, id=animalid
+    )
+
+    if type(class_auth) is not ClassAuth.Student:
+        raise Http404("Must be student to submit animal")
+
+    if type(herd_auth) is not HerdAuth.EnrollmentHerd:
+        raise Http404("Must be enrollment herd to submit animal")
+
+    if form.is_valid(class_auth):
+        form.save(class_auth, animal)
+        return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
+    else:
+        raise Http404(f"Animal submission is invalid: {form.errors}")
 
 
 # ACTION

@@ -137,6 +137,7 @@ loading-symbol {
 .background-light-grey {
     background-color: var(--light-grey);
     color: var(--dark-grey);
+    border: 1px solid var(--grey);
 }
 
 .grid-auto-col {
@@ -190,6 +191,7 @@ loading-symbol {
 
 .margin-auto {
     margin-inline: auto;
+    width: fit-content;
 }
 
 .hide {

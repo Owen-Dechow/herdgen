@@ -241,6 +241,7 @@ class Enrollment(models.Model):
                 "name": self.student.get_full_name(),
                 "email": self.student.email,
             },
+            "herd": self.herd_id,
             "connectedclass": self.connectedclass_id,
         }
 

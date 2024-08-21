@@ -255,3 +255,67 @@ class BreedHerd(forms.Form):
         herd_auth.herd.breed_herd(self.validation_catch.males)
         self.validation_catch.assignment_fulfillment.current_step += 1
         self.validation_catch.assignment_fulfillment.save()
+
+
+class SubmitAnimal(forms.Form):
+    class ValidationCatch:
+        assignment: models.Assignment
+        assignment_fulfillment: models.AssignmentFulfillment
+        assignment_step: models.AssignmentStep
+
+    assignment = forms.IntegerField(widget=forms.HiddenInput)
+    validation_catch: Optional[ValidationCatch] = None
+
+    def is_valid(self, class_auth: ClassAuth.Student) -> bool:
+        self.validation_catch = self.ValidationCatch()
+
+        if super().is_valid() is False:
+            return False
+
+        assignment = self.cleaned_data["assignment"]
+
+        try:
+            assignment = models.Assignment.objects.get(id=assignment)
+            self.validation_catch.assignment = assignment
+        except models.Assignment.DoesNotExist:
+            return False
+
+        try:
+            assignment_fulfillment = models.AssignmentFulfillment.objects.get(
+                assignment=assignment, enrollment=class_auth.enrollment
+            )
+            self.validation_catch.assignment_fulfillment = assignment_fulfillment
+        except models.AssignmentFulfillment.DoesNotExist:
+            return False
+
+        try:
+            assignment_step = models.AssignmentStep.objects.get(
+                assignment=assignment, number=assignment_fulfillment.current_step
+            )
+            self.validation_catch.assignment_step = assignment_step
+        except models.AssignmentStep.DoesNotExist:
+            return False
+
+        return assignment_step.step in [
+            models.AssignmentStep.CHOICE_MALE_SUBMISSION,
+            models.AssignmentStep.CHOICE_FEMALE_SUBMISSION,
+        ]
+
+    def save(self, class_auth: ClassAuth.Student, animal: models.Animal) -> None:
+        animal.herd = class_auth.connectedclass.class_herd
+        animal.save()
+
+        self.validation_catch.assignment_fulfillment.current_step += 1
+        self.validation_catch.assignment_fulfillment.save()
+
+
+class NewAssignment(forms.ModelForm):
+    startdate = forms.DateField()
+    duedate = forms.DateField()
+
+    class Meta:
+        fields = ["name", "startdate", "duedate"]
+        model = models.Assignment
+
+    def is_valid(self) -> bool:
+        return super().is_valid()

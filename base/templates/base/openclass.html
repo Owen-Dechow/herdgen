@@ -4,66 +4,57 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
-<link rel="stylesheet" href="{% static 'css/openclass.css' %}" type="text/css">
-<script src="{% static 'js/enrollments.js' %}"></script>
 {% endblock head %}
 
 {% block main %}
 
-<div class="grid-auto-col main-content margin-auto">
-    <div>
-        <form class="std-form" method="POST">
-            {% csrf_token %}
-            <h1>{{class.name}}</h1>
-            <p>Professor: {{class.teacher.get_full_name}} ({{class.teacher.email}})</p>
-            {{form}}
+<div class="margin-auto">
+    <form class="std-form" method="POST">
+        {% csrf_token %}
+        <h1>{{class.name}}</h1>
+        <p>Professor: {{class.teacher.get_full_name}} ({{class.teacher.email}})</p>
 
-            <fieldset class="grid-auto-row gap">
-                <legend>
-                    {% auto_filter_text "Herds" %}
-                </legend>
-                {% if enrollment %}
-                <a class="as-btn background-green pad border-radius" href="/class/{{class.id}}/herd/{{enrollment.herd.id}}">
-                    {% auto_filter_text enrollment.herd.name %}
-                </a>
-                {% endif %}
-                <a class="as-btn background-light-grey pad border-radius" href="/class/{{class.id}}/herd/{{class.class_herd.id}}">
-                    {% auto_filter_text class.class_herd.name %}
-                </a>
-                <a class="as-btn background-light-grey pad border-radius" href="/class/{{class.id}}/herd/{{class.starter_herd.id}}">
-                    {% auto_filter_text class.starter_herd.name %}
-                </a>
-            </fieldset>
-
-            {% if class.teacher == user %}
-            <button type="submit" class="full-width pad background-green as-btn border-radius">Update</button>
-            {% endif %}
-        </form>
         {% if class.teacher == user %}
-        <form onsubmit="return confirm('Are you sure you want to delete this class?')" class="delete-class" action="/class/{{class.id}}/delete" method="POST">
-            {% csrf_token %}
-            <button class="full-width pad background-red as-btn border-radius" type="submit">Delete</button>
-        </form>
+        <fieldset class="grid-auto-row gap">
+            <a class="as-btn full-width background-light-grey pad border-radius" href="/class/{{class.id}}/enrollments">
+                Enrollments
+            </a>
+            <a class="as-btn full-width background-light-grey pad border-radius" href="/class/{{class.id}}/assignments">
+                Assignments
+            </a>
+        </fieldset>
         {% endif %}
-    </div>
 
+        {{form}}
+
+        <fieldset class="grid-auto-row gap">
+            <legend>
+                {% auto_filter_text "<Herds>" %}
+            </legend>
+            {% if enrollment %}
+            <a class="as-btn background-green pad border-radius" href="/class/{{class.id}}/herd/{{enrollment.herd.id}}">
+                {% auto_filter_text enrollment.herd.name %}
+            </a>
+            {% endif %}
+            <a class="as-btn background-light-grey pad border-radius" href="/class/{{class.id}}/herd/{{class.class_herd.id}}">
+                {% auto_filter_text class.class_herd.name %}
+            </a>
+            <a class="as-btn background-light-grey pad border-radius" href="/class/{{class.id}}/herd/{{class.starter_herd.id}}">
+                {% auto_filter_text class.starter_herd.name %}
+            </a>
+        </fieldset>
+
+
+        {% if class.teacher == user %}
+        <button type="submit" class="full-width pad background-green as-btn border-radius">Update</button>
+        {% endif %}
+    </form>
     {% if class.teacher == user %}
-    <div>
-        <h1>Enrollments</h1>
-        <div id="enrollments" class="grid-auto-row">
-            <loading-symbol name="enrollments"></loading-symbol>
-        </div>
-    </div>
+    <form class="pad" onsubmit="return confirm('Are you sure you want to delete this class?')" action="/class/{{class.id}}/delete" method="POST">
+        {% csrf_token %}
+        <button class="full-width pad background-red as-btn border-radius" type="submit">Delete</button>
+    </form>
     {% endif %}
-
 </div>
 
 {% endblock main %}
-
-{% block end %}
-{% if class.teacher == user %}
-<script>
-    loadEnrollmentList(getEnrollments("{{class.id}}"));
-</script>
-{% endif %}
-{% endblock end %}

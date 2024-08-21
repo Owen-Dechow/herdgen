@@ -1,5 +1,6 @@
 var Herd;
 var Assignments;
+var CurrentAssignmentStep;
 var RevalidateMalesForBreeding = false;
 var ValidatingMalesForBreeding = false;
 var MalesValidatedForBreeding = false;
@@ -11,13 +12,13 @@ async function getHerd(classId, herdId) {
     }).fail("Error: Could not load herd data.");
 };
 
-function createAnimalCard(animalId, animalName, animal, classId) {
+function createAnimalCard(animalId, animalName, animal, classId, herdId) {
     let btn = $("<button></button>", { id: `anim-${animalId}`, class: "animal-btn", autofilter: true });
     btn.text(animalName);
     btn.click(() => {
         $(".animal-btn.selected").removeClass("selected");
         btn.addClass("selected");
-        animalSelected(animal, classId);
+        animalSelected(animal, classId, herdId);
     });
 
     return btn;
@@ -35,7 +36,7 @@ function resolveSortKey(sortKey, animal) {
 
 }
 
-function loadHerd(sortKey, reversed, classId) {
+function loadHerd(sortKey, reversed, classId, herdId) {
     $("#males").html("");
     $("#females").html("");
 
@@ -50,9 +51,9 @@ function loadHerd(sortKey, reversed, classId) {
 
     animals.forEach((animal) => {
         if (animal["male"])
-            $("#males").append(createAnimalCard(animal["id"], animal["name"], animal, classId));
+            $("#males").append(createAnimalCard(animal["id"], animal["name"], animal, classId, herdId));
         else
-            $("#females").append(createAnimalCard(animal["id"], animal["name"], animal, classId));
+            $("#females").append(createAnimalCard(animal["id"], animal["name"], animal, classId, herdId));
     });
 }
 
@@ -80,7 +81,7 @@ function loadSortOptions() {
 
 async function setUpHerd(classId, herdId) {
     await getHerd(classId, herdId);
-    loadHerd(["id"], false, classId);
+    loadHerd(["id"], false, classId, herdId);
     showSummary();
     loadSortOptions();
     clearLoadingSymbol("herd");
@@ -118,13 +119,14 @@ function showSummary() {
     filterAll();
 }
 
-function animalSelected(animal, classId) {
+function animalSelected(animal, classId, herdId) {
     $('#info-header').text(animal["name"]);
 
     let info = $("#info");
     info.html("");
     if (animal["male"]) {
-        let button = $("<button></button>", { class: ["pad", "as-btn", "background-green", "border-radius"].join(" ") });
+        let button = $("<button></button>", { class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ") });
+        let div = $("<div></div>", { class: "pad-small" });
         button.text("Save");
         button.click(() => {
             let savedMales = getCookie("savedMales" + classId);
@@ -136,8 +138,44 @@ function animalSelected(animal, classId) {
             }
             setCookie("savedMales" + classId, savedMales, 10);
         });
-        info.append(button);
+        div.append(button);
+        info.append(div);
+
+        if (CurrentAssignmentStep && CurrentAssignmentStep["key"] == "msub") {
+            let form = $("<form></form>", {
+                class: "pad-small",
+                action: `/class/${classId}/herd/${herdId}/assignments/submit-animal/${animal["id"]}`,
+                method: "POST"
+            });
+            let button = $("<button></button>", {
+                class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" "),
+                type: "submit"
+            });
+            button.text("Submit to class herd");
+            form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
+            form.append($("input[name=csrfmiddlewaretoken]").first());
+            form.append(button);
+            info.append(form);
+        }
+    } else {
+        if (CurrentAssignmentStep && CurrentAssignmentStep["key"] == "fsub") {
+            let form = $("<form></form>", {
+                class: "pad-small",
+                action: `/class/${classId}/herd/${herdId}/assignments/submit-animal/${animal["id"]}`,
+                method: "POST"
+            });
+            let button = $("<button></button>", {
+                class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" "),
+                type: "submit"
+            });
+            button.text("Submit to class herd");
+            form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
+            form.append($("input[name=csrfmiddlewaretoken]").first());
+            form.append(button);
+            info.append(form);
+        }
     }
+
     info.append(createInfoCard("Id", animal["id"]));
     info.append(createInfoCard("Name", animal["name"]));
     info.append(createInfoCard("Sex", animal["male"] ? "Male" : "Female"));
@@ -147,7 +185,7 @@ function animalSelected(animal, classId) {
     info.append(createInfoCard("Inbreeding Percentage", "%" + animal["inbreeding"] * 100));
 
     for (let g in animal["genotype"]) {
-        info.append(createInfoCard(`<${g}>`, animal["genotype"][g] * Filter[g]["standard_deviation"]));
+        info.append(createInfoCard(`<${g}> `, animal["genotype"][g] * Filter[g]["standard_deviation"]));
     }
 
     for (let p in animal["phenotype"]) {
@@ -174,6 +212,7 @@ function resortAnimals(herdId) {
     let sortKey = $("#sort-options").val().split(",");
     let reversed = $("#sort-order").val() === "ascending";
     loadHerd(sortKey, reversed, herdId);
+    filterAll();
 }
 
 function loadAssignments() {
@@ -204,11 +243,14 @@ function showAssignment() {
     if (!assignmentSelected)
         return;
 
-    let div = $("<div></div>", { id: "assignment-steps", class: ["assignment-steps"].join(" ") });
+    let div = $("<div></div>", {
+        id: "assignment-steps",
+        class: ["assignment-steps"].join(" ")
+    });
     for (let stepIdx in Assignments[assignmentSelected]["steps"]) {
         step = Assignments[assignmentSelected]["steps"][stepIdx];
         let fulfilled = stepIdx < stepsFulfilled ? "complete" : "incomplete";
-        let span = $("<span></span>", { class: ["pad-small", fulfilled].join(" ") });
+        let span = $("<span></span>", { class: ["pad-small", fulfilled, "step"].join(" ") });
         span.text(step["verbose"]);
         div.append(span);
     }
@@ -217,8 +259,8 @@ function showAssignment() {
     span.text(`${Assignments[assignmentSelected]["fulfillment"]}/${Assignments[assignmentSelected]["steps"].length} steps complete`);
     div.append(span);
 
-    let currentStep = Assignments[assignmentSelected]["steps"][stepsFulfilled];
-    if (currentStep && currentStep["key"] == "breed") {
+    CurrentAssignmentStep = Assignments[assignmentSelected]["steps"][stepsFulfilled];
+    if (CurrentAssignmentStep && CurrentAssignmentStep["key"] == "breed") {
         $("#breed-herd").removeClass("hide");
     } else {
         $("#breed-herd").addClass("hide");

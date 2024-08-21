@@ -10,6 +10,8 @@ urlpatterns = [
     path("class/join", views.joinclass),
     path("class/requested", views.requestedclass),
     path("class/<int:classid>", views.openclass),
+    path("class/<int:classid>/enrollments", views.enrollments),
+    path("class/<int:classid>/assignments", views.assignments),
     path("class/<int:classid>/delete", views.deleteclass),
     path("class/<int:classid>/get-enrollments", views.get_enrollments),
     path(
@@ -37,5 +39,9 @@ urlpatterns = [
     ),
     path(
         "class/<int:classid>/herd/<int:herdid>/assignments/get", views.get_assignments
+    ),
+    path(
+        "class/<int:classid>/herd/<int:herdid>/assignments/submit-animal/<int:animalid>",
+        views.submit_animal,
     ),
 ]

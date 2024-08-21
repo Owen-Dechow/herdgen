@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load animal_filters %}
+
+{% block head %}
+<script src="{% static 'js/enrollments.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/enrollments.css' %}" type="text/css">
+{% endblock head %}
+
+{% block main %}
+<h1 class="margin-auto">Enrollments</h1>
+<div id="enrollments" class="enrollments">
+    <loading-symbol name="enrollments"></loading-symbol>
+</div>
+{% endblock main %}
+
+{% block end %}
+<script>
+    loadEnrollmentList(getEnrollments("{{class.id}}"));
+</script>
+
+{% load_filter_dict %}
+{% endblock end %}

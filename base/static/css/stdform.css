@@ -8,7 +8,8 @@
     max-width: 600px;
 }
 
-.std-form h1 {
+.std-form h1,
+.std-form h2 {
     margin: 0;
 }
 

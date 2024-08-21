@@ -33,6 +33,8 @@ function confirmEnrollment(classId, enrollmentRequestId) {
                         data["connectedclass"]
                     )
                 );
+
+                filterAll();
             }
         }
     }).fail((err) => {
@@ -71,8 +73,11 @@ function removeEnrollment(classId, enrollmentId) {
     });
 }
 
-function buildEnrollmentCard(studentName, studentEmail, enrollmentId, classId) {
-    let div = $("<div></div>", { id: `enrollment-${enrollmentId}` });
+function buildEnrollmentCard(studentName, studentEmail, enrollmentId, classId, herdId) {
+    let div = $("<div></div>", {
+        id: `enrollment-${enrollmentId}`,
+        class: ["grid-auto-row", "gap", "box-shadow"].join(" ")
+    });
     let p = $("<p></p>");
     p.text(`${studentName} (${studentEmail})`);
 
@@ -80,17 +85,26 @@ function buildEnrollmentCard(studentName, studentEmail, enrollmentId, classId) {
     button.click(() => { removeEnrollment(classId, enrollmentId); });
     button.text("Remove");
 
+    let a = $("<a></a>", {
+        class: ["as-btn", "pad", "background-green", "border-radius"].join(" "),
+        href: `/class/${classId}/herd/${herdId}`,
+        autofilter: true,
+    });
+    a.text("View <herd>");
+
     div.append(p);
+    div.append(a);
     div.append(button);
     return div;
 }
 
 function buildEnrollmentRequestCard(studentName, studentEmail, enrollmentRequestId, classId) {
-    let div = $("<div></div>", { id: `enrollment-request-${enrollmentRequestId}` });
+    let div = $("<div></div>", {
+        id: `enrollment-request-${enrollmentRequestId}`,
+        class: ["grid-auto-row", "gap", "box-shadow"].join(" ")
+    });
     let p = $("<p></p>");
     p.text(`${studentName} (${studentEmail})`);
-
-    let div2 = $("<div></div>", { class: ["gap", "flex"].join(" ") });
 
     let button1 = $("<button></button>", { class: ["as-btn", "pad", "background-green", "border-radius"].join(" ") });
     button1.click(() => { confirmEnrollment(classId, enrollmentRequestId); });
@@ -100,11 +114,10 @@ function buildEnrollmentRequestCard(studentName, studentEmail, enrollmentRequest
     button2.click(() => { denyEnrollment(classId, enrollmentRequestId); });
     button2.text("Deny");
 
-    div2.append(button1);
-    div2.append(button2);
 
     div.append(p);
-    div.append(div2);
+    div.append(button1);
+    div.append(button2);
     return div;
 }
 
@@ -116,7 +129,8 @@ async function loadEnrollmentList(enrollments) {
                 e["student"]["name"],
                 e["student"]["email"],
                 e["id"],
-                e["connectedclass"]
+                e["connectedclass"],
+                e["herd"]
             )
         );
     });
@@ -132,4 +146,5 @@ async function loadEnrollmentList(enrollments) {
     });
 
     clearLoadingSymbol("enrollments");
+    filterAll();
 }

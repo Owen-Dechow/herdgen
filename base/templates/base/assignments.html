@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+<link rel="stylesheet" href="{% static 'css/assignments.css' %}" type="text/css">
+{% endblock head %}
+
+{% block main %}
+
+<h1 class="margin-auto">Assignments</h1>
+<div class="grid-auto-col gap pad margin-auto assignments">
+    <div class="grid-auto-row gap">
+        <div class="assignment-name"></div>
+        {% for enrollment in enrollments %}
+        <div>{{enrollment.student.get_full_name}}</div>
+        {% endfor %}
+    </div>
+
+    {% for assignment, assignment_steps, fulfillments in assignments %}
+    <div class="grid-auto-row gap">
+        <div class="assignment-name">
+            {{assignment.name}}
+        </div>
+        {% for fulfillment in fulfillments %}
+        {% if fulfillment.current_step > assignment_steps %}
+        <div class="complete">Y</div>
+        {% elif assignment.duedate > current_date %}
+        <div class="inprogress">-</div>
+        {% else %}
+        <div class="missed">X</div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+<form class="std-form margin-auto" method="POST">
+    <h2>New Assignment</h2>
+    {% csrf_token %}
+    {{form}}
+    <button class="as-btn pad background-green border-radius">Create Assignment</button>
+</form>
+
+
+
+{% endblock main %}

@@ -50,19 +50,32 @@ class HerdAuth:
         def __init__(self, herd: models.Herd):
             self.herd = herd
 
+    class EnrollmentHerdAsTeacher:
+        def __init__(self, herd: models.Herd):
+            self.herd = herd
+
 
 def auth_herd(
     class_auth: ClassAuth.Student | ClassAuth.Teacher,
     herdid: int,
-) -> HerdAuth.ClassHerd | HerdAuth.StarterHerd | HerdAuth.EnrollmentHerd:
-    herd = get_object_or_404(models.Herd.objects, id=herdid)
-
+) -> (
+    HerdAuth.ClassHerd
+    | HerdAuth.StarterHerd
+    | HerdAuth.EnrollmentHerd
+    | HerdAuth.EnrollmentHerdAsTeacher
+):
     connectedclass = class_auth.connectedclass
+    herd = get_object_or_404(
+        models.Herd.objects, id=herdid, connectedclass=connectedclass
+    )
+
     if connectedclass.class_herd == herd:
         return HerdAuth.ClassHerd(herd)
     elif connectedclass.starter_herd == herd:
         return HerdAuth.StarterHerd(herd)
     elif type(class_auth) is ClassAuth.Student and class_auth.enrollment.herd == herd:
         return HerdAuth.EnrollmentHerd(herd)
+    elif type(class_auth) is ClassAuth.Teacher and herd.enrollment:
+        return HerdAuth.EnrollmentHerdAsTeacher(herd)
     else:
         raise Http404("User does not have access to this herd")
