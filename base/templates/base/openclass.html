@@ -19,8 +19,12 @@
         <h1>{{class.name}}</h1>
         <p>Professor: {{class.teacher.get_full_name}} ({{class.teacher.email}})</p>
 
+        {{form}}
+
+
         {% if class.teacher == user %}
         <fieldset class="grid-auto-row gap">
+            <legend>Management</legend>
             <a class="as-btn full-width background-light-grey pad border-radius" href="/class/{{class.id}}/enrollments">
                 Enrollments
             </a>
@@ -28,9 +32,17 @@
                 Assignments
             </a>
         </fieldset>
+        <fieldset class="grid-auto-row gap">
+            <legend>Charts</legend>
+            <a class="as-btn full-width background-light-grey pad border-radius" href="/class/{{class.id}}/get-trend-chart">
+                Download Trend Chart
+            </a>
+            <a class="as-btn full-width background-light-grey pad border-radius" href="/class/{{class.id}}/get-animal-chart">
+                Download Animal Chart
+            </a>
+        </fieldset>
         {% endif %}
 
-        {{form}}
 
         <fieldset class="grid-auto-row gap">
             <legend>
@@ -48,7 +60,6 @@
                 {% auto_filter_text class.starter_herd.name %}
             </a>
         </fieldset>
-
 
         {% if class.teacher == user %}
         <button type="submit" class="full-width pad background-green as-btn border-radius">Update</button>

@@ -67,6 +67,7 @@ function loadSortOptions() {
     $("#sort-options").append(createSortOptionCard("Id", `id`));
     $("#sort-options").append(createSortOptionCard("Generation", `generation`));
     $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
+    $("#sort-options").append(createSortOptionCard("Net Merit", `NM$`));
 
 
     let traits = Herd["summary"]["genotype"];
@@ -108,6 +109,8 @@ function showSummary() {
     info.html("");
 
     info.append(createInfoCard("Name", Herd["name"]));
+    info.append(createInfoCard("Net Merit", "$" + Herd["summary"]["NM$"]));
+
     for (let g in Herd["summary"]["genotype"]) {
         info.append(createInfoCard(`<${g}>`, Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"]));
     }
@@ -129,12 +132,14 @@ function animalSelected(animal, classId, herdId) {
         let div = $("<div></div>", { class: "pad-small" });
         button.text("Save");
         button.click(() => {
-            let savedMales = getCookie("savedMales" + classId);
+            let cookie = "savedMales" + classId;
+            let savedMales = getCookie(cookie);
             if (savedMales) {
                 savedMales += "," + animal["id"];
                 alert(`${animal["id"]} saved`);
             } else {
                 savedMales = animal["id"];
+                alert(`${animal["id"]} saved`);
             }
             setCookie("savedMales" + classId, savedMales, 10);
         });
@@ -182,7 +187,8 @@ function animalSelected(animal, classId, herdId) {
     info.append(createInfoCard("Generation", animal["generation"]));
     info.append(createInfoCard("Sire", animal["sire"] ? animal["sire"] : "N/A"));
     info.append(createInfoCard("Dam", animal["dam"] ? animal["dam"] : "N/A"));
-    info.append(createInfoCard("Inbreeding Percentage", "%" + animal["inbreeding"] * 100));
+    info.append(createInfoCard("Inbreeding Percentage", animal["inbreeding"] * 100 + "%"));
+    info.append(createInfoCard("Net Merit", "$" + animal["NM$"]));
 
     for (let g in animal["genotype"]) {
         info.append(createInfoCard(`<${g}> `, animal["genotype"][g] * Filter[g]["standard_deviation"]));
@@ -208,10 +214,10 @@ function animalSelected(animal, classId, herdId) {
     filterAll();
 }
 
-function resortAnimals(herdId) {
+function resortAnimals(classId, herdId) {
     let sortKey = $("#sort-options").val().split(",");
     let reversed = $("#sort-order").val() === "ascending";
-    loadHerd(sortKey, reversed, herdId);
+    loadHerd(sortKey, reversed, classId, herdId);
     filterAll();
 }
 
@@ -379,15 +385,15 @@ async function validateMalesForBreeding(classId, herdId) {
 }
 
 function loadSavedMales(classId, herdId) {
-    let savedMales = getCookie("savedMales" + classId);
-    console.log(savedMales);
+    let cookie = "savedMales" + classId;
+    let savedMales = getCookie(cookie);
     if (savedMales) {
         savedMales.split(",").forEach(e => {
             addMaleForBreeding(classId, herdId, e);
         });
+    } else {
+        alert("None saved");
     }
-
-    window.setTimeout(() => { alert("Load successful"); }, 1000);
 }
 
 function clearSavedMales(classId) {

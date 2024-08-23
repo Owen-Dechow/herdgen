@@ -1,4 +1,5 @@
 from django.http import (
+    FileResponse,
     Http404,
     HttpRequest,
     HttpResponseRedirect,
@@ -6,20 +7,28 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
+
 from django.db import transaction
 from django.views.decorators.http import require_POST
+
+from .templatetags.animal_filters import filter_text_to_default
+from base.traitsets.traitset import Traitset
 from . import forms
 from . import models
 from .views_utils import HerdAuth, auth_class, ClassAuth, auth_herd
 from django.utils.timezone import now
+from . import csv
 
 
 # Create your views here.
 def homepage(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
-        owned_classes = models.Class.objects.filter(teacher=request.user)
+        owned_classes = models.Class.objects.select_related("teacher").filter(
+            teacher=request.user
+        )
         enrollments = models.Enrollment.objects.select_related("connectedclass").filter(
             student=request.user
         )
@@ -74,17 +83,21 @@ def createclass(request: HttpRequest) -> HttpResponse:
 @transaction.atomic
 @login_required
 def openclass(request: HttpRequest, classid: int) -> HttpResponse:
-    class_auth = auth_class(request, classid)
+    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
     connectedclass = class_auth.connectedclass
 
     if type(class_auth) is ClassAuth.Teacher:
         enrollment = None
         if request.method == "POST":
-            form = forms.UpdateClassForm(request.POST, instance=connectedclass)
+            form = forms.UpdateClassForm(
+                class_auth.connectedclass, request.POST, instance=connectedclass
+            )
             if form.is_valid():
                 form.save()
         else:
-            form = forms.UpdateClassForm(instance=connectedclass)
+            form = forms.UpdateClassForm(
+                class_auth.connectedclass, instance=connectedclass
+            )
 
     elif type(class_auth) is ClassAuth.Student:
         enrollment = class_auth.enrollment
@@ -211,6 +224,109 @@ def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     return HttpResponseRedirect("/")
 
 
+@login_required
+def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) is not ClassAuth.Teacher:
+        raise HttpRequest("Must be teacher to get trend chart")
+
+    traitset = Traitset(class_auth.connectedclass.traitset)
+    headers = (
+        ["Time Stamp", "Population Size", "Net Merit $"]
+        + [
+            filter_text_to_default(f"<{x.uid}>", class_auth.connectedclass)
+            for x in traitset.traits
+        ]
+        + [
+            filter_text_to_default(f"ph: <{x.uid}>", class_auth.connectedclass)
+            for x in traitset.traits
+        ]
+    )
+    data = []
+    for row in class_auth.connectedclass.trend_log:
+        data.append(
+            [
+                row[models.Class.TIME_STAMP_KEY],
+                row[models.Class.POPULATION_SIZE_KEY],
+                row[models.Animal.DataKeys.NetMerit.value],
+            ]
+            + [row["genotype"][x.uid] for x in traitset.traits]
+            + [row["phenotype"][x.uid] for x in traitset.traits]
+        )
+
+    return csv.create_csv_response("tendlog.csv", headers, data)
+
+
+@login_required
+def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) is not ClassAuth.Teacher:
+        raise HttpRequest("Must be teacher to get animal chart")
+
+    traitset = Traitset(class_auth.connectedclass.traitset)
+    DataKeys = models.Animal.DataKeys
+
+    headers = (
+        [
+            "Id",
+            "Name",
+            "Herd",
+            "Class",
+            "Generation",
+            "Sex",
+            "Sire",
+            "Dam",
+            "Inbreeding Percent",
+            "Net Merit $",
+        ]
+        + [
+            filter_text_to_default(f"<{x.uid}>", class_auth.connectedclass)
+            for x in traitset.traits
+        ]
+        + [
+            filter_text_to_default(f"ph: <{x.uid}>", class_auth.connectedclass)
+            for x in traitset.traits
+        ]
+        + [
+            filter_text_to_default(f"<{x.uid}>", class_auth.connectedclass)
+            for x in traitset.recessives
+        ]
+    )
+    data_row_order = (
+        [
+            DataKeys.Id,
+            DataKeys.Name,
+            DataKeys.HerdName,
+            DataKeys.ClassName,
+            DataKeys.Generation,
+            DataKeys.Sex,
+            DataKeys.SireId,
+            DataKeys.DamId,
+            DataKeys.InbreedingPercentage,
+            DataKeys.NetMerit,
+        ]
+        + [(DataKeys.Genotype, x.uid) for x in traitset.traits]
+        + [(DataKeys.Phenotype, x.uid) for x in traitset.traits]
+        + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
+    )
+    data = []
+    for animal in models.Animal.objects.select_related("herd", "connectedclass").filter(
+        connectedclass=class_auth.connectedclass
+    ):
+        row = []
+        for key in data_row_order:
+            value = animal.resolve_data_key(key)
+            if type(value) is str:
+                value = filter_text_to_default(value, class_auth.connectedclass)
+
+            row.append(value)
+        data.append(row)
+
+    return csv.create_csv_response("animal-chart.csv", headers, data)
+
+
 @transaction.atomic
 @login_required
 def joinclass(request: HttpRequest) -> HttpResponse:
@@ -232,8 +348,8 @@ def requestedclass(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def openherd(request: HttpRequest, classid: int, herdid: int) -> HttpResponse:
-    class_auth = auth_class(request, classid)
-    herd_auth = auth_herd(class_auth, herdid)
+    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
+    herd_auth = auth_herd(class_auth, herdid, "enrollment")
 
     context = {}
     if type(class_auth) is ClassAuth.Student:
@@ -258,13 +374,13 @@ def get_enrollments(request: HttpRequest, classid: int) -> JsonResponse:
     json = {
         "enrollments": [
             x.json_dict()
-            for x in models.Enrollment.objects.filter(
+            for x in models.Enrollment.objects.select_related("student").filter(
                 connectedclass=class_auth.connectedclass
             )
         ],
         "enrollment_requests": [
             x.json_dict()
-            for x in models.EnrollmentRequest.objects.filter(
+            for x in models.EnrollmentRequest.objects.select_related("student").filter(
                 connectedclass=class_auth.connectedclass
             )
         ],
@@ -275,15 +391,16 @@ def get_enrollments(request: HttpRequest, classid: int) -> JsonResponse:
 
 @login_required
 def get_herd(request: HttpRequest, classid: int, herdid: int) -> JsonResponse:
-    class_auth = auth_class(request, classid)
+    class_auth = auth_class(request, classid, "class_herd", "starter_herd")
     herd_auth = auth_herd(class_auth, herdid)
+    json = herd_auth.herd.json_dict()
 
-    return JsonResponse(herd_auth.herd.json_dict())
+    return JsonResponse(json)
 
 
 @login_required
 def get_assignments(request: HttpRequest, classid: int, herdid: int) -> JsonResponse:
-    class_auth = auth_class(request, classid)
+    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
     herd_auth = auth_herd(class_auth, herdid)
 
     if type(herd_auth) is not HerdAuth.EnrollmentHerd:
@@ -318,8 +435,8 @@ def get_breeding_validation(
 @require_POST
 def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseRedirect:
     form = forms.BreedHerd(request.POST)
-    class_auth = auth_class(request, classid)
-    herd_auth = auth_herd(class_auth, herdid)
+    class_auth = auth_class(request, classid, "class_herd", "starter_herd")
+    herd_auth = auth_herd(class_auth, herdid, "connectedclass")
 
     if type(class_auth) is not ClassAuth.Student:
         raise Http404("Must be student to breed herd")
@@ -328,7 +445,26 @@ def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseR
         raise Http404("Must be enrollment herd to breed")
 
     if form.is_valid(class_auth):
-        form.save(class_auth, herd_auth)
+        breeding_results = form.save(herd_auth)
+
+        if breeding_results.age_deaths == 1:
+            messages.info(request, "There was one death due to old age.")
+        else:
+            messages.info(
+                request,
+                f"There were {breeding_results.age_deaths} deaths due to old age.",
+            )
+
+        if breeding_results.recessive_deaths == 1:
+            messages.info(
+                request, "There was one death due to undesirable genetic recessives."
+            )
+        else:
+            messages.info(
+                request,
+                f"There were {breeding_results.recessive_deaths} deaths due to undesirable genetic recessives.",
+            )
+
         return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
     else:
         raise Http404(f"Breeding is invalid: {form.errors}")

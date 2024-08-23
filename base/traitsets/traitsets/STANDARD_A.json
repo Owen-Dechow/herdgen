@@ -1,15 +1,15 @@
 {
     "traits": [
         {
+            "_": "PL",
             "uid": "t1",
-            "user_key": "PL",
             "heritability": 0.08,
-            "net_merit_dollars": 34,
+            "net_merit_dollars": 57.8,
             "inbreeding_depression_percentage": -0.28
         },
         {
+            "_": "Type",
             "uid": "t2",
-            "user_key": "Type",
             "heritability": 0.25,
             "net_merit_dollars": 0,
             "inbreeding_depression_percentage": 0
@@ -37,14 +37,14 @@
     ],
     "recessives": [
         {
+            "_": "CR",
             "uid": "r1",
-            "user_key": "CR",
             "fatal": true,
             "prevalence_percent": 10
         },
         {
+            "_": "RED",
             "uid": "r2",
-            "user_key": "RED",
             "fatal": false,
             "prevalence_percent": 20
         }
@@ -53,24 +53,20 @@
         "Bovine (Holstein)": {
             "traits": {
                 "t1": {
-                    "abbreviation": "PL",
-                    "full_name": "Productive Life",
+                    "name": "Productive Life",
                     "standard_deviation": 1.7
                 },
                 "t2": {
-                    "abbreviation": "TYPE",
-                    "full_name": "Type",
+                    "name": "Type",
                     "standard_deviation": 1
                 }
             },
             "recessives": {
                 "r1": {
-                    "abbreviation": "CR",
-                    "full_name": "Calf Recumbency"
+                    "name": "Calf Recumbency"
                 },
                 "r2": {
-                    "abbreviation": "RED",
-                    "full_name": "Red"
+                    "name": "Red"
                 }
             },
             "herd": "herd",

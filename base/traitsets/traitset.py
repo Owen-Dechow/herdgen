@@ -11,23 +11,21 @@ TRAITS_KEY = "traits"
 GENOTYPE_CORRELATIONS_KEY = "genotype_correlations"
 PHENOTYPE_CORRELATIONS_KEY = "phenotype_correlations"
 RECESSIVES_KEY = "recessives"
-ANIMALS_KEY = "animals"
 UID_KEY = "uid"
-USER_KEY_KEY = "user_key"
-STANDARD_DEVIATION_KEY = "standard_deviation"
 HERITABILITY_KEY = "heritability"
 NET_MERIT_DOLLARS_KEY = "net_merit_dollars"
 INBREEDING_DEPRESSION_PERCENTAGE_KEY = "inbreeding_depression_percentage"
-FATAL_KEY = "fatal"
 PREVALENCE_PERCENT_KEY = "prevalence_percent"
-ABBREVIATION_KEY = "abbreviation"
-FULL_NAME_KEY = "full_name"
+FATAL_KEY = "fatal"
 
+ANIMALS_KEY = "animals"
+NAME_KEY = "name"
 HERD_KEY = "herd"
 MALE_KEY = "male"
 FEMALE_KEY = "female"
 SIRE_KEY = "sire"
 DAM_KEY = "dam"
+STANDARD_DEVIATION_KEY = "standard_deviation"
 
 HERDS_KEY = "herds"
 MALES_KEY = "males"
@@ -41,22 +39,18 @@ HOMOZYGOUS_FREE_KEY = "ho(f)"
 
 
 class RecessiveAnimalFilter:
-    abbreviation: str
-    full_name: str
+    name: str
 
-    def __init__(self, abbreviation: str, full_name: str):
-        self.abbreviation = abbreviation
-        self.full_name = full_name
+    def __init__(self, name: str):
+        self.name = name
 
 
 class TraitAnimalFilter:
-    abbreviation: str
-    full_name: str
+    name: str
     standard_deviation: float
 
-    def __init__(self, abbreviation: str, full_name: str, standard_deviation: float):
-        self.abbreviation = abbreviation
-        self.full_name = full_name
+    def __init__(self, name: str, standard_deviation: float):
+        self.name = name
         self.standard_deviation = standard_deviation
 
 
@@ -99,7 +93,6 @@ class TraitsetAnimalFilter:
 
 class Trait:
     uid: str
-    user_key: str
     heritability: str
     net_merit_dollars: float
     inbreeding_depression_percentage: float
@@ -108,14 +101,12 @@ class Trait:
     def __init__(
         self,
         uid: str,
-        user_key: str,
         heritability: str,
         net_merit_dollars: float,
         inbreeding_depression_percentage: float,
         animals: dict[str, TraitAnimalFilter],
     ):
         self.uid = uid
-        self.user_key = user_key
         self.heritability = heritability
         self.net_merit_dollars = net_merit_dollars
         self.inbreeding_depression_percentage = inbreeding_depression_percentage
@@ -151,7 +142,6 @@ class Trait:
 
 class Recessive:
     uid: str
-    user_key: str
     fatal: bool
     prevalence_percent: float
     animals: dict[str, RecessiveAnimalFilter]
@@ -159,13 +149,11 @@ class Recessive:
     def __init__(
         self,
         uid: str,
-        user_key: str,
         fatal: bool,
         prevalence_percent: float,
         animals: dict[str, RecessiveAnimalFilter],
     ):
         self.uid = uid
-        self.user_key = user_key
         self.fatal = fatal
         self.prevalence_percent = prevalence_percent
         self.animals = animals
@@ -226,14 +214,12 @@ class Traitset:
         traits = [
             Trait(
                 x[UID_KEY],
-                x[USER_KEY_KEY],
                 x[HERITABILITY_KEY],
                 x[NET_MERIT_DOLLARS_KEY],
                 x[INBREEDING_DEPRESSION_PERCENTAGE_KEY],
                 {
                     key: TraitAnimalFilter(
-                        val[TRAITS_KEY][x[UID_KEY]][ABBREVIATION_KEY],
-                        val[TRAITS_KEY][x[UID_KEY]][FULL_NAME_KEY],
+                        val[TRAITS_KEY][x[UID_KEY]][NAME_KEY],
                         val[TRAITS_KEY][x[UID_KEY]][STANDARD_DEVIATION_KEY],
                     )
                     for key, val in animals_dict.items()
@@ -244,13 +230,11 @@ class Traitset:
         recessives = [
             Recessive(
                 x[UID_KEY],
-                x[USER_KEY_KEY],
                 x[FATAL_KEY],
                 x[PREVALENCE_PERCENT_KEY],
                 {
                     key: RecessiveAnimalFilter(
-                        val[RECESSIVES_KEY][x[UID_KEY]][ABBREVIATION_KEY],
-                        val[RECESSIVES_KEY][x[UID_KEY]][FULL_NAME_KEY],
+                        val[RECESSIVES_KEY][x[UID_KEY]][NAME_KEY],
                     )
                     for key, val in animals_dict.items()
                 },
@@ -328,6 +312,13 @@ class Traitset:
             trait.uid: val
             for trait, val in zip(self.traits, correlated_values, strict=True)
         }
+
+    def derive_net_merit_from_genotype(self, genotype: dict[str, float]) -> float:
+        net_merit = 0
+        for trait in self.traits:
+            net_merit += trait.net_merit_dollars * genotype[trait.uid]
+
+        return net_merit
 
     def get_random_recessives(self) -> dict[str, str]:
         return {x.uid: x.get_random() for x in self.recessives}

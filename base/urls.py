@@ -18,6 +18,8 @@ urlpatterns = [
         views.delete_assignment,
     ),
     path("class/<int:classid>/delete", views.deleteclass),
+    path("class/<int:classid>/get-trend-chart", views.get_trend_chart),
+    path("class/<int:classid>/get-animal-chart", views.get_animal_chart),
     path("class/<int:classid>/get-enrollments", views.get_enrollments),
     path(
         "class/<int:classid>/enrollments/<int:enrollmentid>/remove",

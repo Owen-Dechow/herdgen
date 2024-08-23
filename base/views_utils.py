@@ -20,17 +20,20 @@ class ClassAuth:
 
 
 def auth_class(
-    request: HttpRequest,
-    classid: int,
+    request: HttpRequest, classid: int, *related: str
 ) -> ClassAuth.Teacher | ClassAuth.Student:
-    connectedclass = get_object_or_404(models.Class.objects, id=classid)
+    connectedclass = get_object_or_404(
+        models.Class.objects.select_related("teacher", *related), id=classid
+    )
 
     if connectedclass.teacher == request.user:
         return ClassAuth.Teacher(connectedclass)
     else:
         return ClassAuth.Student(
             get_object_or_404(
-                models.Enrollment.objects,
+                models.Enrollment.objects.select_related(
+                    *["connectedclass__" + x for x in related]
+                ),
                 connectedclass=connectedclass,
                 student=request.user,
             )
@@ -56,8 +59,7 @@ class HerdAuth:
 
 
 def auth_herd(
-    class_auth: ClassAuth.Student | ClassAuth.Teacher,
-    herdid: int,
+    class_auth: ClassAuth.Student | ClassAuth.Teacher, herdid: int, *related: str
 ) -> (
     HerdAuth.ClassHerd
     | HerdAuth.StarterHerd
@@ -66,7 +68,9 @@ def auth_herd(
 ):
     connectedclass = class_auth.connectedclass
     herd = get_object_or_404(
-        models.Herd.objects, id=herdid, connectedclass=connectedclass
+        models.Herd.objects.select_related(*related),
+        id=herdid,
+        connectedclass=connectedclass,
     )
 
     if connectedclass.class_herd == herd:

@@ -2,6 +2,8 @@ from json import dumps
 from django import template
 from django.utils.safestring import mark_safe, SafeText
 from typing import Any
+
+from .. import models
 from ..traitsets import Traitset
 from ..traitsets.traitset import TraitsetAnimalFilter
 
@@ -13,7 +15,10 @@ class ContextCast:
     animal: str
     animalfilter: TraitsetAnimalFilter
 
-    def __init__(self, context: dict[str, Any]):
+    def __init__(self, context: dict[str, Any] | None):
+        if context is None:
+            return
+
         if enrollment := context.get("enrollment", None):
             self.traitset = Traitset(enrollment.connectedclass.traitset)
             self.animal = enrollment.animal
@@ -28,9 +33,17 @@ class ContextCast:
 
         self.animalfilter = self.traitset.animals[self.animal]
 
+    @classmethod
+    def from_class(cls, connectedclass: models.Class) -> "ContextCast":
+        new = cls(None)
 
-def get_filter_dict(context: dict[str, Any]) -> dict[str, dict[str, str] | str]:
-    contextcast = ContextCast(context)
+        new.traitset = Traitset(connectedclass.traitset)
+        new.animal = connectedclass.default_animal
+        new.animalfilter = new.traitset.animals[new.animal]
+        return new
+
+
+def get_filter_dict(contextcast: ContextCast) -> dict[str, dict[str, str] | str]:
     filter_dict = {
         "herds": contextcast.animalfilter.herds,
         "herd": contextcast.animalfilter.herd,
@@ -54,16 +67,14 @@ def get_filter_dict(context: dict[str, Any]) -> dict[str, dict[str, str] | str]:
         filter_dict
         | {
             x.uid: {
-                "abbreviation": x.animals[contextcast.animal].abbreviation,
-                "full_name": x.animals[contextcast.animal].full_name,
+                "name": x.animals[contextcast.animal].name,
                 "standard_deviation": x.animals[contextcast.animal].standard_deviation,
             }
             for x in contextcast.traitset.traits
         }
         | {
             x.uid: {
-                "abbreviation": x.animals[contextcast.animal].abbreviation,
-                "full_name": x.animals[contextcast.animal].full_name,
+                "name": x.animals[contextcast.animal].name,
             }
             for x in contextcast.traitset.recessives
         }
@@ -73,14 +84,31 @@ def get_filter_dict(context: dict[str, Any]) -> dict[str, dict[str, str] | str]:
 
 @register.simple_tag(takes_context=True)
 def load_filter_dict(context: dict[str, Any]) -> SafeText:
-    return mark_safe(f"<script>var Filter = {dumps(get_filter_dict(context))}</script>")
+    contextcast = ContextCast(context)
+    return mark_safe(
+        f"<script>var Filter = {dumps(get_filter_dict(contextcast))}</script>"
+    )
 
 
 @register.simple_tag(takes_context=True)
 def auto_filter_text(context: dict[str, Any], text: str) -> str:
-    for key, val in get_filter_dict(context).items():
+    contextcast = ContextCast(context)
+
+    for key, val in get_filter_dict(contextcast).items():
         if type(val) is dict:
-            text = text.replace(f"<{key}>", val["full_name"])
+            text = text.replace(f"<{key}>", val["name"])
+        else:
+            text = text.replace(f"<{key}>", val)
+
+    return text
+
+
+def filter_text_to_default(text: str, connectedclass: models.Class):
+    contextcast = ContextCast.from_class(connectedclass)
+
+    for key, val in get_filter_dict(contextcast).items():
+        if type(val) is dict:
+            text = text.replace(f"<{key}>", val["name"])
         else:
             text = text.replace(f"<{key}>", val)
 

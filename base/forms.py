@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django import forms
 from django.http import Http404
 from typing import Optional
+from .templatetags.animal_filters import filter_text_to_default
 
 from base.views_utils import ClassAuth, HerdAuth, auth_herd
 from . import models
@@ -62,6 +63,7 @@ class UpdateClassForm(forms.ModelForm):
             "info",
             "default_animal",
             "allow_other_animals",
+            "net_merit_visibility",
         ]
 
     def clean_name(self):
@@ -72,16 +74,18 @@ class UpdateClassForm(forms.ModelForm):
 
         return name
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, connectedclass: models.Class, *args, **kwargs):
         super(UpdateClassForm, self).__init__(*args, **kwargs)
         traitset = Traitset(self.instance.traitset)
 
         trait_visibility_choices = [
-            (x.uid, f"{x.uid} ({x.user_key})") for x in traitset.traits
+            (x.uid, filter_text_to_default(f"<{x.uid}>", connectedclass))
+            for x in traitset.traits
         ]
 
         recessive_visibility_choices = [
-            (x.uid, f"{x.uid} ({x.user_key})") for x in traitset.recessives
+            (x.uid, filter_text_to_default(f"<{x.uid}>", connectedclass))
+            for x in traitset.recessives
         ]
 
         self.fields["genotype_visibility"] = forms.MultipleChoiceField(
@@ -265,12 +269,11 @@ class BreedHerd(forms.Form):
 
         return self.validate_assignment(class_auth)
 
-    def save(
-        self, class_auth: ClassAuth.Student, herd_auth: HerdAuth.EnrollmentHerd
-    ) -> None:
-        herd_auth.herd.breed_herd(self.validation_catch.males)
+    def save(self, herd_auth: HerdAuth.EnrollmentHerd) -> models.Herd.BreedingResults:
+        breeding_result = herd_auth.herd.breed_herd(self.validation_catch.males)
         self.validation_catch.assignment_fulfillment.current_step += 1
         self.validation_catch.assignment_fulfillment.save()
+        return breeding_result
 
 
 class SubmitAnimal(forms.Form):

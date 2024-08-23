@@ -22,6 +22,9 @@
 <div class=" main-content pad">
     <div>
         <h1 autofilter>{% auto_filter_text herd_auth.herd.name %}</h1>
+        {% for message in messages %}
+        <p>{{message}}</p>
+        {% endfor %}
         <div class="grid-auto-row gap">
             <button class="as-btn background-green pad border-radius" onclick="showSummary()">Show Summary</button>
             <details class="box-shadow border-radius hide" id="breed-herd">
@@ -49,14 +52,14 @@
                     <div class="grid-auto-row gap pad">
                         <div>
                             <label for="sort-order">Order:</label>
-                            <select id="sort-order" onchange="resortAnimals('{{herd_auth.herd.id}')">
+                            <select id="sort-order" onchange="resortAnimals('{{class.id}}', '{{herd_auth.herd.id}}')">
                                 <option value="ascending">Ascending</option>
                                 <option value="decending" selected>Decending</option>
                             </select>
                         </div>
                         <div>
                             <label for="sort-options">By:</label>
-                            <select id="sort-options" onchange="resortAnimals('{{herd_auth.herd.id}')">
+                            <select id="sort-options" onchange="resortAnimals('{{class.id}}', '{{herd_auth.herd.id}}')">
                             </select>
                         </div>
                     </div>

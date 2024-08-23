@@ -11,7 +11,7 @@ function filterAll() {
                 if (typeof val === "string") {
                     elem.textContent = elem.textContent.replace(search_key, val);
                 } else if (typeof val == "object") {
-                    elem.textContent = elem.textContent.replace(search_key, val["full_name"]);
+                    elem.textContent = elem.textContent.replace(search_key, val["name"]);
                 }
             }
         }
