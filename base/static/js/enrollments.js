@@ -76,7 +76,7 @@ function removeEnrollment(classId, enrollmentId) {
 function buildEnrollmentCard(studentName, studentEmail, enrollmentId, classId, herdId) {
     let div = $("<div></div>", {
         id: `enrollment-${enrollmentId}`,
-        class: ["grid-auto-row", "gap", "box-shadow"].join(" ")
+        class: ["grid-auto-row", "gap"].join(" ")
     });
     let p = $("<p></p>");
     p.text(`${studentName} (${studentEmail})`);
@@ -101,7 +101,7 @@ function buildEnrollmentCard(studentName, studentEmail, enrollmentId, classId, h
 function buildEnrollmentRequestCard(studentName, studentEmail, enrollmentRequestId, classId) {
     let div = $("<div></div>", {
         id: `enrollment-request-${enrollmentRequestId}`,
-        class: ["grid-auto-row", "gap", "box-shadow"].join(" ")
+        class: ["grid-auto-row", "gap"].join(" ")
     });
     let p = $("<p></p>");
     p.text(`${studentName} (${studentEmail})`);

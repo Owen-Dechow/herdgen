@@ -10,7 +10,7 @@
 }
 
 .header+* {
-    border-top: 2px solid var(--grey);
+    border-top: 2px solid var(--outlines);
 }
 
 
@@ -29,7 +29,7 @@
 }
 
 .animal-btn:nth-child(even) {
-    background-color: color-mix(in srgb, var(--light-grey) 90%, black)
+    background-color: color-mix(in srgb, var(--background-a) 90%, black)
 }
 
 .animal-btn:hover {
@@ -38,7 +38,7 @@
 
 .animal-btn.selected {
     background-color: var(--green);
-    color: var(--light-grey)
+    color: var(--text-b)
 }
 
 
@@ -51,7 +51,7 @@
 
 
 .info div:nth-child(even) {
-    background-color: color-mix(in srgb, var(--light-grey) 90%, black)
+    background-color: color-mix(in srgb, var(--background-a) 90%, black)
 }
 
 .assignments {
@@ -67,7 +67,7 @@
 }
 
 .assignment-steps span {
-    border: 3px solid var(--grey);
+    border: 3px solid var(--outlines);
     display: flex;
     position: relative;
     border-right: none;
@@ -79,7 +79,7 @@
 
 .assignment-steps .step:nth-last-child(2) {
     border-radius: 0 5px 5px 0;
-    border-right: 3px solid var(--grey);
+    border-right: 3px solid var(--outlines);
 }
 
 .assignment-steps .status {
@@ -88,7 +88,7 @@
 
 .assignment-steps .complete {
     background-color: var(--green);
-    color: var(--light-grey);
+    color: var(--text-b);
     border-color: var(--green);
 }
 

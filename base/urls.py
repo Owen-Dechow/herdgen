@@ -11,6 +11,10 @@ urlpatterns = [
     path("class/requested", views.requestedclass),
     path("class/<int:classid>", views.openclass),
     path("class/<int:classid>/enrollments", views.enrollments),
+    path(
+        "class/<int:classid>/enrollments/update",
+        views.update_enrollment,
+    ),
     path("class/<int:classid>/assignments", views.assignments),
     path("class/<int:classid>/assignments/<int:assignmentid>", views.openassignment),
     path(

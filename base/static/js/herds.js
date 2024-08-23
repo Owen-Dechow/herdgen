@@ -67,7 +67,7 @@ function loadSortOptions() {
     $("#sort-options").append(createSortOptionCard("Id", `id`));
     $("#sort-options").append(createSortOptionCard("Generation", `generation`));
     $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
-    $("#sort-options").append(createSortOptionCard("Net Merit", `NM$`));
+    $("#sort-options").append(createSortOptionCard("NM$", `NM$`));
 
 
     let traits = Herd["summary"]["genotype"];
@@ -109,7 +109,7 @@ function showSummary() {
     info.html("");
 
     info.append(createInfoCard("Name", Herd["name"]));
-    info.append(createInfoCard("Net Merit", "$" + Herd["summary"]["NM$"]));
+    info.append(createInfoCard("NM$", Herd["summary"]["NM$"]));
 
     for (let g in Herd["summary"]["genotype"]) {
         info.append(createInfoCard(`<${g}>`, Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"]));
@@ -188,7 +188,7 @@ function animalSelected(animal, classId, herdId) {
     info.append(createInfoCard("Sire", animal["sire"] ? animal["sire"] : "N/A"));
     info.append(createInfoCard("Dam", animal["dam"] ? animal["dam"] : "N/A"));
     info.append(createInfoCard("Inbreeding Percentage", animal["inbreeding"] * 100 + "%"));
-    info.append(createInfoCard("Net Merit", "$" + animal["NM$"]));
+    info.append(createInfoCard("NM$", animal["NM$"]));
 
     for (let g in animal["genotype"]) {
         info.append(createInfoCard(`<${g}> `, animal["genotype"][g] * Filter[g]["standard_deviation"]));
@@ -352,7 +352,7 @@ async function validateMalesForBreeding(classId, herdId) {
     let status = $("#malelist-validation-status");
     status.removeClass("background-red");
     status.removeClass("background-green");
-    status.addClass("background-dark-grey");
+    status.addClass("background-b");
     status.text("Validating...");
 
     let data = await $.ajax({
@@ -371,13 +371,13 @@ async function validateMalesForBreeding(classId, herdId) {
 
     if (data["status"] === "pass") {
         status.removeClass("background-red");
-        status.removeClass("background-dark-grey");
+        status.removeClass("background-b");
         status.addClass("background-green");
         MalesValidatedForBreeding = true;
         status.text("Valid");
     } else {
         status.addClass("background-red");
-        status.removeClass("background-dark-grey");
+        status.removeClass("background-b");
         status.removeClass("background-green");
         MalesValidatedForBreeding = false;
         status.text("Invalid");

@@ -392,3 +392,24 @@ class UpdateAssignment(forms.ModelForm):
     class Meta:
         fields = ["name", "startdate", "duedate"]
         model = models.Assignment
+
+
+class UpdateEnrollmentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(UpdateEnrollmentForm, self).__init__(*args, **kwargs)
+
+        if self.instance.connectedclass.allow_other_animals:
+            self.fields["animal"] = forms.ChoiceField(
+                label="Animal Filter",
+                choices=Traitset(self.instance.connectedclass.traitset).animal_choices,
+            )
+        else:
+            self.fields["animal"] = forms.ChoiceField(
+                label="Animal Filter",
+                choices=Traitset(self.instance.connectedclass.traitset).animal_choices,
+                disabled=True
+            )
+
+    class Meta:
+        model = models.Enrollment
+        fields = ["animal"]

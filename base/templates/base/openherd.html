@@ -37,9 +37,9 @@
                     {% csrf_token %}
                     <div class="grid-auto-row gap">
                         <div id="malelist" class="malelist grid-auto-row gap pad"></div>
-                        <button onclick="addMaleForBreeding('{{class.id}}', '{{herd_auth.herd.id}}')" type="button" class="as-btn pad border-radius background-light-grey">Add New {% auto_filter_text "<Male>" %}</button>
-                        <button onclick="loadSavedMales('{{class.id}}', '{{herd_auth.herd.id}}')" type="button" class="as-btn pad border-radius background-light-grey">Load Saved {% auto_filter_text "<Males>" %}</button>
-                        <button onclick="clearSavedMales('{{class.id}}')" type="button" class="as-btn pad border-radius background-light-grey">Clear Saved {% auto_filter_text "<Males>" %}</button>
+                        <button onclick="addMaleForBreeding('{{class.id}}', '{{herd_auth.herd.id}}')" type="button" class="as-btn pad border-radius background-a">Add New {% auto_filter_text "<Male>" %}</button>
+                        <button onclick="loadSavedMales('{{class.id}}', '{{herd_auth.herd.id}}')" type="button" class="as-btn pad border-radius background-a">Load Saved {% auto_filter_text "<Males>" %}</button>
+                        <button onclick="clearSavedMales('{{class.id}}')" type="button" class="as-btn pad border-radius background-a">Clear Saved {% auto_filter_text "<Males>" %}</button>
                         <button type="submit" class="as-btn pad border-radius background-green">Breed {% auto_filter_text "<Herd>" %}</button>
                     </div>
                 </form>

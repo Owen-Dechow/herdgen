@@ -88,6 +88,7 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
 
     if type(class_auth) is ClassAuth.Teacher:
         enrollment = None
+        enrollment_form = None
         if request.method == "POST":
             form = forms.UpdateClassForm(
                 class_auth.connectedclass, request.POST, instance=connectedclass
@@ -102,12 +103,36 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
     elif type(class_auth) is ClassAuth.Student:
         enrollment = class_auth.enrollment
         form = forms.ClassReadonlyForm(instance=connectedclass)
+        enrollment_form = forms.UpdateEnrollmentForm(instance=enrollment)
 
     return render(
         request,
         "base/openclass.html",
-        {"class": connectedclass, "form": form, "enrollment": enrollment},
+        {
+            "class": connectedclass,
+            "form": form,
+            "enrollment": enrollment,
+            "enrollment_form": enrollment_form,
+        },
     )
+
+
+@require_POST
+@transaction.atomic
+@login_required
+def update_enrollment(request: HttpRequest, classid: int) -> HttpResponseRedirect:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) is not ClassAuth.Student:
+        raise Http404("Must be student to update filter")
+
+    form = forms.UpdateEnrollmentForm(request.POST, instance=class_auth.enrollment)
+    if form.is_valid():
+        form.save()
+    else:
+        raise Http404("Invalid enrollment update request")
+    
+    return HttpResponseRedirect(f"/class/{classid}")
 
 
 @login_required

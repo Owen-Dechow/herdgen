@@ -1,14 +1,17 @@
 :root {
-    --light-grey: #fafafa;
-    --dark-grey: #111;
+    --background-a: #fafafa;
+    --background-b: #111;
+    --text-a: var(--background-b);
+    --text-b: var(--background-a);
+    --shadow: #aaa;
+    --outlines: var(--shadow);
     --green: #0b0;
     --red: red;
-    --grey: #aaa;
 }
 
 body {
-    background-color: var(--light-grey);
-    color: var(--dark-grey);
+    background-color: var(--background-a);
+    color: var(--text-a);
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
 
@@ -90,7 +93,7 @@ loading-symbol {
 .as-btn:hover {
     text-decoration: none;
     filter: brightness(95%);
-    box-shadow: 2px 2px 5px var(--grey)
+    box-shadow: 2px 2px 5px var(--shadow)
 }
 
 .as-link {
@@ -115,25 +118,25 @@ loading-symbol {
     padding: 5px;
 }
 
-.background-dark-grey {
-    background-color: var(--dark-grey);
-    color: var(--light-grey);
+.background-a {
+    background-color: var(--background-a);
+    color: var(--text-a);
+    border: 1px solid var(--outlines);
+}
+
+.background-b {
+    background-color: var(--background-b);
+    color: var(--text-b);
 }
 
 .background-green {
     background-color: var(--green);
-    color: var(--light-grey);
+    color: var(--text-b);
 }
 
 .background-red {
     background-color: var(--red);
-    color: var(--light-grey);
-}
-
-.background-light-grey {
-    background-color: var(--light-grey);
-    color: var(--dark-grey);
-    border: 1px solid var(--grey);
+    color: var(--text-b);
 }
 
 .grid-auto-col {
@@ -173,7 +176,7 @@ loading-symbol {
 }
 
 .box-shadow {
-    box-shadow: 2px 2px 5px var(--grey)
+    box-shadow: 2px 2px 5px var(--shadow)
 }
 
 .pre-line {

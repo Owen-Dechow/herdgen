@@ -32,7 +32,7 @@ header {
     left: 50%;
     top: 50%;
     translate: -50% -75%;
-    color: var(--light-grey);
+    color: var(--text-b);
     font-size: 2rem;
 }
 

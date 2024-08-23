@@ -33,7 +33,7 @@
     <div class="classlist pad grid-auto-row gap">
         {% for class, assignments in classes.items %}
         <div class="class box-shadow border-radius">
-            <div class="toprow background-dark-grey">
+            <div class="toprow background-b">
                 <a class="pad display-inline full-width as-link" href="/class/{{class.id}}">
                     <h2>
                         {{class.name}}
@@ -53,7 +53,7 @@
         {% endfor %}
         {% for class in requested_classes %}
         <div class="class box-shadow border-radius">
-            <div class="pad background-dark-grey">
+            <div class="pad background-b">
                 Request: {{class.classcode}}
             </div>
             <div class="pad">You have not yet been accepted into this class.</div>

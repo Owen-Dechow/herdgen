@@ -4,15 +4,17 @@
             "_": "PL",
             "uid": "t1",
             "heritability": 0.08,
-            "net_merit_dollars": 57.8,
-            "inbreeding_depression_percentage": 0.476
+            "net_merit_dollars": 34,
+            "inbreeding_depression_percentage": -0.28,
+            "calculated_standard_deviation": 1.7
         },
         {
             "_": "Type",
             "uid": "t2",
             "heritability": 0.25,
             "net_merit_dollars": 0,
-            "inbreeding_depression_percentage": 0
+            "inbreeding_depression_percentage": 0,
+            "calculated_standard_deviation": 1
         }
     ],
     "genotype_correlations": [
@@ -53,7 +55,7 @@
         "Bovine (Holstein)": {
             "traits": {
                 "t1": {
-                    "name": "Productive Life",
+                    "name": "Productive Life (Years)",
                     "standard_deviation": 1.7
                 },
                 "t2": {
@@ -75,6 +77,36 @@
             "herds": "herds",
             "males": "bulls",
             "females": "cows",
+            "sire": "sire",
+            "sires": "sires",
+            "dam": "dam",
+            "dams": "dams"
+        },
+        "Dog": {
+            "traits": {
+                "t1": {
+                    "name": "Friendliness",
+                    "standard_deviation": 1
+                },
+                "t2": {
+                    "name": "Intelligence",
+                    "standard_deviation": 1
+                }
+            },
+            "recessives": {
+                "r1": {
+                    "name": "Curly Tail"
+                },
+                "r2": {
+                    "name": "Black"
+                }
+            },
+            "herd": "pack",
+            "male": "stud",
+            "female": "bitch",
+            "herds": "packs",
+            "males": "studs",
+            "females": "bitches",
             "sire": "sire",
             "sires": "sires",
             "dam": "dam",

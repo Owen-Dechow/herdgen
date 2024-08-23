@@ -16,7 +16,7 @@
 .std-form div {
     display: grid;
     grid-template-columns: 250px auto;
-    border-bottom: 1px solid var(--grey);
+    border-bottom: 1px solid var(--outlines);
     padding: 10px;
     margin: 10px;
     align-items: center;
@@ -29,7 +29,7 @@
     color: var(--red);
     font-weight: bold;
     padding: 5px;
-    border-left: 5px solid var(--grey);
+    border-left: 5px solid var(--outlines);
     grid-row: 2;
     grid-column: span 2;
     margin: 0;
@@ -38,7 +38,7 @@
 .std-form fieldset {
     grid-column: span 2;
     margin-bottom: 5px;
-    border: 1px solid var(--grey);
+    border: 1px solid var(--outlines);
 }
 
 .std-form fieldset div {

@@ -17,6 +17,7 @@ NET_MERIT_DOLLARS_KEY = "net_merit_dollars"
 INBREEDING_DEPRESSION_PERCENTAGE_KEY = "inbreeding_depression_percentage"
 PREVALENCE_PERCENT_KEY = "prevalence_percent"
 FATAL_KEY = "fatal"
+CALCULATED_STANDARD_DEVIATION_KEY = "calculated_standard_deviation"
 
 ANIMALS_KEY = "animals"
 NAME_KEY = "name"
@@ -96,6 +97,7 @@ class Trait:
     heritability: str
     net_merit_dollars: float
     inbreeding_depression_percentage: float
+    calculated_standard_deviation: float
     animals: dict[str, TraitAnimalFilter]
 
     def __init__(
@@ -104,12 +106,14 @@ class Trait:
         heritability: str,
         net_merit_dollars: float,
         inbreeding_depression_percentage: float,
+        calculated_standard_deviation: float,
         animals: dict[str, TraitAnimalFilter],
     ):
         self.uid = uid
         self.heritability = heritability
         self.net_merit_dollars = net_merit_dollars
         self.inbreeding_depression_percentage = inbreeding_depression_percentage
+        self.calculated_standard_deviation = calculated_standard_deviation
         self.animals = animals
 
     @classmethod
@@ -119,25 +123,40 @@ class Trait:
     def convert_genotype_to_phenotype(
         self, genotype: float, inbreeding_coefficient: float
     ) -> float:
-        phenotypic_variance = 2 / self.heritability
+
+        genotype = genotype * self.calculated_standard_deviation
+
+        phenotypic_variance = (
+            self.calculated_standard_deviation**2
+        ) / self.heritability
         residual_variance = phenotypic_variance * (1 - self.heritability)
         residual_standard_deviation = np.sqrt(residual_variance)
-        phenotype = genotype * 2 + Trait.mendelian_sample(
+        phenotype = genotype * 2 + self.mendelian_sample(
             scale=residual_standard_deviation
         )
         phenotype += (
             inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
         )
 
-        return phenotype
+        return phenotype / self.calculated_standard_deviation
 
     def get_from_breeding(
         self, sire_val: float, dam_val: float, mendelian_sample: float
     ) -> float:
-        parent_average = (sire_val + dam_val) / 2
+        sire_val = sire_val * self.calculated_standard_deviation
+        dam_val = dam_val * self.calculated_standard_deviation
+        mendelian_sample = mendelian_sample * self.calculated_standard_deviation
+
         scale = np.sqrt(2) / 2
-        scaled_mendelian_sample = scale * mendelian_sample
-        return parent_average + scaled_mendelian_sample
+        parent_average = (sire_val + dam_val) / 2
+        scaled_sample = scale * mendelian_sample
+        result = parent_average + scaled_sample
+
+        return result / self.calculated_standard_deviation
+
+    def get_net_merit_dollars(self, genotype: float):
+        genotype = genotype * self.calculated_standard_deviation
+        return genotype * self.net_merit_dollars
 
 
 class Recessive:
@@ -159,7 +178,7 @@ class Recessive:
         self.animals = animals
 
     def get_random(self) -> str:
-        alleles = [random() < self.prevalence_percent / 100 for _ in range(2)]
+        alleles = [random() * 100 < self.prevalence_percent for _ in range(2)]
 
         if all(alleles):
             return HOMOZYGOUS_CARRIER_KEY
@@ -217,6 +236,7 @@ class Traitset:
                 x[HERITABILITY_KEY],
                 x[NET_MERIT_DOLLARS_KEY],
                 x[INBREEDING_DEPRESSION_PERCENTAGE_KEY],
+                x[CALCULATED_STANDARD_DEVIATION_KEY],
                 {
                     key: TraitAnimalFilter(
                         val[TRAITS_KEY][x[UID_KEY]][NAME_KEY],
@@ -316,7 +336,7 @@ class Traitset:
     def derive_net_merit_from_genotype(self, genotype: dict[str, float]) -> float:
         net_merit = 0
         for trait in self.traits:
-            net_merit += trait.net_merit_dollars * genotype[trait.uid]
+            net_merit += trait.get_net_merit_dollars(genotype[trait.uid])
 
         return net_merit
 
