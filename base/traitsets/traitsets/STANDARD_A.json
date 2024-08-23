@@ -5,7 +5,7 @@
             "uid": "t1",
             "heritability": 0.08,
             "net_merit_dollars": 57.8,
-            "inbreeding_depression_percentage": -0.28
+            "inbreeding_depression_percentage": 0.476
         },
         {
             "_": "Type",
