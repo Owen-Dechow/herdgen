@@ -1,6 +1,0 @@
-[x] CSV Files
-[x] Fatal Recessives
-[x] Old Age
-[x] Full Name Only
-[x] Net Merit
-[x] Queries

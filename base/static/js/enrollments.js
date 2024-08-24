@@ -30,7 +30,8 @@ function confirmEnrollment(classId, enrollmentRequestId) {
                         data["student"]["name"],
                         data["student"]["email"],
                         data["id"],
-                        data["connectedclass"]
+                        data["connectedclass"],
+                        data["herd"]
                     )
                 );
 

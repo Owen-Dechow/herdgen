@@ -337,6 +337,12 @@ class Enrollment(models.Model):
         enrollment_request.delete()
         new.connectedclass.update_trend_log(save=False)
         new.connectedclass.decrement_enrollment_tokens()
+
+        assignment_fulfillments = []
+        for assignment in Assignment.objects.filter(connectedclass=new.connectedclass):
+            assignment_fulfillments.append(AssignmentFulfillment(assignment=assignment, enrollment=new))
+        AssignmentFulfillment.objects.bulk_create(assignment_fulfillments)
+
         return new
 
     def json_dict(self) -> dict[str, Any]:
