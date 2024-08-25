@@ -1,10 +1,11 @@
 <div align="center">
-    <h1 style="font-size:4em;">Herd Genetics</h1>
+    <img src="base/static/media/favicon.png" alt="favicon" height="100px">
 </div>
 
 <div align="center">
-    <img src="base/static/media/favicon.png" alt="favicon" height="100px">
+    <h1 style="font-size:4em;">Herd Genetics</h1>
 </div>
+
 
 [Herd Genetics](https://herdgenetics.com), a full stack web simulation, dedicated to teaching about animal genetics. ***Simulate breeding programs, focusing on PTAs, genetic recessives and inbreeding coefficients.*** Herd Genetics aims for accuracy of PTA/Trait correlations and trends. It is a classroom based system targeting group learning with every simulation belonging to a class.
 
