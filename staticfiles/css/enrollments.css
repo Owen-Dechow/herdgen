@@ -1,0 +1,13 @@
+.enrollments {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.enrollments div {
+    background-color: var(--prime);
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 10px;
+}

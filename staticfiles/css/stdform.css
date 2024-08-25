@@ -1,0 +1,70 @@
+.std-form .helptext {
+    display: none;
+}
+
+.std-form {
+    padding: 10px;
+    padding-bottom: 0;
+    max-width: 600px;
+}
+
+.std-form h1,
+.std-form h2 {
+    margin: 0;
+}
+
+.std-form div {
+    display: grid;
+    grid-template-columns: 250px auto;
+    border-bottom: 1px solid var(--outlines);
+    padding: 10px;
+    margin: 10px;
+    align-items: center;
+    grid-auto-rows: auto;
+    grid-auto-flow: row;
+}
+
+.std-form .errorlist {
+    list-style: none;
+    color: var(--red);
+    font-weight: bold;
+    padding: 5px;
+    border-left: 5px solid var(--outlines);
+    grid-row: 2;
+    grid-column: span 2;
+    margin: 0;
+}
+
+.std-form fieldset {
+    grid-column: span 2;
+    margin-bottom: 5px;
+    border: 1px solid var(--outlines);
+}
+
+.std-form fieldset div {
+    grid-template-columns: auto auto;
+}
+
+.std-form fieldset>div {
+    border-bottom: none;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0;
+}
+
+
+@media (max-width: 600px) {
+    .std-form div {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .std-form .errorlist {
+        grid-row: 2;
+        grid-column: 1;
+    }
+
+    .std-form fieldset div {
+        grid-template-columns: auto;
+    }
+}

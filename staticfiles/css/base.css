@@ -1,0 +1,198 @@
+:root {
+    --background-a: #fafafa;
+    --background-b: #111;
+    --text-a: var(--background-b);
+    --text-b: var(--background-a);
+    --shadow: #aaa;
+    --outlines: var(--shadow);
+    --green: #0b0;
+    --red: red;
+}
+
+body {
+    background-color: var(--background-a);
+    color: var(--text-a);
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+
+    display: flex;
+    min-height: 100dvh;
+    flex-direction: column;
+}
+
+nav {
+    position: sticky;
+    display: flex;
+    top: 0;
+    z-index: 1;
+    justify-content: space-between;
+}
+
+input {
+    padding: 5px;
+    font-size: 1em;
+}
+
+textarea {
+    padding: 5px;
+    resize: vertical;
+    font-size: 1em;
+}
+
+select {
+    padding: 5px;
+    font-size: 1em;
+}
+
+summary {
+    cursor: pointer;
+}
+
+main {
+    margin-bottom: 20px;
+}
+
+footer {
+    margin-top: auto;
+}
+
+loading-symbol {
+    --border-width: 5px;
+    --width: 30px;
+
+    border: var(--border-width) solid transparent;
+    border-top: var(--border-width) solid var(--green);
+    border-bottom: var(--border-width) solid var(--green);
+    border-radius: 50%;
+    width: var(--width);
+    height: var(--width);
+    animation: spin 1s ease-out infinite;
+    margin-inline: auto;
+    margin-block: 10px;
+    display: block;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.as-btn {
+    all: unset;
+    cursor: pointer;
+    transition: box-shadow .1s, filter .1s;
+    display: inline-block;
+
+}
+
+.as-btn:hover {
+    text-decoration: none;
+    filter: brightness(95%);
+    box-shadow: 2px 2px 5px var(--shadow)
+}
+
+.as-link {
+    all: unset;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.as-link:hover {
+    text-decoration: none;
+}
+
+.pad {
+    padding: 10px;
+}
+
+.gap {
+    gap: 10px
+}
+
+.pad-small {
+    padding: 5px;
+}
+
+.background-a {
+    background-color: var(--background-a);
+    color: var(--text-a);
+    border: 1px solid var(--outlines);
+}
+
+.background-b {
+    background-color: var(--background-b);
+    color: var(--text-b);
+}
+
+.background-green {
+    background-color: var(--green);
+    color: var(--text-b);
+}
+
+.background-red {
+    background-color: var(--red);
+    color: var(--text-b);
+}
+
+.grid-auto-col {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: auto;
+    grid-template-rows: 100%;
+}
+
+.grid-auto-row {
+    display: grid;
+    grid-auto-flow: row;
+    grid-auto-rows: auto;
+    grid-template-columns: 100%;
+}
+
+.center-text {
+    text-align: center;
+}
+
+.display-inline {
+    display: inline-block;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.border-radius {
+    border-radius: 5px;
+}
+
+.box-shadow {
+    box-shadow: 2px 2px 5px var(--shadow)
+}
+
+.pre-line {
+    white-space: pre-wrap;
+}
+
+.full-width {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.margin-auto {
+    margin-inline: auto;
+    width: fit-content;
+}
+
+.hide {
+    display: none;
+}

@@ -1,0 +1,108 @@
+.main-content {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 20px;
+}
+
+.header {
+    padding: 10px;
+    font-size: 1.5rem;
+}
+
+.header+* {
+    border-top: 2px solid var(--outlines);
+}
+
+
+.animal-select {
+    max-height: 50vh;
+    overflow-y: scroll;
+}
+
+.animal-btn {
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: var(--light-grey);
+    border: none;
+    color: inherit;
+    padding: 5px;
+}
+
+.animal-btn:nth-child(even) {
+    background-color: color-mix(in srgb, var(--background-a) 90%, black)
+}
+
+.animal-btn:hover {
+    filter: brightness(85%);
+}
+
+.animal-btn.selected {
+    background-color: var(--green);
+    color: var(--text-b)
+}
+
+
+.info div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+}
+
+
+.info div:nth-child(even) {
+    background-color: color-mix(in srgb, var(--background-a) 90%, black)
+}
+
+.assignments {
+    gap: 10px;
+    align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    padding: 5px;
+}
+
+.assignment-steps {
+    display: flex;
+}
+
+.assignment-steps span {
+    border: 3px solid var(--outlines);
+    display: flex;
+    position: relative;
+    border-right: none;
+}
+
+.assignment-steps .step:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.assignment-steps .step:nth-last-child(2) {
+    border-radius: 0 5px 5px 0;
+    border-right: 3px solid var(--outlines);
+}
+
+.assignment-steps .status {
+    border-color: transparent;
+}
+
+.assignment-steps .complete {
+    background-color: var(--green);
+    color: var(--text-b);
+    border-color: var(--green);
+}
+
+.malelist div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 5px;
+}
+
+.malelist-validation input {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.malelist-validation span {
+    border-radius: 5px 5px 0 0;
+}

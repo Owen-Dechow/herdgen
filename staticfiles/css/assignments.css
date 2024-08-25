@@ -1,0 +1,39 @@
+.complete,
+.inprogress,
+.missed {
+    display: block;
+    width: 1.25em;
+    aspect-ratio: 1/1;
+    background-color: var(--outlines);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-b);
+}
+
+
+.complete {
+    background-color: var(--green);
+}
+
+.missed {
+    background-color: var(--red);
+}
+
+.assignments {
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: auto;
+    white-space: nowrap;
+    padding-right: 50px;
+}
+
+.assignment-name {
+    height: 150px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    writing-mode: vertical-rl;
+    rotate: 200deg;
+    translate: 25px 0;
+}
