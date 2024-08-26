@@ -145,7 +145,15 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/auth/login"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+if env("TERMINAL_EMAIL", bool):
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.google.com"
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", str)
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", str)
 
 INTERNAL_IPS = [
     "127.0.0.1",
