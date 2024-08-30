@@ -69,6 +69,8 @@ def get_filter_dict(contextcast: ContextCast) -> dict[str, dict[str, str] | str]
             x.uid: {
                 "name": x.animals[contextcast.animal].name,
                 "standard_deviation": x.animals[contextcast.animal].standard_deviation,
+                "phenotype_average": x.animals[contextcast.animal].phenotype_average,
+                "unit": x.animals[contextcast.animal].unit,
             }
             for x in contextcast.traitset.traits
         }

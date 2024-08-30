@@ -116,7 +116,8 @@ function showSummary() {
     }
 
     for (let p in Herd["summary"]["phenotype"]) {
-        info.append(createInfoCard(`ph: <${p}>`, Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"]));
+        let phenotype = Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"];
+        info.append(createInfoCard(`ph: <${p}>`, phenotype + Filter[p]["unit"]));
     }
 
     filterAll();
@@ -195,7 +196,8 @@ function animalSelected(animal, classId, herdId) {
     }
 
     for (let p in animal["phenotype"]) {
-        info.append(createInfoCard(`ph: <${p}>`, animal["phenotype"][p] * Filter[p]["standard_deviation"]));
+        let phenotype = animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"];
+        info.append(createInfoCard(`ph: <${p}>`, phenotype + Filter[p]["unit"]));
     }
 
     for (let r in animal["recessives"]) {

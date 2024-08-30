@@ -249,75 +249,111 @@
             "traits": {
                 "MILK": {
                     "name": "MILK",
-                    "standard_deviation": 567.0
+                    "standard_deviation": 567.0,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "FAT": {
                     "name": "FAT",
-                    "standard_deviation": 25.0
+                    "standard_deviation": 25.0,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "PROT": {
                     "name": "PROT",
-                    "standard_deviation": 15.0
+                    "standard_deviation": 15.0,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "PL": {
                     "name": "PL",
-                    "standard_deviation": 1.7
+                    "standard_deviation": 1.7,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "SCS": {
                     "name": "SCS",
-                    "standard_deviation": 0.14
+                    "standard_deviation": 0.14,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "BWC": {
                     "name": "BWC",
-                    "standard_deviation": 0.76
+                    "standard_deviation": 0.76,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "UDC": {
                     "name": "UDC",
-                    "standard_deviation": 0.65
+                    "standard_deviation": 0.65,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "FLC": {
                     "name": "FLC",
-                    "standard_deviation": 0.53
+                    "standard_deviation": 0.53,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "DPR": {
                     "name": "DPR",
-                    "standard_deviation": 1.4
+                    "standard_deviation": 1.4,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "CA$": {
                     "name": "CA$",
-                    "standard_deviation": 10.41
+                    "standard_deviation": 10.41,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "HCR": {
                     "name": "HCR",
-                    "standard_deviation": 1.3
+                    "standard_deviation": 1.3,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "CCR": {
                     "name": "CCR",
-                    "standard_deviation": 1.6
+                    "standard_deviation": 1.6,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "LIV": {
                     "name": "LIV",
-                    "standard_deviation": 1.6
+                    "standard_deviation": 1.6,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "HTH$": {
                     "name": "HTH$",
-                    "standard_deviation": 4.54
+                    "standard_deviation": 4.54,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "RFI": {
                     "name": "RFI",
-                    "standard_deviation": 46.2
+                    "standard_deviation": 46.2,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "EFC": {
                     "name": "EFC",
-                    "standard_deviation": 2.05
+                    "standard_deviation": 2.05,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "HLV": {
                     "name": "HLV",
-                    "standard_deviation": 0.4
+                    "standard_deviation": 0.4,
+                    "phenotype_average": 0,
+                    "unit": ""
                 },
                 "TYPE": {
                     "name": "TYPE",
-                    "standard_deviation": 1.0
+                    "standard_deviation": 1.0,
+                    "phenotype_average": 0,
+                    "unit": ""
                 }
             },
             "recessives": {

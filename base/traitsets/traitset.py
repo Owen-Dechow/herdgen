@@ -19,6 +19,7 @@ PREVALENCE_PERCENT_KEY = "prevalence_percent"
 FATAL_KEY = "fatal"
 CALCULATED_STANDARD_DEVIATION_KEY = "calculated_standard_deviation"
 
+PHENOTYPE_AVERAGE_KEY = "phenotype_average"
 ANIMALS_KEY = "animals"
 NAME_KEY = "name"
 HERD_KEY = "herd"
@@ -27,6 +28,7 @@ FEMALE_KEY = "female"
 SIRE_KEY = "sire"
 DAM_KEY = "dam"
 STANDARD_DEVIATION_KEY = "standard_deviation"
+UNIT_KEY = "unit"
 
 HERDS_KEY = "herds"
 MALES_KEY = "males"
@@ -49,10 +51,14 @@ class RecessiveAnimalFilter:
 class TraitAnimalFilter:
     name: str
     standard_deviation: float
+    phenotype_average: float
+    unit: str
 
-    def __init__(self, name: str, standard_deviation: float):
+    def __init__(self, name: str, standard_deviation: float, phenotype_average: float, unit: str):
         self.name = name
         self.standard_deviation = standard_deviation
+        self.phenotype_average = phenotype_average
+        self.unit = unit
 
 
 class TraitsetAnimalFilter:
@@ -241,6 +247,8 @@ class Traitset:
                     key: TraitAnimalFilter(
                         val[TRAITS_KEY][x[UID_KEY]][NAME_KEY],
                         val[TRAITS_KEY][x[UID_KEY]][STANDARD_DEVIATION_KEY],
+                        val[TRAITS_KEY][x[UID_KEY]][PHENOTYPE_AVERAGE_KEY],
+                        val[TRAITS_KEY][x[UID_KEY]][UNIT_KEY],
                     )
                     for key, val in animals_dict.items()
                 },

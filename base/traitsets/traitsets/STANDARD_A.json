@@ -55,12 +55,16 @@
         "Bovine (Holstein)": {
             "traits": {
                 "t1": {
-                    "name": "Productive Life (Years)",
-                    "standard_deviation": 1.7
+                    "name": "Productive Life",
+                    "standard_deviation": 1.7,
+                    "phenotype_average": 5,
+                    "unit": " years"
                 },
                 "t2": {
                     "name": "Type",
-                    "standard_deviation": 1
+                    "standard_deviation": 1,
+                    "phenotype_average": 0,
+                    "unit": ""
                 }
             },
             "recessives": {
@@ -86,11 +90,15 @@
             "traits": {
                 "t1": {
                     "name": "Friendliness",
-                    "standard_deviation": 1
+                    "standard_deviation": 1,
+                    "phenotype_average": 2,
+                    "unit": ""
                 },
                 "t2": {
                     "name": "Intelligence",
-                    "standard_deviation": 1
+                    "standard_deviation": 1,
+                    "phenotype_average": 2,
+                    "unit": ""
                 }
             },
             "recessives": {
