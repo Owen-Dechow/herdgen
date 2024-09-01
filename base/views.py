@@ -23,7 +23,7 @@ from django.utils.timezone import now
 from . import csv
 
 
-# Create your views here.
+#### PAGE VIEWS ####
 def homepage(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         owned_classes = models.Class.objects.select_related("teacher").filter(
@@ -117,24 +117,6 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
     )
 
 
-@require_POST
-@transaction.atomic
-@login_required
-def update_enrollment(request: HttpRequest, classid: int) -> HttpResponseRedirect:
-    class_auth = auth_class(request, classid)
-
-    if type(class_auth) is not ClassAuth.Student:
-        raise Http404("Must be student to update filter")
-
-    form = forms.UpdateEnrollmentForm(request.POST, instance=class_auth.enrollment)
-    if form.is_valid():
-        form.save()
-    else:
-        raise Http404("Invalid enrollment update request")
-    
-    return HttpResponseRedirect(f"/class/{classid}")
-
-
 @login_required
 def enrollments(request: HttpRequest, classid: int) -> HttpResponse:
     class_auth = auth_class(request, classid)
@@ -222,6 +204,61 @@ def openassignment(
 
 @transaction.atomic
 @login_required
+def joinclass(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
+    if request.method == "POST":
+        form = forms.JoinClass(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(f"/class/requested")
+    else:
+        form = forms.JoinClass
+
+    return render(request, "base/joinclass.html", {"form": form})
+
+
+@login_required
+def requestedclass(request: HttpRequest) -> HttpResponse:
+    return render(request, "base/requestedclass.html", {})
+
+
+@login_required
+def openherd(request: HttpRequest, classid: int, herdid: int) -> HttpResponse:
+    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
+    herd_auth = auth_herd(class_auth, herdid, "enrollment")
+
+    context = {}
+    if type(class_auth) is ClassAuth.Student:
+        context = {"enrollment": class_auth.enrollment}
+
+    context["class"] = class_auth.connectedclass
+    context["herd_auth"] = herd_auth
+    context["collect_assignments"] = type(herd_auth) is HerdAuth.EnrollmentHerd
+    context["breed_form"] = forms.BreedHerd
+
+    return render(request, "base/openherd.html", context)
+
+
+#### ACTION VIEWS ####
+@require_POST
+@transaction.atomic
+@login_required
+def update_enrollment(request: HttpRequest, classid: int) -> HttpResponseRedirect:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) is not ClassAuth.Student:
+        raise Http404("Must be student to update filter")
+
+    form = forms.UpdateEnrollmentForm(request.POST, instance=class_auth.enrollment)
+    if form.is_valid():
+        form.save()
+    else:
+        raise Http404("Invalid enrollment update request")
+
+    return HttpResponseRedirect(f"/class/{classid}")
+
+
+@transaction.atomic
+@login_required
 @require_POST
 def delete_assignment(
     request: HttpRequest, classid: int, assignmentid: int
@@ -249,6 +286,140 @@ def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     return HttpResponseRedirect("/")
 
 
+@transaction.atomic
+@login_required
+@require_POST
+def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseRedirect:
+    form = forms.BreedHerd(request.POST)
+    class_auth = auth_class(request, classid, "class_herd", "starter_herd")
+    herd_auth = auth_herd(class_auth, herdid, "connectedclass")
+
+    if type(class_auth) is not ClassAuth.Student:
+        raise Http404("Must be student to breed herd")
+
+    if type(herd_auth) is not HerdAuth.EnrollmentHerd:
+        raise Http404("Must be enrollment herd to breed")
+
+    if form.is_valid(class_auth):
+        breeding_results = form.save(herd_auth)
+
+        if breeding_results.age_deaths == 1:
+            messages.info(request, "There was one death due to old age.")
+        else:
+            messages.info(
+                request,
+                f"There were {breeding_results.age_deaths} deaths due to old age.",
+            )
+
+        if breeding_results.recessive_deaths == 1:
+            messages.info(
+                request, "There was one death due to undesirable genetic recessives."
+            )
+        else:
+            messages.info(
+                request,
+                f"There were {breeding_results.recessive_deaths} deaths due to undesirable genetic recessives.",
+            )
+
+        return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
+    else:
+        raise Http404(f"Breeding is invalid: {form.errors}")
+
+
+@transaction.atomic
+@login_required
+@require_POST
+def submit_animal(
+    request: HttpRequest, classid: int, herdid: int, animalid: int
+) -> HttpResponseRedirect:
+    form = forms.SubmitAnimal(request.POST)
+    class_auth = auth_class(request, classid)
+    herd_auth = auth_herd(class_auth, herdid)
+    animal = get_object_or_404(
+        models.Animal, connectedclass=classid, herd=herdid, id=animalid
+    )
+
+    if type(class_auth) is not ClassAuth.Student:
+        raise Http404("Must be student to submit animal")
+
+    if type(herd_auth) is not HerdAuth.EnrollmentHerd:
+        raise Http404("Must be enrollment herd to submit animal")
+
+    if form.is_valid(class_auth):
+        form.save(class_auth, animal)
+        return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
+    else:
+        raise Http404(f"Animal submission is invalid: {form.errors}")
+
+
+@login_required
+@transaction.atomic
+@require_POST
+def confirm_enrollment(
+    request: HttpRequest, classid: int, requestid: int
+) -> JsonResponse:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) != ClassAuth.Teacher:
+        return Http404("Must be teacher to confirm enrollment")
+
+    if class_auth.connectedclass.enrollment_tokens > 0:
+        enrollment_request = get_object_or_404(
+            models.EnrollmentRequest.objects.select_related(
+                "connectedclass", "student"
+            ),
+            id=requestid,
+            connectedclass=class_auth.connectedclass,
+        )
+
+        enrollment = models.Enrollment.create_from_enrollment_request(
+            enrollment_request
+        )
+
+        data = enrollment.json_dict()
+    else:
+        data = {"out of tokens": True}
+
+    return JsonResponse(data)
+
+
+@login_required
+@transaction.atomic
+@require_POST
+def remove_enrollment(
+    request: HttpRequest, classid: int, enrollmentid: int
+) -> JsonResponse:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) != ClassAuth.Teacher:
+        return Http404("Must be teacher to deny enrollment")
+
+    enrollment = get_object_or_404(
+        models.Enrollment, id=enrollmentid, connectedclass=class_auth.connectedclass
+    )
+    enrollment.delete()
+
+    return JsonResponse({})
+
+
+@login_required
+@transaction.atomic
+@require_POST
+def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonResponse:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) != ClassAuth.Teacher:
+        return Http404("Must be teacher to deny enrollment")
+
+    enrollment_request = get_object_or_404(
+        models.EnrollmentRequest, id=requestid, connectedclass=class_auth.connectedclass
+    )
+    enrollment_request.delete()
+
+    return JsonResponse({})
+
+
+#### FILE VIEWS ####
 @login_required
 def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
     class_auth = auth_class(request, classid)
@@ -352,43 +523,7 @@ def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
     return csv.create_csv_response("animal-chart.csv", headers, data)
 
 
-@transaction.atomic
-@login_required
-def joinclass(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        form = forms.JoinClass(request.user, request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(f"/class/requested")
-    else:
-        form = forms.JoinClass
-
-    return render(request, "base/joinclass.html", {"form": form})
-
-
-@login_required
-def requestedclass(request: HttpRequest) -> HttpResponse:
-    return render(request, "base/requestedclass.html", {})
-
-
-@login_required
-def openherd(request: HttpRequest, classid: int, herdid: int) -> HttpResponse:
-    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
-    herd_auth = auth_herd(class_auth, herdid, "enrollment")
-
-    context = {}
-    if type(class_auth) is ClassAuth.Student:
-        context = {"enrollment": class_auth.enrollment}
-
-    context["class"] = class_auth.connectedclass
-    context["herd_auth"] = herd_auth
-    context["collect_assignments"] = type(herd_auth) is HerdAuth.EnrollmentHerd
-    context["breed_form"] = forms.BreedHerd
-
-    return render(request, "base/openherd.html", context)
-
-
-# GET JSON
+#### JSON VIEWS ####
 @login_required
 def get_enrollments(request: HttpRequest, classid: int) -> JsonResponse:
     class_auth = auth_class(request, classid)
@@ -453,137 +588,3 @@ def get_breeding_validation(
         return JsonResponse({"status": "pass"})
     else:
         return JsonResponse({"status": "fail"})
-
-
-@transaction.atomic
-@login_required
-@require_POST
-def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseRedirect:
-    form = forms.BreedHerd(request.POST)
-    class_auth = auth_class(request, classid, "class_herd", "starter_herd")
-    herd_auth = auth_herd(class_auth, herdid, "connectedclass")
-
-    if type(class_auth) is not ClassAuth.Student:
-        raise Http404("Must be student to breed herd")
-
-    if type(herd_auth) is not HerdAuth.EnrollmentHerd:
-        raise Http404("Must be enrollment herd to breed")
-
-    if form.is_valid(class_auth):
-        breeding_results = form.save(herd_auth)
-
-        if breeding_results.age_deaths == 1:
-            messages.info(request, "There was one death due to old age.")
-        else:
-            messages.info(
-                request,
-                f"There were {breeding_results.age_deaths} deaths due to old age.",
-            )
-
-        if breeding_results.recessive_deaths == 1:
-            messages.info(
-                request, "There was one death due to undesirable genetic recessives."
-            )
-        else:
-            messages.info(
-                request,
-                f"There were {breeding_results.recessive_deaths} deaths due to undesirable genetic recessives.",
-            )
-
-        return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
-    else:
-        raise Http404(f"Breeding is invalid: {form.errors}")
-
-
-@transaction.atomic
-@login_required
-@require_POST
-def submit_animal(
-    request: HttpRequest, classid: int, herdid: int, animalid: int
-) -> HttpResponseRedirect:
-    form = forms.SubmitAnimal(request.POST)
-    class_auth = auth_class(request, classid)
-    herd_auth = auth_herd(class_auth, herdid)
-    animal = get_object_or_404(
-        models.Animal, connectedclass=classid, herd=herdid, id=animalid
-    )
-
-    if type(class_auth) is not ClassAuth.Student:
-        raise Http404("Must be student to submit animal")
-
-    if type(herd_auth) is not HerdAuth.EnrollmentHerd:
-        raise Http404("Must be enrollment herd to submit animal")
-
-    if form.is_valid(class_auth):
-        form.save(class_auth, animal)
-        return HttpResponseRedirect(f"/class/{classid}/herd/{herdid}")
-    else:
-        raise Http404(f"Animal submission is invalid: {form.errors}")
-
-
-# ACTION
-@login_required
-@transaction.atomic
-@require_POST
-def confirm_enrollment(
-    request: HttpRequest, classid: int, requestid: int
-) -> JsonResponse:
-    class_auth = auth_class(request, classid)
-
-    if type(class_auth) != ClassAuth.Teacher:
-        return Http404("Must be teacher to confirm enrollment")
-
-    if class_auth.connectedclass.enrollment_tokens > 0:
-        enrollment_request = get_object_or_404(
-            models.EnrollmentRequest.objects.select_related(
-                "connectedclass", "student"
-            ),
-            id=requestid,
-            connectedclass=class_auth.connectedclass,
-        )
-
-        enrollment = models.Enrollment.create_from_enrollment_request(
-            enrollment_request
-        )
-
-        data = enrollment.json_dict()
-    else:
-        data = {"out of tokens": True}
-
-    return JsonResponse(data)
-
-
-@login_required
-@transaction.atomic
-@require_POST
-def remove_enrollment(
-    request: HttpRequest, classid: int, enrollmentid: int
-) -> JsonResponse:
-    class_auth = auth_class(request, classid)
-
-    if type(class_auth) != ClassAuth.Teacher:
-        return Http404("Must be teacher to deny enrollment")
-
-    enrollment = get_object_or_404(
-        models.Enrollment, id=enrollmentid, connectedclass=class_auth.connectedclass
-    )
-    enrollment.delete()
-
-    return JsonResponse({})
-
-
-@login_required
-@transaction.atomic
-@require_POST
-def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonResponse:
-    class_auth = auth_class(request, classid)
-
-    if type(class_auth) != ClassAuth.Teacher:
-        return Http404("Must be teacher to deny enrollment")
-
-    enrollment_request = get_object_or_404(
-        models.EnrollmentRequest, id=requestid, connectedclass=class_auth.connectedclass
-    )
-    enrollment_request.delete()
-
-    return JsonResponse({})
