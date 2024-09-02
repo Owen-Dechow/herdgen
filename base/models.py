@@ -264,13 +264,18 @@ class Herd(models.Model):
                     if self.connectedclass.trait_visibility[key][1]:
                         summary["phenotype"][key] += val
 
-            summary[Animal.DataKeys.NetMerit.value] = summary[Animal.DataKeys.NetMerit.value] / num_animals
+            summary[Animal.DataKeys.NetMerit.value] = (
+                summary[Animal.DataKeys.NetMerit.value] / num_animals
+            )
 
             for key, val in summary["genotype"].items():
                 summary["genotype"][key] = val / num_animals
 
             for key, val in summary["phenotype"].items():
                 summary["phenotype"][key] = val / num_animals
+
+        if not self.connectedclass.net_merit_visibility:
+            summary.pop(Animal.DataKeys.NetMerit.value)
 
         return {
             "name": self.name,
@@ -340,7 +345,9 @@ class Enrollment(models.Model):
 
         assignment_fulfillments = []
         for assignment in Assignment.objects.filter(connectedclass=new.connectedclass):
-            assignment_fulfillments.append(AssignmentFulfillment(assignment=assignment, enrollment=new))
+            assignment_fulfillments.append(
+                AssignmentFulfillment(assignment=assignment, enrollment=new)
+            )
         AssignmentFulfillment.objects.bulk_create(assignment_fulfillments)
 
         return new
@@ -566,20 +573,15 @@ class Animal(models.Model):
         DataKeys = self.DataKeys
         json = {}
 
-        data_keys = (
-            [
-                DataKeys.Id,
-                DataKeys.Name,
-                DataKeys.Generation,
-                DataKeys.Male,
-                DataKeys.DamId,
-                DataKeys.SireId,
-                DataKeys.InbreedingCoefficient,
-            ]
-            + [DataKeys.NetMerit]
-            if self.connectedclass.net_merit_visibility
-            else []
-        )
+        data_keys = [
+            DataKeys.Id,
+            DataKeys.Name,
+            DataKeys.Generation,
+            DataKeys.Male,
+            DataKeys.DamId,
+            DataKeys.SireId,
+            DataKeys.InbreedingCoefficient,
+        ] + ([DataKeys.NetMerit] if self.connectedclass.net_merit_visibility else [])
 
         for data_key in data_keys:
             json[data_key.value] = self.resolve_data_key(data_key)

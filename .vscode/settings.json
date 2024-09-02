@@ -5,8 +5,9 @@
         "csrfmiddlewaretoken",
         "enrollmentid",
         "fsub",
+        "Gastroesophageal",
         "msub",
         "phen",
-        "requestid",
+        "requestid"
     ]
 }

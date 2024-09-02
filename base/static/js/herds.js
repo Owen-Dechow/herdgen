@@ -67,7 +67,9 @@ function loadSortOptions() {
     $("#sort-options").append(createSortOptionCard("Id", `id`));
     $("#sort-options").append(createSortOptionCard("Generation", `generation`));
     $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
-    $("#sort-options").append(createSortOptionCard("NM$", `NM$`));
+
+    if (Herd["summary"]["NM$"])
+        $("#sort-options").append(createSortOptionCard("NM$", `NM$`));
 
 
     let traits = Herd["summary"]["genotype"];
@@ -109,7 +111,9 @@ function showSummary() {
     info.html("");
 
     info.append(createInfoCard("Name", Herd["name"]));
-    info.append(createInfoCard("NM$", Herd["summary"]["NM$"]));
+
+    if (Herd["summary"]["NM$"])
+        info.append(createInfoCard("NM$", Herd["summary"]["NM$"]));
 
     for (let g in Herd["summary"]["genotype"]) {
         info.append(createInfoCard(`<${g}>`, Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"]));
@@ -184,20 +188,23 @@ function animalSelected(animal, classId, herdId) {
 
     info.append(createInfoCard("Id", animal["id"]));
     info.append(createInfoCard("Name", animal["name"]));
-    info.append(createInfoCard("Sex", animal["male"] ? "Male" : "Female"));
     info.append(createInfoCard("Generation", animal["generation"]));
     info.append(createInfoCard("Sire", animal["sire"] ? animal["sire"] : "N/A"));
     info.append(createInfoCard("Dam", animal["dam"] ? animal["dam"] : "N/A"));
     info.append(createInfoCard("Inbreeding Percentage", animal["inbreeding"] * 100 + "%"));
-    info.append(createInfoCard("NM$", animal["NM$"]));
+
+    if (animal["NM$"])
+        info.append(createInfoCard("NM$", animal["NM$"]));
 
     for (let g in animal["genotype"]) {
         info.append(createInfoCard(`<${g}> `, animal["genotype"][g] * Filter[g]["standard_deviation"]));
     }
 
-    for (let p in animal["phenotype"]) {
-        let phenotype = animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"];
-        info.append(createInfoCard(`ph: <${p}>`, phenotype + Filter[p]["unit"]));
+    if (!animal["male"]) {
+        for (let p in animal["phenotype"]) {
+            let phenotype = animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"];
+            info.append(createInfoCard(`ph: <${p}>`, phenotype + Filter[p]["unit"]));
+        }
     }
 
     for (let r in animal["recessives"]) {

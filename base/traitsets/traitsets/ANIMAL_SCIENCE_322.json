@@ -1,0 +1,222 @@
+{
+    "traits": [
+        {
+            "uid": "MILK",
+            "heritability": 0.2,
+            "net_merit_dollars": 0.02,
+            "inbreeding_depression_percentage": -300,
+            "calculated_standard_deviation": 567
+        },
+        {
+            "uid": "DPR",
+            "heritability": 0.04,
+            "net_merit_dollars": 11,
+            "inbreeding_depression_percentage": -0.22,
+            "calculated_standard_deviation": 1.4
+        }
+    ],
+    "genotype_correlations": [
+        [
+            1.0000,
+            -0.342
+        ],
+        [
+            -0.342,
+            1.0000
+        ]
+    ],
+    "phenotype_correlations": [
+        [
+            1.0000,
+            -0.342
+        ],
+        [
+            -0.342,
+            1.0000
+        ]
+    ],
+    "recessives": [
+        {
+            "uid": "RED",
+            "fatal": false,
+            "prevalence_percent": 20
+        },
+        {
+            "uid": "CR",
+            "fatal": true,
+            "prevalence_percent": 10
+        }
+    ],
+    "animals": {
+        "Holstein Dairy Cattle": {
+            "traits": {
+                "MILK": {
+                    "name": "Milk Yield",
+                    "standard_deviation": 567,
+                    "phenotype_average": 1800,
+                    "unit": "lbs"
+                },
+                "DPR": {
+                    "name": "Daughter Pregnancy Rate",
+                    "standard_deviation": 1.4,
+                    "phenotype_average": 30,
+                    "unit": "%"
+                }
+            },
+            "recessives": {
+                "RED": {
+                    "name": "Red Coat"
+                },
+                "CR": {
+                    "name": "Calf Recumbency"
+                }
+            },
+            "herd": "herd",
+            "male": "bull",
+            "female": "cow",
+            "herds": "herds",
+            "males": "bulls",
+            "females": "cows",
+            "sire": "sire",
+            "sires": "sires",
+            "dam": "dam",
+            "dams": "dams"
+        },
+        "Beef Cattle": {
+            "traits": {
+                "MILK": {
+                    "name": "Wean Weight",
+                    "standard_deviation": 40,
+                    "phenotype_average": 450,
+                    "unit": "lbs"
+                },
+                "DPR": {
+                    "name": "Daughter Pregnancy Rate",
+                    "standard_deviation": 1.4,
+                    "phenotype_average": 30,
+                    "unit": "%"
+                }
+            },
+            "recessives": {
+                "RED": {
+                    "name": "Red Coat"
+                },
+                "CR": {
+                    "name": "Curly Calf"
+                }
+            },
+            "herd": "herd",
+            "male": "bull",
+            "female": "cow",
+            "herds": "herds",
+            "males": "bulls",
+            "females": "cows",
+            "sire": "sire",
+            "sires": "sires",
+            "dam": "dam",
+            "dams": "dams"
+        },
+        "Horse": {
+            "traits": {
+                "MILK": {
+                    "name": "Seconds Faster",
+                    "standard_deviation": 3,
+                    "phenotype_average": 0,
+                    "unit": "s"
+                },
+                "DPR": {
+                    "name": "Fertility",
+                    "standard_deviation": 1.4,
+                    "phenotype_average": 30,
+                    "unit": "%"
+                }
+            },
+            "recessives": {
+                "RED": {
+                    "name": "Chestnut"
+                },
+                "CR": {
+                    "name": "Gastroesophageal Reflux Disease"
+                }
+            },
+            "herd": "stable",
+            "male": "stallion",
+            "female": "mare",
+            "herds": "stables",
+            "males": "stallions",
+            "females": "mares",
+            "sire": "sire",
+            "sires": "sires",
+            "dam": "dam",
+            "dams": "dams"
+        },
+        "Lab Dog": {
+            "traits": {
+                "MILK": {
+                    "name": "Socialability",
+                    "standard_deviation": 5,
+                    "phenotype_average": 100,
+                    "unit": ""
+                },
+                "DPR": {
+                    "name": "Fertility",
+                    "standard_deviation": 1.4,
+                    "phenotype_average": 30,
+                    "unit": "%"
+                }
+            },
+            "recessives": {
+                "RED": {
+                    "name": "Yellow Lab"
+                },
+                "CR": {
+                    "name": "Puppy Still Birth"
+                }
+            },
+            "herd": "pack",
+            "male": "stud",
+            "female": "bitch",
+            "herds": "packs",
+            "males": "studs",
+            "females": "bitches",
+            "sire": "sire",
+            "sires": "sires",
+            "dam": "dam",
+            "dams": "dams"
+        },
+        "Deer": {
+            "traits": {
+                "MILK": {
+                    "name": "Boone & Crockett Score",
+                    "standard_deviation": 10,
+                    "phenotype_average": 150,
+                    "unit": ""
+                },
+                "DPR": {
+                    "name": "Fertility",
+                    "standard_deviation": 1.4,
+                    "phenotype_average": 30,
+                    "unit": "%"
+                }
+            },
+            "recessives": {
+                "RED": {
+                    "name": "Piebald Spot"
+                },
+                "CR": {
+                    "name": "Fawn Recumbency"
+                }
+            },
+            "herd": "parcel",
+            "male": "doe",
+            "female": "buck",
+            "herds": "parcels",
+            "males": "does",
+            "females": "bucks",
+            "sire": "dam",
+            "sires": "dams",
+            "dam": "sire",
+            "dams": "sires"
+        }
+    }
+}

@@ -8,7 +8,7 @@ from .templatetags.animal_filters import filter_text_to_default
 
 from base.views_utils import ClassAuth, HerdAuth, auth_herd
 from . import models
-from .traitsets import TRAISET_CHOICES, Traitset
+from .traitsets import TRAITSET_CHOICES, Traitset
 
 
 class UserCreationForm(auth_forms.UserCreationForm):
@@ -25,7 +25,7 @@ class UserCreationForm(auth_forms.UserCreationForm):
 
 
 class CreateClassForm(forms.ModelForm):
-    traitset = forms.ChoiceField(choices=TRAISET_CHOICES)
+    traitset = forms.ChoiceField(choices=TRAITSET_CHOICES)
 
     class Meta:
         model = models.Class
@@ -407,7 +407,7 @@ class UpdateEnrollmentForm(forms.ModelForm):
             self.fields["animal"] = forms.ChoiceField(
                 label="Animal Filter",
                 choices=Traitset(self.instance.connectedclass.traitset).animal_choices,
-                disabled=True
+                disabled=True,
             )
 
     class Meta:
