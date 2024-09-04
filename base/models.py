@@ -563,9 +563,13 @@ class Animal(models.Model):
                 case self.DataKeys.Sex:
                     return "male" if self.male else "female"
                 case self.DataKeys.SireId:
-                    return self.sire_id
+                    sire =  self.pedigree["sire"]
+                    if sire is not None:
+                        return sire["id"]
                 case self.DataKeys.DamId:
-                    return self.dam_id
+                    dam = self.pedigree["dam"]
+                    if dam is not None:
+                        return dam["id"]
                 case self.DataKeys.InbreedingCoefficient:
                     return self.inbreeding
                 case self.DataKeys.InbreedingPercentage:
