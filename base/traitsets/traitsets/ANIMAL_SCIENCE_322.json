@@ -53,7 +53,7 @@
                 "MILK": {
                     "name": "Milk Yield",
                     "standard_deviation": 567,
-                    "phenotype_average": 1800,
+                    "phenotype_average": 18000,
                     "unit": "lbs"
                 },
                 "DPR": {

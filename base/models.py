@@ -42,6 +42,9 @@ class Class(models.Model):
     TIME_STAMP_KEY = "timestamp"
     POPULATION_SIZE_KEY = "populationsize"
 
+    def __str__(self) -> str:
+        return f"{self.id} | {self.name}"
+
     @classmethod
     def generate_class_code(cls) -> str:
         CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
@@ -149,6 +152,9 @@ class Herd(models.Model):
         null=True,
         related_name="herd_enrollment",
     )
+
+    def __str__(self) -> str:
+        return f"{self.id} | {self.name}"
 
     @classmethod
     def generate_starter_herd(
@@ -316,6 +322,9 @@ class Enrollment(models.Model):
         to="Herd", on_delete=models.CASCADE, related_name="enrollment_herd"
     )
 
+    def __str__(self) -> str:
+        return f"{self.id} | {self.student.email} in {self.connectedclass.name}"
+
     @classmethod
     def create_from_enrollment_request(
         cls, enrollment_request: "EnrollmentRequest"
@@ -397,6 +406,9 @@ class EnrollmentRequest(models.Model):
     student = models.ForeignKey(to=User, on_delete=models.CASCADE)
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
 
+    def __str__(self) -> str:
+        return f"{self.id} | {self.student.email} for {self.connectedclass.name}"
+
     @classmethod
     def create_new(cls, student: User, connectedclass: "Class") -> "EnrollmentRequest":
         new = cls(student=student, connectedclass=connectedclass)
@@ -464,6 +476,9 @@ class Animal(models.Model):
     pedigree = models.JSONField()
     inbreeding = models.FloatField(default=0)
     net_merit = models.FloatField()
+
+    def __str__(self) -> str:
+        return f"{self.id} | {self.name}"
 
     @classmethod
     def generate_random_unsaved(
@@ -611,6 +626,9 @@ class Assignment(models.Model):
     duedate = models.DateTimeField(null=True, blank=True)
     name = models.CharField(max_length=255)
 
+    def __str__(self) -> str:
+        return f"{self.id} | {self.name} for {self.connectedclass.name}"
+
     @classmethod
     def create_new(
         cls,
@@ -664,6 +682,9 @@ class AssignmentStep(models.Model):
     step = models.CharField(choices=CHOICES, max_length=255)
     number = models.IntegerField()
 
+    def __str__(self) -> str:
+        return f"{self.id} | {self.step} for {self.assignment.name}"
+
     def verbose_step(self) -> Optional[str]:
         for key, val in self.CHOICES:
             if self.step == key:
@@ -674,3 +695,6 @@ class AssignmentFulfillment(models.Model):
     enrollment = models.ForeignKey(to="Enrollment", on_delete=models.CASCADE)
     assignment = models.ForeignKey(to="Assignment", on_delete=models.CASCADE)
     current_step = models.IntegerField(default=0)
+
+    def __str__(self) -> str:
+        return f"{self.id} | {self.assignment.name} for {self.enrollment.student.email}"
