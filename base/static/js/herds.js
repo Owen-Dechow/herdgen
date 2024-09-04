@@ -36,6 +36,14 @@ function resolveSortKey(sortKey, animal) {
 
 }
 
+function compareValuesForSort(a, b) {
+    if (typeof a === "string") {
+        return a.localeCompare(b);
+    } else {
+        return a - b;
+    }
+}
+
 function loadHerd(sortKey, reversed, classId, herdId) {
     $("#males").html("");
     $("#females").html("");
@@ -45,7 +53,7 @@ function loadHerd(sortKey, reversed, classId, herdId) {
         animals.push(Herd["animals"][animal]);
     }
 
-    animals.sort((b, a) => { return resolveSortKey(sortKey, a) - resolveSortKey(sortKey, b); });
+    animals.sort((b, a) => { return compareValuesForSort(resolveSortKey(sortKey, a), resolveSortKey(sortKey, b)); });
     if (reversed)
         animals.reverse();
 
@@ -73,12 +81,23 @@ function loadSortOptions() {
 
 
     let traits = Herd["summary"]["genotype"];
+
+
+
     for (let t in traits) {
         $("#sort-options").append(createSortOptionCard(`<${t}>`, `genotype,${t}`));
     }
 
     for (let t in traits) {
         $("#sort-options").append(createSortOptionCard(`ph: <${t}>`, `phenotype,${t}`));
+    }
+
+    let keys = Object.keys(Herd["animals"]);
+    if (keys.length > 0) {
+        let recessives = Herd["animals"][keys[0]]["recessives"];
+        for (let r in recessives) {
+            $("#sort-options").append(createSortOptionCard(`<${r}>`, `recessives,${r}`));
+        }
     }
 }
 
@@ -127,6 +146,24 @@ function showSummary() {
     filterAll();
 }
 
+function createSubmitFormCard(animal, classId, herdId) {
+    let form = $("<form></form>", {
+        class: "pad-small",
+        action: `/class/${classId}/herd/${herdId}/assignments/submit-animal/${animal["id"]}`,
+        method: "POST"
+    });
+    let button = $("<button></button>", {
+        class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" "),
+        type: "submit"
+    });
+    button.text("Submit to class herd");
+    form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
+    form.append($("input[name=csrfmiddlewaretoken]").first().clone());
+    form.append(button);
+
+    return form;
+}
+
 function animalSelected(animal, classId, herdId) {
     $('#info-header').text(animal["name"]);
 
@@ -152,36 +189,12 @@ function animalSelected(animal, classId, herdId) {
         info.append(div);
 
         if (CurrentAssignmentStep && CurrentAssignmentStep["key"] == "msub") {
-            let form = $("<form></form>", {
-                class: "pad-small",
-                action: `/class/${classId}/herd/${herdId}/assignments/submit-animal/${animal["id"]}`,
-                method: "POST"
-            });
-            let button = $("<button></button>", {
-                class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" "),
-                type: "submit"
-            });
-            button.text("Submit to class herd");
-            form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
-            form.append($("input[name=csrfmiddlewaretoken]").first());
-            form.append(button);
+            let form = createSubmitFormCard(animal, classId, herdId);
             info.append(form);
         }
     } else {
         if (CurrentAssignmentStep && CurrentAssignmentStep["key"] == "fsub") {
-            let form = $("<form></form>", {
-                class: "pad-small",
-                action: `/class/${classId}/herd/${herdId}/assignments/submit-animal/${animal["id"]}`,
-                method: "POST"
-            });
-            let button = $("<button></button>", {
-                class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" "),
-                type: "submit"
-            });
-            button.text("Submit to class herd");
-            form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
-            form.append($("input[name=csrfmiddlewaretoken]").first());
-            form.append(button);
+            let form = createAnimalCard(animal, classId, herdId);
             info.append(form);
         }
     }
