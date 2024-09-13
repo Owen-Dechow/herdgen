@@ -5,6 +5,8 @@ var RevalidateMalesForBreeding = false;
 var ValidatingMalesForBreeding = false;
 var MalesValidatedForBreeding = false;
 
+const PTA_DECIMALS = 3;
+
 async function getHerd(classId, herdId) {
     Herd = await $.ajax({
         url: `/class/${classId}/herd/${herdId}/get`,
@@ -44,13 +46,23 @@ function compareValuesForSort(a, b) {
     }
 }
 
-function loadHerd(sortKey, reversed, classId, herdId) {
+function loadHerd(sortKey, reversed, contains, classId, herdId) {
     $("#males").html("");
     $("#females").html("");
 
     let animals = [];
     for (let animal in Herd["animals"]) {
-        animals.push(Herd["animals"][animal]);
+        if (contains) {
+            let name = Herd["animals"][animal]["name"];
+            for (c of contains) {
+                if (name.includes(c)) {
+                    animals.push(Herd["animals"][animal]);
+                }
+                break;
+            };
+        } else {
+            animals.push(Herd["animals"][animal]);
+        }
     }
 
     animals.sort((b, a) => { return compareValuesForSort(resolveSortKey(sortKey, a), resolveSortKey(sortKey, b)); });
@@ -75,6 +87,8 @@ function loadSortOptions() {
     $("#sort-options").append(createSortOptionCard("Id", `id`));
     $("#sort-options").append(createSortOptionCard("Generation", `generation`));
     $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
+    $("#sort-options").append(createSortOptionCard("Sire", `sire`));
+    $("#sort-options").append(createSortOptionCard("Dam", `dam`));
 
     if (Herd["summary"]["NM$"])
         $("#sort-options").append(createSortOptionCard("NM$", `NM$`));
@@ -103,7 +117,7 @@ function loadSortOptions() {
 
 async function setUpHerd(classId, herdId) {
     await getHerd(classId, herdId);
-    loadHerd(["id"], false, classId, herdId);
+    loadHerd(["id"], false, false, classId, herdId);
     showSummary();
     loadSortOptions();
     clearLoadingSymbol("herd");
@@ -124,6 +138,11 @@ function createInfoCard(field, value) {
     return div;
 }
 
+function formatInfoValue(value, decimals, prefix, suffix) {
+    let roundedValue = Math.round(value * decimals) / decimals;
+    return prefix + roundedValue + suffix;
+}
+
 function showSummary() {
     $('#info-header').text("~");
     let info = $("#info");
@@ -132,15 +151,34 @@ function showSummary() {
     info.append(createInfoCard("Name", Herd["name"]));
 
     if (Herd["summary"]["NM$"])
-        info.append(createInfoCard("NM$", Herd["summary"]["NM$"]));
+        info.append(createInfoCard("NM$", formatInfoValue(Herd["summary"]["NM$"], 2, "$", "")));
 
     for (let g in Herd["summary"]["genotype"]) {
-        info.append(createInfoCard(`<${g}>`, Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"]));
+        info.append(
+            createInfoCard(
+                `<${g}>`,
+                formatInfoValue(
+                    Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"],
+                    PTA_DECIMALS,
+                    "",
+                    Filter[g]["unit"]
+                )
+            )
+        );
     }
 
     for (let p in Herd["summary"]["phenotype"]) {
-        let phenotype = Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"];
-        info.append(createInfoCard(`ph: <${p}>`, phenotype + Filter[p]["unit"]));
+        info.append(
+            createInfoCard(
+                `ph: <${p}>`,
+                formatInfoValue(
+                    Herd["summary"]["genotype"][p] * Filter[p]["standard_deviation"],
+                    PTA_DECIMALS,
+                    "",
+                    Filter[p]["unit"]
+                )
+            )
+        );
     }
 
     filterAll();
@@ -207,16 +245,29 @@ function animalSelected(animal, classId, herdId) {
     info.append(createInfoCard("Inbreeding Percentage", animal["inbreeding"] * 100 + "%"));
 
     if (animal["NM$"])
-        info.append(createInfoCard("NM$", animal["NM$"]));
+        info.append(createInfoCard("NM$", formatInfoValue(animal["NM$"], 2, "$", "")));
 
     for (let g in animal["genotype"]) {
-        info.append(createInfoCard(`<${g}> `, animal["genotype"][g] * Filter[g]["standard_deviation"]));
+        info.append(createInfoCard(`<${g}> `,
+            formatInfoValue(
+                animal["phenotype"][g] * Filter[g]["standard_deviation"],
+                PTA_DECIMALS,
+                "",
+                Filter[g]["unit"],
+            )
+        ));
     }
 
     if (!animal["male"]) {
         for (let p in animal["phenotype"]) {
-            let phenotype = animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"];
-            info.append(createInfoCard(`ph: <${p}>`, phenotype + Filter[p]["unit"]));
+            info.append(createInfoCard(`ph: <${p}>`,
+                formatInfoValue(
+                    animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"],
+                    PTA_DECIMALS,
+                    "",
+                    Filter[p]["unit"],
+                )
+            ));
         }
     }
 
@@ -239,7 +290,8 @@ function animalSelected(animal, classId, herdId) {
 function resortAnimals(classId, herdId) {
     let sortKey = $("#sort-options").val().split(",");
     let reversed = $("#sort-order").val() === "ascending";
-    loadHerd(sortKey, reversed, classId, herdId);
+    let contains = $("#contains").val().split(" ");
+    loadHerd(sortKey, reversed, contains, classId, herdId);
     filterAll();
 }
 

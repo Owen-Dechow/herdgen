@@ -62,6 +62,10 @@
                             <select id="sort-options" onchange="resortAnimals('{{class.id}}', '{{herd_auth.herd.id}}')">
                             </select>
                         </div>
+                        <div>
+                            <label for="contains">Search Name:</label>
+                            <input type="text" id="contains" oninput="resortAnimals('{{class.id}}', '{{herd_auth.herd.id}}')">
+                        </div>
                     </div>
                     <loading-symbol name="herd"></loading-symbol>
                 </div>
