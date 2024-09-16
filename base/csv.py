@@ -1,6 +1,6 @@
+import zipfile
 from io import BytesIO
 from typing import Any
-
 from django.http import FileResponse
 
 
@@ -25,5 +25,12 @@ def create_csv_response(
 ) -> FileResponse:
 
     file_str = get_file_str(headers, data)
-    bytes_io = BytesIO(file_str.encode())
-    return FileResponse(bytes_io, as_attachment=True, filename=file_name)
+
+    # Correctly instantiate the BytesIO object
+    bytes_io = BytesIO()
+    with zipfile.ZipFile(bytes_io, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.writestr(file_name, file_str)
+
+    # Set the buffer's position to the beginning
+    bytes_io.seek(0)
+    return FileResponse(bytes_io, as_attachment=True, filename=f"{file_name}.zip")
