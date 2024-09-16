@@ -86,7 +86,7 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
     class_auth = auth_class(request, classid, "starter_herd", "class_herd")
     connectedclass = class_auth.connectedclass
 
-    if type(class_auth) is ClassAuth.Teacher:
+    if type(class_auth) in ClassAuth.TEACHER_ADMIN:
         enrollment = None
         enrollment_form = None
         if request.method == "POST":
@@ -122,7 +122,7 @@ def enrollments(request: HttpRequest, classid: int) -> HttpResponse:
     class_auth = auth_class(request, classid)
     connectedclass = class_auth.connectedclass
 
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to access enrollment page")
 
     return render(request, "base/enrollments.html", {"class": connectedclass})
@@ -144,7 +144,7 @@ def assignments(
     else:
         form = forms.NewAssignment
 
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to access assignments page")
 
     enrollments = models.Enrollment.objects.filter(
@@ -184,7 +184,7 @@ def openassignment(
     class_auth = auth_class(request, classid)
     assignment = get_object_or_404(models.Assignment, id=assignmentid)
 
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to access assignments page")
 
     if request.method == "POST":
@@ -266,7 +266,7 @@ def delete_assignment(
     class_auth = auth_class(request, classid)
     assignment = get_object_or_404(models.Assignment, id=assignmentid)
 
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to delete assignments")
 
     assignment.delete()
@@ -279,7 +279,7 @@ def delete_assignment(
 @require_POST
 def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     class_auth = auth_class(request, classid)
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) in ClassAuth.TEACHER_ADMIN:
         raise HttpRequest("Must be teacher to delete class")
 
     class_auth.connectedclass.delete()
@@ -360,7 +360,7 @@ def confirm_enrollment(
 ) -> JsonResponse:
     class_auth = auth_class(request, classid)
 
-    if type(class_auth) != ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         return Http404("Must be teacher to confirm enrollment")
 
     if class_auth.connectedclass.enrollment_tokens > 0:
@@ -391,8 +391,8 @@ def remove_enrollment(
 ) -> JsonResponse:
     class_auth = auth_class(request, classid)
 
-    if type(class_auth) != ClassAuth.Teacher:
-        return Http404("Must be teacher to deny enrollment")
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
+        return Http404("Must be teacher to remove enrollment")
 
     enrollment = get_object_or_404(
         models.Enrollment, id=enrollmentid, connectedclass=class_auth.connectedclass
@@ -408,7 +408,7 @@ def remove_enrollment(
 def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonResponse:
     class_auth = auth_class(request, classid)
 
-    if type(class_auth) != ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         return Http404("Must be teacher to deny enrollment")
 
     enrollment_request = get_object_or_404(
@@ -424,7 +424,7 @@ def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonR
 def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
     class_auth = auth_class(request, classid)
 
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise HttpRequest("Must be teacher to get trend chart")
 
     traitset = Traitset(class_auth.connectedclass.traitset)
@@ -458,7 +458,7 @@ def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
 def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
     class_auth = auth_class(request, classid)
 
-    if type(class_auth) is not ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise HttpRequest("Must be teacher to get animal chart")
 
     traitset = Traitset(class_auth.connectedclass.traitset)
@@ -528,7 +528,7 @@ def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
 def get_enrollments(request: HttpRequest, classid: int) -> JsonResponse:
     class_auth = auth_class(request, classid)
 
-    if type(class_auth) != ClassAuth.Teacher:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         return Http404("Must be teacher to get_enrollments")
 
     json = {

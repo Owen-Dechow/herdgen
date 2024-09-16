@@ -10,6 +10,12 @@ class ClassAuth:
         def __init__(self, connectedclass: models.Class):
             self.connectedclass = connectedclass
 
+    class Admin:
+        connectedclass: models.Class
+
+        def __init__(self, connectedclass: models.Class):
+            self.connectedclass = connectedclass
+
     class Student:
         enrollment: models.Enrollment
         connectedclass: models.Class
@@ -17,6 +23,8 @@ class ClassAuth:
         def __init__(self, enrollment: models.Enrollment):
             self.enrollment = enrollment
             self.connectedclass = enrollment.connectedclass
+
+    TEACHER_ADMIN: list[type[Teacher] | type[Admin]] = [Teacher, Admin]
 
 
 def auth_class(
@@ -29,15 +37,20 @@ def auth_class(
     if connectedclass.teacher == request.user:
         return ClassAuth.Teacher(connectedclass)
     else:
-        return ClassAuth.Student(
-            get_object_or_404(
+        try:
+            return ClassAuth.Student(
                 models.Enrollment.objects.select_related(
                     *["connectedclass__" + x for x in related]
-                ),
-                connectedclass=connectedclass,
-                student=request.user,
+                ).get(
+                    connectedclass=connectedclass,
+                    student=request.user,
+                )
             )
-        )
+        except models.Enrollment.DoesNotExist:
+            if request.user.is_superuser:
+                return ClassAuth.Admin(connectedclass)
+            else:
+                raise Http404("Cannot authenticate user for class.")
 
 
 class HerdAuth:
@@ -57,14 +70,21 @@ class HerdAuth:
         def __init__(self, herd: models.Herd):
             self.herd = herd
 
+    class Admin:
+        def __init__(self, herd: models.Herd):
+            self.herd = herd
+
 
 def auth_herd(
-    class_auth: ClassAuth.Student | ClassAuth.Teacher, herdid: int, *related: str
+    class_auth: ClassAuth.Student | ClassAuth.Teacher | ClassAuth.Admin,
+    herdid: int,
+    *related: str
 ) -> (
     HerdAuth.ClassHerd
     | HerdAuth.StarterHerd
     | HerdAuth.EnrollmentHerd
     | HerdAuth.EnrollmentHerdAsTeacher
+    | HerdAuth.Admin
 ):
     connectedclass = class_auth.connectedclass
     herd = get_object_or_404(
@@ -81,5 +101,7 @@ def auth_herd(
         return HerdAuth.EnrollmentHerd(herd)
     elif type(class_auth) is ClassAuth.Teacher and herd.enrollment:
         return HerdAuth.EnrollmentHerdAsTeacher(herd)
+    elif type(class_auth) is ClassAuth.Admin:
+        return HerdAuth.Admin(herd)
     else:
         raise Http404("User does not have access to this herd")
