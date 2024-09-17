@@ -47,5 +47,5 @@ def create_csv_streaming_response(
             yield convert_data_row(item) + ROW_SEP
 
     response = StreamingHttpResponse(generate_file())
-    # response["Content-Disposition"] = f'attachement; filename="{file_name}"'
+    response["Content-Disposition"] = f'attachement; filename="{file_name}"'
     return response
