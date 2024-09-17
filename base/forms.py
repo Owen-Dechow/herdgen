@@ -52,6 +52,13 @@ class UserCreationForm(auth_forms.UserCreationForm):
             "password2",
         ]
 
+    def clean_email(self) -> str:
+        email = self.cleaned_data["email"]
+        if User.objects.filter(email=email).count() > 0:
+            raise forms.ValidationError("A user with that email already exists.")
+
+        return email
+
 
 class CreateClassForm(forms.ModelForm):
     traitset = forms.ChoiceField(choices=TRAITSET_CHOICES)
