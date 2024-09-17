@@ -1,6 +1,7 @@
 from django.utils.timezone import now
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from django import forms
 from django.http import Http404
 from typing import Optional
@@ -9,6 +10,34 @@ from .templatetags.animal_filters import filter_text_to_default
 from base.views_utils import ClassAuth, HerdAuth, auth_herd
 from . import models
 from .traitsets import TRAITSET_CHOICES, Traitset
+
+
+class EmailAuthenticationForm(auth_forms.AuthenticationForm):
+    username = forms.EmailField(
+        required=True,
+        label="Email",
+        widget=forms.EmailInput(attrs={"autofocus": True}),
+    )
+
+    def clean(self):
+        ERROR_MSG = forms.ValidationError(
+            "Please enter a correct username and email. Note that both fields may be case-sensitive."
+        )
+
+        email = self.cleaned_data.get("username")
+        user = User.objects.filter(email=email).order_by("id").last()
+        if user:
+            self.user_cache = authenticate(
+                self.request,
+                username=user.username,
+                password=self.cleaned_data.get("password"),
+            )
+            if self.user_cache is None:
+                raise ERROR_MSG
+        else:
+            raise ERROR_MSG
+
+        return self.cleaned_data
 
 
 class UserCreationForm(auth_forms.UserCreationForm):

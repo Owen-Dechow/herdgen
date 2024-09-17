@@ -12,6 +12,11 @@
     {% csrf_token %}
     {{form}}
     <button class="as-btn pad border-radius background-green" type="submit">Login</button> <a class="as-btn pad border-radius background-a" href="/auth/password_reset">Reset Password</a>
+    <p>
+    <p><a class="as-link" href="/auth/login/email">Login With Email</a></p>
+    <p><a class="as-link" href="/auth/login">Login With Username</a></p>
+    </p>
+
 </form>
 
 {% endblock main %}

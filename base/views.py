@@ -11,6 +11,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
+from django.contrib.auth.views import LoginView
+
 
 from django.db import transaction
 from django.views.decorators.http import require_POST
@@ -22,6 +24,27 @@ from . import models
 from .views_utils import HerdAuth, auth_class, ClassAuth, auth_herd
 from django.utils.timezone import now
 from . import csv
+
+
+#### AUTH PAGE VIEWS ####
+@transaction.atomic
+def signup(request: HttpRequest) -> HttpResponse:
+    if request.method == "POST":
+        form = forms.UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return HttpResponseRedirect("/")
+
+    else:
+        form = forms.UserCreationForm()
+
+    return render(request, "registration/register.html", {"form": form})
+
+
+class EmailLoginView(LoginView):
+    authentication_form = forms.EmailAuthenticationForm
+    template = "registration/login.html"
 
 
 #### PAGE VIEWS ####
@@ -50,21 +73,6 @@ def homepage(request: HttpRequest) -> HttpResponse:
         "base/homepage.html",
         {"classes": classes, "requested_classes": requested_classes},
     )
-
-
-@transaction.atomic
-def signup(request: HttpRequest) -> HttpResponse:
-    if request.method == "POST":
-        form = forms.UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return HttpResponseRedirect("/")
-
-    else:
-        form = forms.UserCreationForm()
-
-    return render(request, "registration/register.html", {"form": form})
 
 
 @login_required
