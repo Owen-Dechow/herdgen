@@ -113,6 +113,7 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
             "form": form,
             "enrollment": enrollment,
             "enrollment_form": enrollment_form,
+            "teacher_status": type(class_auth) in ClassAuth.TEACHER_ADMIN
         },
     )
 
