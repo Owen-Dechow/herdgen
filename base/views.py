@@ -1,3 +1,4 @@
+import time
 from django.http import (
     FileResponse,
     Http404,
@@ -113,7 +114,7 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
             "form": form,
             "enrollment": enrollment,
             "enrollment_form": enrollment_form,
-            "teacher_status": type(class_auth) in ClassAuth.TEACHER_ADMIN
+            "teacher_status": type(class_auth) in ClassAuth.TEACHER_ADMIN,
         },
     )
 
@@ -508,20 +509,23 @@ def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
         + [(DataKeys.Phenotype, x.uid) for x in traitset.traits]
         + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
     )
-    data = []
-    for animal in models.Animal.objects.select_related("herd", "connectedclass").filter(
-        connectedclass=class_auth.connectedclass
-    ):
-        row = []
-        for key in data_row_order:
-            value = animal.resolve_data_key(key)
-            if type(value) is str:
-                value = filter_text_to_default(value, class_auth.connectedclass)
 
-            row.append(value)
-        data.append(row)
+    def data():
+        for animal in (
+            models.Animal.objects.select_related("herd", "connectedclass")
+            .filter(connectedclass=class_auth.connectedclass)
+            .iterator(chunk_size=255)
+        ):
+            row = []
+            for key in data_row_order:
+                value = animal.resolve_data_key(key)
+                if type(value) is str:
+                    value = filter_text_to_default(value, class_auth.connectedclass)
 
-    return csv.create_csv_response("animal-chart.csv", headers, data)
+                row.append(value)
+            yield row
+
+    return csv.create_csv_streaming_response("animal-chart.csv", headers, data())
 
 
 #### JSON VIEWS ####
