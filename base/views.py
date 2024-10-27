@@ -526,7 +526,7 @@ def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
         ):
             row = []
             for key in data_row_order:
-                value = animal.resolve_data_key(key)
+                value = animal.resolve_data_key(key, class_auth.connectedclass)
                 if type(value) is str:
                     value = filter_text_to_default(value, class_auth.connectedclass)
 

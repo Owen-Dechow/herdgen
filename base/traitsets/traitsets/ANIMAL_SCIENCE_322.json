@@ -51,13 +51,13 @@
         "Holstein Dairy Cattle": {
             "traits": {
                 "MILK": {
-                    "name": "Milk Yield",
+                    "name": "PTA Milk Yield",
                     "standard_deviation": 567,
                     "phenotype_average": 18000,
                     "unit": "lbs"
                 },
                 "DPR": {
-                    "name": "Daughter Pregnancy Rate",
+                    "name": "PTA Daughter Pregnancy Rate",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -85,13 +85,13 @@
         "Beef Cattle": {
             "traits": {
                 "MILK": {
-                    "name": "Wean Weight",
+                    "name": "EPD Wean Weight",
                     "standard_deviation": 40,
                     "phenotype_average": 450,
                     "unit": "lbs"
                 },
                 "DPR": {
-                    "name": "Daughter Pregnancy Rate",
+                    "name": "EPD Daughter Pregnancy Rate",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -119,13 +119,13 @@
         "Horse": {
             "traits": {
                 "MILK": {
-                    "name": "Seconds Faster",
+                    "name": "EPD Seconds Faster",
                     "standard_deviation": 3,
                     "phenotype_average": 0,
                     "unit": "s"
                 },
                 "DPR": {
-                    "name": "Fertility",
+                    "name": "EPD Fertility",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -153,13 +153,13 @@
         "Lab Dog": {
             "traits": {
                 "MILK": {
-                    "name": "Socialability",
+                    "name": "EPD Socialability",
                     "standard_deviation": 5,
                     "phenotype_average": 100,
                     "unit": ""
                 },
                 "DPR": {
-                    "name": "Fertility",
+                    "name": "EPD Fertility",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -187,13 +187,13 @@
         "Deer": {
             "traits": {
                 "MILK": {
-                    "name": "Boone & Crockett Score",
+                    "name": "EPD Boone & Crockett Score",
                     "standard_deviation": 10,
                     "phenotype_average": 150,
                     "unit": ""
                 },
                 "DPR": {
-                    "name": "Fertility",
+                    "name": "EPD Fertility",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"

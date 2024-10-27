@@ -172,7 +172,7 @@ function showSummary() {
             createInfoCard(
                 `ph: <${p}>`,
                 formatInfoValue(
-                    Herd["summary"]["genotype"][p] * Filter[p]["standard_deviation"],
+                    Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"],
                     PTA_DECIMALS,
                     "",
                     Filter[p]["unit"]

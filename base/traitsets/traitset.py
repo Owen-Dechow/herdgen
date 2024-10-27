@@ -54,7 +54,9 @@ class TraitAnimalFilter:
     phenotype_average: float
     unit: str
 
-    def __init__(self, name: str, standard_deviation: float, phenotype_average: float, unit: str):
+    def __init__(
+        self, name: str, standard_deviation: float, phenotype_average: float, unit: str
+    ):
         self.name = name
         self.standard_deviation = standard_deviation
         self.phenotype_average = phenotype_average

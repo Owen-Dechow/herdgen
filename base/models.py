@@ -529,13 +529,40 @@ class Animal(models.Model):
 
         self.pedigree["id"] = self.id
 
-    def resolve_data_key(self, data_key: DataKeys | tuple[DataKeys, str]) -> Any:
+    def resolve_data_key(
+        self,
+        data_key: DataKeys | tuple[DataKeys, str],
+        connectedclass: Optional[Class] = None,
+    ) -> Any:
+        class_traitset = None if connectedclass is None else Traitset(connectedclass.traitset)
+        adjust_gen = lambda val, uid: (
+            val
+            if class_traitset is None
+            else val
+            * class_traitset.find_trait_or_null(uid)
+            .animals[connectedclass.default_animal]
+            .standard_deviation
+        )
+
+        adjust_phen = lambda val, uid: (
+            val
+            if class_traitset is None
+            else val
+            * class_traitset.find_trait_or_null(uid)
+            .animals[connectedclass.default_animal]
+            .standard_deviation
+            * 2
+            + class_traitset.find_trait_or_null(uid)
+            .animals[connectedclass.default_animal]
+            .phenotype_average
+        )
+
         if type(data_key) is tuple:
             match data_key[0]:
                 case self.DataKeys.Genotype:
-                    return self.genotype[data_key[1]]
+                    return adjust_gen(self.genotype[data_key[1]], data_key[1])
                 case self.DataKeys.Phenotype:
-                    return self.phenotype[data_key[1]]
+                    return adjust_phen(self.phenotype[data_key[1]], data_key[1])
                 case self.DataKeys.Recessives:
                     return self.recessives[data_key[1]]
                 case self.DataKeys.NiceRecessives:
@@ -563,7 +590,7 @@ class Animal(models.Model):
                 case self.DataKeys.Sex:
                     return "male" if self.male else "female"
                 case self.DataKeys.SireId:
-                    sire =  self.pedigree["sire"]
+                    sire = self.pedigree["sire"]
                     if sire is not None:
                         return sire["id"]
                 case self.DataKeys.DamId:
