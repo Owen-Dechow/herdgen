@@ -28,13 +28,16 @@ function createAnimalCard(animalId, animalName, animal, classId, herdId) {
 
 function resolveSortKey(sortKey, animal) {
     let sortKeyCp = [...sortKey];
-    key = sortKeyCp.shift();
+    let key = sortKeyCp.shift();
     animal = animal[key];
 
-    if (sortKeyCp.length == 0)
-        return animal;
-    else
+    if (sortKeyCp.length == 0) {
+        let val = animal;
+        return val;
+    }
+    else {
         return resolveSortKey(sortKeyCp, animal);
+    }
 
 }
 
@@ -42,7 +45,7 @@ function compareValuesForSort(a, b) {
     if (typeof a === "string") {
         return a.localeCompare(b);
     } else {
-        return a - b;
+        return Math.abs(a - b) / (a - b);
     }
 }
 
@@ -65,8 +68,14 @@ function loadHerd(sortKey, reversed, contains, classId, herdId) {
         }
     }
 
-    animals.sort((b, a) => { return compareValuesForSort(resolveSortKey(sortKey, a), resolveSortKey(sortKey, b)); });
-    if (reversed)
+    animals.sort((a, b) => {
+        a = resolveSortKey(sortKey, a);
+        b = resolveSortKey(sortKey, b);
+        let comp = compareValuesForSort(a, b);
+        return comp;
+    });
+
+    if (!reversed)
         animals.reverse();
 
     animals.forEach((animal) => {
@@ -139,7 +148,8 @@ function createInfoCard(field, value) {
 }
 
 function formatInfoValue(value, decimals, prefix, suffix) {
-    let roundedValue = Math.round(value * decimals) / decimals;
+    let pow = Math.pow(10, decimals);
+    let roundedValue = Math.round(value * pow) / pow;
     return prefix + roundedValue + suffix;
 }
 
@@ -250,7 +260,7 @@ function animalSelected(animal, classId, herdId) {
     for (let g in animal["genotype"]) {
         info.append(createInfoCard(`<${g}> `,
             formatInfoValue(
-                animal["phenotype"][g] * Filter[g]["standard_deviation"],
+                animal["genotype"][g] * Filter[g]["standard_deviation"],
                 PTA_DECIMALS,
                 "",
                 Filter[g]["unit"],
