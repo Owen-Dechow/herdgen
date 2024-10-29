@@ -47,6 +47,27 @@ class EmailLoginView(LoginView):
     template = "registration/login.html"
 
 
+@transaction.atomic
+@login_required
+def account(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
+    if request.method == "POST":
+        delete_form = forms.DeleteAccount(request.POST)
+        if delete_form.is_valid(request.user):
+            request.user.delete()
+            return HttpResponseRedirect("/")
+    else:
+        delete_form = forms.DeleteAccount()
+
+    return render(
+        request,
+        "registration/account.html",
+        {
+            "form": forms.Account(instance=request.user),
+            "delete_form": delete_form,
+        },
+    )
+
+
 #### PAGE VIEWS ####
 def homepage(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:

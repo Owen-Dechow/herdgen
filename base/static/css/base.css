@@ -54,6 +54,9 @@ main {
 
 footer {
     margin-top: auto;
+    display: grid;
+    text-align: center;
+    grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
 }
 
 loading-symbol {

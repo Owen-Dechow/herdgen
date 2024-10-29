@@ -1,4 +1,3 @@
-from django.utils.timezone import now
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
@@ -449,3 +448,31 @@ class UpdateEnrollmentForm(forms.ModelForm):
     class Meta:
         model = models.Enrollment
         fields = ["animal"]
+
+
+class Account(forms.ModelForm):
+    username = forms.CharField(disabled=True)
+    email = forms.EmailField(disabled=True)
+    first_name = forms.CharField(disabled=True)
+    last_name = forms.CharField(disabled=True)
+
+    class Meta:
+        model = User
+        fields = ["username", "email", "first_name", "last_name"]
+
+
+class DeleteAccount(forms.Form):
+    password = forms.CharField(strip=False, widget=forms.PasswordInput)
+
+    def is_valid(self, user: User) -> bool:
+        self.user = user
+        return super().is_valid()
+
+    def clean_password(self) -> str:
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise forms.ValidationError(
+                "Password was incorrect.",
+                code="password_incorrect",
+            )
+        return password

@@ -41,6 +41,7 @@
             {% if user.is_superuser %}
             <a class="pad-small as-link" href="/admin/">Admin</a>
             {% endif %}
+            <a class="pad-small as-link" href="/auth/account">Account</a>
             <form method="POST" action="/auth/logout/" class="pad-small">
                 {% csrf_token %}
                 <button class="as-link" type="submit">Logout</button>
@@ -58,7 +59,9 @@
     </main>
 
     <footer class="pad-small background-b">
-        Created by Owen Dechow
+        <p>Created by Owen Dechow</p>
+        <p>Comments/Feedback: <a class="as-link" href="mailto:herdgenetics@gmail.com">herdgenetics@gmail.com</a></p>
+        <p>MIT License: Copyright (c) 2024 Owen Dechow</p>
     </footer>
 
     {% block end %}
