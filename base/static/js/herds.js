@@ -166,7 +166,7 @@ function showSummary() {
     for (let g in Herd["summary"]["genotype"]) {
         info.append(
             createInfoCard(
-                `<${g}>`,
+                `${Filter["genotype_prefix"]}: <${g}>`,
                 formatInfoValue(
                     Herd["summary"]["genotype"][g] * Filter[g]["standard_deviation"],
                     PTA_DECIMALS,
@@ -180,7 +180,7 @@ function showSummary() {
     for (let p in Herd["summary"]["phenotype"]) {
         info.append(
             createInfoCard(
-                `ph: <${p}>`,
+                `${Filter["phenotype_prefix"]}: <${p}>`,
                 formatInfoValue(
                     Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"],
                     PTA_DECIMALS,
@@ -258,7 +258,7 @@ function animalSelected(animal, classId, herdId) {
         info.append(createInfoCard("NM$", formatInfoValue(animal["NM$"], 2, "$", "")));
 
     for (let g in animal["genotype"]) {
-        info.append(createInfoCard(`<${g}> `,
+        info.append(createInfoCard(`${Filter["genotype_prefix"]}: <${g}>`,
             formatInfoValue(
                 animal["genotype"][g] * Filter[g]["standard_deviation"],
                 PTA_DECIMALS,
@@ -270,7 +270,7 @@ function animalSelected(animal, classId, herdId) {
 
     if (!animal["male"]) {
         for (let p in animal["phenotype"]) {
-            info.append(createInfoCard(`ph: <${p}>`,
+            info.append(createInfoCard(`${Filter["phenotype_prefix"]}: <${p}>`,
                 formatInfoValue(
                     animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"],
                     PTA_DECIMALS,

@@ -40,6 +40,9 @@ HETEROZYGOUS_KEY = "he"
 HOMOZYGOUS_CARRIER_KEY = "ho(c)"
 HOMOZYGOUS_FREE_KEY = "ho(f)"
 
+PHENOTYPE_PREFIX = "phenotype_prefix"
+GENOTYPE_PREFIX = "genotype_prefix"
+
 
 class RecessiveAnimalFilter:
     name: str
@@ -55,7 +58,11 @@ class TraitAnimalFilter:
     unit: str
 
     def __init__(
-        self, name: str, standard_deviation: float, phenotype_average: float, unit: str
+        self,
+        name: str,
+        standard_deviation: float,
+        phenotype_average: float,
+        unit: str,
     ):
         self.name = name
         self.standard_deviation = standard_deviation
@@ -74,6 +81,8 @@ class TraitsetAnimalFilter:
     dams: str
     males: str
     females: str
+    phenotype_prefix: str
+    genotype_prefix: str
 
     def __init__(
         self,
@@ -87,6 +96,8 @@ class TraitsetAnimalFilter:
         females: str,
         sires: str,
         dams: str,
+        genotype_prefix: str,
+        phenotype_prefix: str,
     ):
         self.herd = herd
         self.male = male
@@ -98,11 +109,13 @@ class TraitsetAnimalFilter:
         self.dam = dam
         self.sires = sires
         self.dams = dams
+        self.genotype_prefix = genotype_prefix
+        self.phenotype_prefix = phenotype_prefix
 
 
 class Trait:
     uid: str
-    heritability: str
+    heritability: float
     net_merit_dollars: float
     inbreeding_depression_percentage: float
     calculated_standard_deviation: float
@@ -111,7 +124,7 @@ class Trait:
     def __init__(
         self,
         uid: str,
-        heritability: str,
+        heritability: float,
         net_merit_dollars: float,
         inbreeding_depression_percentage: float,
         calculated_standard_deviation: float,
@@ -131,7 +144,6 @@ class Trait:
     def convert_genotype_to_phenotype(
         self, genotype: float, inbreeding_coefficient: float
     ) -> float:
-
         genotype = genotype * self.calculated_standard_deviation
 
         phenotypic_variance = (
@@ -288,15 +300,18 @@ class Traitset:
                 animals_dict[x][FEMALES_KEY],
                 animals_dict[x][SIRES_KEY],
                 animals_dict[x][DAMS_KEY],
+                animals_dict[x][GENOTYPE_PREFIX],
+                animals_dict[x][PHENOTYPE_PREFIX],
             )
             for x in animals_dict
         }
+
         self.animal_choices = [(x, x) for x in animals_dict]
 
-    def get_default_trait_visibility(self) -> dict[str, dict[str, True]]:
+    def get_default_trait_visibility(self) -> dict[str, list[bool]]:
         return {x.uid: [True, True] for x in self.traits}
 
-    def get_default_recessive_visibility(self) -> dict[str, True]:
+    def get_default_recessive_visibility(self) -> dict[str, bool]:
         return {x.uid: True for x in self.recessives}
 
     def get_random_genotype(self) -> dict[str, float]:

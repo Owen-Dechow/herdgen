@@ -49,15 +49,17 @@
     ],
     "animals": {
         "Holstein Dairy Cattle": {
+            "genotype_prefix": "PTA",
+            "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
-                    "name": "PTA Milk Yield",
+                    "name": "Milk Yield",
                     "standard_deviation": 567,
                     "phenotype_average": 18000,
                     "unit": "lbs"
                 },
                 "DPR": {
-                    "name": "PTA Daughter Pregnancy Rate",
+                    "name": "Daughter Pregnancy Rate",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -83,15 +85,17 @@
             "dams": "dams"
         },
         "Beef Cattle": {
+            "genotype_prefix": "EPD",
+            "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
-                    "name": "EPD Wean Weight",
+                    "name": "Wean Weight",
                     "standard_deviation": 40,
                     "phenotype_average": 450,
                     "unit": "lbs"
                 },
                 "DPR": {
-                    "name": "EPD Daughter Pregnancy Rate",
+                    "name": "Daughter Pregnancy Rate",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -117,15 +121,17 @@
             "dams": "dams"
         },
         "Horse": {
+            "genotype_prefix": "EPD",
+            "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
-                    "name": "EPD Seconds Faster",
+                    "name": "Seconds Faster",
                     "standard_deviation": 3,
                     "phenotype_average": 0,
                     "unit": "s"
                 },
                 "DPR": {
-                    "name": "EPD Fertility",
+                    "name": "Fertility",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -151,15 +157,17 @@
             "dams": "dams"
         },
         "Lab Dog": {
+            "genotype_prefix": "EPD",
+            "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
-                    "name": "EPD Socialability",
+                    "name": "Socialability",
                     "standard_deviation": 5,
                     "phenotype_average": 100,
                     "unit": ""
                 },
                 "DPR": {
-                    "name": "EPD Fertility",
+                    "name": "Fertility",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"
@@ -185,15 +193,17 @@
             "dams": "dams"
         },
         "Deer": {
+            "genotype_prefix": "EPD",
+            "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
-                    "name": "EPD Boone & Crockett Score",
+                    "name": "Boone & Crockett Score",
                     "standard_deviation": 10,
                     "phenotype_average": 150,
                     "unit": ""
                 },
                 "DPR": {
-                    "name": "EPD Fertility",
+                    "name": "Fertility",
                     "standard_deviation": 1.4,
                     "phenotype_average": 30,
                     "unit": "%"

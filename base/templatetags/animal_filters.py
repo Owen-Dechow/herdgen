@@ -43,7 +43,9 @@ class ContextCast:
         return new
 
 
-def get_filter_dict(contextcast: ContextCast) -> dict[str, dict[str, str] | str]:
+def get_filter_dict(
+    contextcast: ContextCast,
+) -> dict[str, dict[str, str] | dict[str, Any] | str]:
     filter_dict = {
         "herds": contextcast.animalfilter.herds,
         "herd": contextcast.animalfilter.herd,
@@ -55,6 +57,8 @@ def get_filter_dict(contextcast: ContextCast) -> dict[str, dict[str, str] | str]
         "sires": contextcast.animalfilter.sires,
         "dam": contextcast.animalfilter.dam,
         "dams": contextcast.animalfilter.dams,
+        "phenotype_prefix": contextcast.animalfilter.phenotype_prefix,
+        "genotype_prefix": contextcast.animalfilter.genotype_prefix,
     }
 
     cap_filter_dict = {}
@@ -87,9 +91,10 @@ def get_filter_dict(contextcast: ContextCast) -> dict[str, dict[str, str] | str]
 @register.simple_tag(takes_context=True)
 def load_filter_dict(context: dict[str, Any]) -> SafeText:
     contextcast = ContextCast(context)
-    return mark_safe(
+    safe_text: SafeText = mark_safe(
         f"<script>var Filter = {dumps(get_filter_dict(contextcast))}</script>"
     )
+    return safe_text
 
 
 @register.simple_tag(takes_context=True)
