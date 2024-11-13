@@ -1,9 +1,10 @@
+from __future__ import annotations
 from json import dumps
 from django import template
 from django.utils.safestring import mark_safe, SafeText
 from typing import Any
 
-from .. import models
+
 from ..traitsets import Traitset
 from ..traitsets.traitset import TraitsetAnimalFilter
 
@@ -34,7 +35,7 @@ class ContextCast:
         self.animalfilter = self.traitset.animals[self.animal]
 
     @classmethod
-    def from_class(cls, connectedclass: models.Class) -> "ContextCast":
+    def from_class(cls, connectedclass: "Class") -> "ContextCast":
         new = cls(None)
 
         new.traitset = Traitset(connectedclass.traitset)
@@ -110,7 +111,7 @@ def auto_filter_text(context: dict[str, Any], text: str) -> str:
     return text
 
 
-def filter_text_to_default(text: str, connectedclass: models.Class):
+def filter_text_to_default(text: str, connectedclass: "Class"):
     contextcast = ContextCast.from_class(connectedclass)
 
     for key, val in get_filter_dict(contextcast).items():

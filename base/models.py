@@ -1,10 +1,18 @@
 from collections import defaultdict
 import enum
+from pathlib import Path
 from typing import Any, Optional
 from django.db import models
 from django.contrib.auth.models import User
 from random import choice
 from django.utils.timezone import now, datetime
+from django.conf import settings
+import threading
+
+
+from base.csv import convert_data_row
+from .templatetags.animal_filters import filter_text_to_default
+import os
 
 from .traitsets import Traitset
 from .traitsets import traitset
@@ -131,6 +139,88 @@ class Class(models.Model):
 
         if save:
             self.save()
+
+        def a():
+            self.update_animal_file()
+
+        t = threading.Thread(target=a)
+        t.daemon = True
+        t.start()
+
+
+    def update_animal_file(self) -> None:
+        animals = Animal.objects.select_related("herd", "connectedclass").filter(
+            connectedclass=self
+        )
+        DIR = os.path.join(settings.BASE_DIR, f"animal_files/class-{self.id}/")
+        FILE = os.path.join(DIR, str(len(animals)))
+
+        if not os.path.exists(DIR):
+            os.makedirs(DIR)
+
+        traitset = Traitset(self.traitset)
+        DataKeys = Animal.DataKeys
+
+        headers = (
+            [
+                "Id",
+                "Name",
+                "Herd",
+                "Class",
+                "Generation",
+                "Sex",
+                "Sire",
+                "Dam",
+                "Inbreeding Percent",
+                "Net Merit $",
+            ]
+            + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"ph: <{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.recessives]
+        )
+        data_row_order = (
+            [
+                DataKeys.Id,
+                DataKeys.Name,
+                DataKeys.HerdName,
+                DataKeys.ClassName,
+                DataKeys.Generation,
+                DataKeys.Sex,
+                DataKeys.SireId,
+                DataKeys.DamId,
+                DataKeys.InbreedingPercentage,
+                DataKeys.NetMerit,
+            ]
+            + [(DataKeys.Genotype, x.uid) for x in traitset.traits]
+            + [(DataKeys.Phenotype, x.uid) for x in traitset.traits]
+            + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
+        )
+
+        try:
+            with open(FILE, "w") as file:
+                file.write(convert_data_row(headers) + "\n")
+
+                for animal in animals:
+                    row = []
+                    for key in data_row_order:
+                        value = animal.resolve_data_key(key, self)
+                        if type(value) is str:
+                            value = filter_text_to_default(value, self)
+
+                        row.append(value)
+                    file.write(convert_data_row(row) + "\n")
+        except:
+            os.rename(FILE, FILE + "x")
+
+    def get_animal_file(self) -> Path:
+        count = Animal.objects.filter(connectedclass=self).count()
+        DIR = os.path.join(settings.BASE_DIR, f"animal_files/class-{self.id}/")
+        FILE = os.path.join(DIR, str(count))
+
+        if not os.path.exists(FILE):
+            self.update_animal_file()
+
+        return Path(FILE)
 
 
 class Herd(models.Model):
@@ -534,7 +624,9 @@ class Animal(models.Model):
         data_key: DataKeys | tuple[DataKeys, str],
         connectedclass: Optional[Class] = None,
     ) -> Any:
-        class_traitset = None if connectedclass is None else Traitset(connectedclass.traitset)
+        class_traitset = (
+            None if connectedclass is None else Traitset(connectedclass.traitset)
+        )
         adjust_gen = lambda val, uid: (
             val
             if class_traitset is None

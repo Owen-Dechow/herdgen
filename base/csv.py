@@ -14,7 +14,6 @@ def convert_data_row(data: list[Any]):
 
 
 def get_file_str(headers: list[str], data: list[list[Any]]):
-
     first_row = convert_data_row(headers)
     data_rows = ROW_SEP.join(convert_data_row(row) for row in data)
     return first_row + ROW_SEP + data_rows

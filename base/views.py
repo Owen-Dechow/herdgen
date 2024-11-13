@@ -492,70 +492,11 @@ def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise HttpRequest("Must be teacher to get animal chart")
 
-    traitset = Traitset(class_auth.connectedclass.traitset)
-    DataKeys = models.Animal.DataKeys
-
-    headers = (
-        [
-            "Id",
-            "Name",
-            "Herd",
-            "Class",
-            "Generation",
-            "Sex",
-            "Sire",
-            "Dam",
-            "Inbreeding Percent",
-            "Net Merit $",
-        ]
-        + [
-            filter_text_to_default(f"<{x.uid}>", class_auth.connectedclass)
-            for x in traitset.traits
-        ]
-        + [
-            filter_text_to_default(f"ph: <{x.uid}>", class_auth.connectedclass)
-            for x in traitset.traits
-        ]
-        + [
-            filter_text_to_default(f"<{x.uid}>", class_auth.connectedclass)
-            for x in traitset.recessives
-        ]
-    )
-    data_row_order = (
-        [
-            DataKeys.Id,
-            DataKeys.Name,
-            DataKeys.HerdName,
-            DataKeys.ClassName,
-            DataKeys.Generation,
-            DataKeys.Sex,
-            DataKeys.SireId,
-            DataKeys.DamId,
-            DataKeys.InbreedingPercentage,
-            DataKeys.NetMerit,
-        ]
-        + [(DataKeys.Genotype, x.uid) for x in traitset.traits]
-        + [(DataKeys.Phenotype, x.uid) for x in traitset.traits]
-        + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
-    )
-
-    def data():
-        for animal in (
-            models.Animal.objects.select_related("herd", "connectedclass")
-            .filter(connectedclass=class_auth.connectedclass)
-            .iterator(chunk_size=255)
-        ):
-            row = []
-            for key in data_row_order:
-                value = animal.resolve_data_key(key, class_auth.connectedclass)
-                if type(value) is str:
-                    value = filter_text_to_default(value, class_auth.connectedclass)
-
-                row.append(value)
-            yield row
-
-    return csv.create_csv_streaming_response("animal-chart.csv", headers, data())
-
+    path = class_auth.connectedclass.get_animal_file()
+    with open(path) as f:
+        response = FileResponse(f.read())
+        response["Content-Disposition"] = f'attachment; filename="{class_auth.connectedclass.name} Animals.csv"'
+        return response
 
 #### JSON VIEWS ####
 @login_required

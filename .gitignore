@@ -4,3 +4,4 @@ db.sqlite3
 .env
 staticfiles/
 general.log
+animal_files/*
