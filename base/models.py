@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import defaultdict
 import enum
 from pathlib import Path
@@ -7,12 +8,9 @@ from django.contrib.auth.models import User
 from random import choice
 from django.utils.timezone import now, datetime
 from django.conf import settings
-import threading
 
-
-from base.csv import convert_data_row
+from base import csv
 from .templatetags.animal_filters import filter_text_to_default
-import os
 
 from .traitsets import Traitset
 from .traitsets import traitset
@@ -140,28 +138,12 @@ class Class(models.Model):
         if save:
             self.save()
 
-        def a():
-            self.update_animal_file()
+        self.update_animal_file()
 
-        t = threading.Thread(target=a)
-        t.daemon = True
-        t.start()
-
-
-    def update_animal_file(self) -> None:
-        animals = Animal.objects.select_related("herd", "connectedclass").filter(
-            connectedclass=self
-        )
-        DIR = os.path.join(settings.BASE_DIR, f"animal_files/class-{self.id}/")
-        FILE = os.path.join(DIR, str(len(animals)))
-
-        if not os.path.exists(DIR):
-            os.makedirs(DIR)
-
+    def get_animal_file_headers(self) -> list[str]:
         traitset = Traitset(self.traitset)
-        DataKeys = Animal.DataKeys
 
-        headers = (
+        return (
             [
                 "Id",
                 "Name",
@@ -178,7 +160,14 @@ class Class(models.Model):
             + [filter_text_to_default(f"ph: <{x.uid}>", self) for x in traitset.traits]
             + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.recessives]
         )
-        data_row_order = (
+
+    def get_animal_file_data_order(
+        self,
+    ) -> list[Animal.DataKeys | tuple[Animal.DataKeys, str]]:
+        traitset = Traitset(self.traitset)
+        DataKeys = Animal.DataKeys
+
+        return (
             [
                 DataKeys.Id,
                 DataKeys.Name,
@@ -196,28 +185,44 @@ class Class(models.Model):
             + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
         )
 
-        try:
-            with open(FILE, "w") as file:
-                file.write(convert_data_row(headers) + "\n")
+    def update_animal_file(self) -> None:
+        FILE = Path("animal_files") / f"class-{self.id}"
 
-                for animal in animals:
-                    row = []
-                    for key in data_row_order:
-                        value = animal.resolve_data_key(key, self)
-                        if type(value) is str:
-                            value = filter_text_to_default(value, self)
+        if not FILE.exists():
+            with open(FILE, "w") as f:
+                f.write(csv.convert_data_row(self.get_animal_file_headers()) + "\n")
 
-                        row.append(value)
-                    file.write(convert_data_row(row) + "\n")
-        except:
-            os.rename(FILE, FILE + "x")
+        data_row_order = self.get_animal_file_data_order()
+
+        with open(FILE, "r+") as file:
+            try:
+                row = file.readlines()[-1]
+                first = row.split(csv.COL_SEP)[0]
+                start_id = int(first) + 1
+            except:
+                start_id = 0
+
+            animals = (
+                Animal.objects.select_related("herd", "connectedclass")
+                .filter(connectedclass=self, id__gte=start_id)
+                .order_by("id")
+                .iterator(255)
+            )
+
+            for animal in animals:
+                row = []
+                for key in data_row_order:
+                    value = animal.resolve_data_key(key, self)
+                    if type(value) is str:
+                        value = filter_text_to_default(value, self)
+
+                    row.append(value)
+                file.write(csv.convert_data_row(row) + "\n")
 
     def get_animal_file(self) -> Path:
-        count = Animal.objects.filter(connectedclass=self).count()
-        DIR = os.path.join(settings.BASE_DIR, f"animal_files/class-{self.id}/")
-        FILE = os.path.join(DIR, str(count))
+        FILE = Path("animal_files") / f"class-{self.id}"
 
-        if not os.path.exists(FILE):
+        if not FILE.exists():
             self.update_animal_file()
 
         return Path(FILE)
