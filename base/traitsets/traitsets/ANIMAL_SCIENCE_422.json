@@ -412,7 +412,9 @@
             "sire": "sire",
             "sires": "sires",
             "dam": "dam",
-            "dams": "dams"
+            "dams": "dams",
+            "genotype_prefix" : "PTA",
+            "phenotype_prefix" : "ph"
         }
     }
 }
