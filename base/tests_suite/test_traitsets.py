@@ -12,7 +12,7 @@ class TestTraitsets(TestCase):
                 func(traitset)
 
     def test_traitset_loading(self):
-        self._test_on_each(lambda x: None)
+        self._test_on_each(lambda _: None)
 
     def test_get_random_genotype(self):
         def test(x: Traitset):
@@ -20,6 +20,7 @@ class TestTraitsets(TestCase):
 
             for t in x.traits:
                 self.assertIn(t.uid, gen)
+                self.assertIsInstance(gen[t.uid], float)
 
         self._test_on_each(test)
 
@@ -29,6 +30,7 @@ class TestTraitsets(TestCase):
 
             for r in x.recessives:
                 self.assertIn(r.uid, rec)
+                self.assertIsInstance(rec[r.uid], str)
 
         self._test_on_each(test)
 
@@ -78,6 +80,8 @@ class TestTraitsets(TestCase):
             nm = x.derive_net_merit_from_genotype(gen)
             self.assertIsInstance(nm, float)
 
+        self._test_on_each(test)
+
     def test_get_recessives_from_breeding(self):
         def test(x: Traitset):
             rec1 = x.get_random_recessives()
@@ -92,15 +96,19 @@ class TestTraitsets(TestCase):
     def test_find_trait_or_null(self):
         def test(x: Traitset):
             for uid in x.traits:
-                t = x.find_trait_or_null(uid)
+                t = x.find_trait_or_null(uid.uid)
                 self.assertIsInstance(t, Trait)
 
             self.assertIsNone(x.find_trait_or_null(str(random())))
 
+        self._test_on_each(test)
+
     def test_find_recessive_or_null(self):
         def test(x: Traitset):
             for uid in x.recessives:
-                r = x.find_recessive_or_null(uid)
+                r = x.find_recessive_or_null(uid.uid)
                 self.assertIsInstance(r, Recessive)
 
             self.assertIsNone(x.find_recessive_or_null(str(random())))
+
+        self._test_on_each(test)

@@ -369,8 +369,8 @@ class Traitset:
         return {x.uid: x.get_random() for x in self.recessives}
 
     def get_recessives_from_breeding(
-        self, sire_recessives: dict[str, float], dam_recessives: dict[str, str]
-    ) -> dict[str, float]:
+        self, sire_recessives: dict[str, str], dam_recessives: dict[str, str]
+    ) -> dict[str, str]:
         recessives = {
             x.uid: Recessive.get_from_breeding(
                 sire_recessives[x.uid], dam_recessives[x.uid]

@@ -23,7 +23,7 @@ class Class(models.Model):
     name = models.CharField(max_length=255)
     teacher = models.ForeignKey(to=User, on_delete=models.CASCADE)
     traitset = models.CharField(max_length=255)
-    info = models.TextField(blank=True, null=True)
+    info = models.TextField(blank=True, default="")
     classcode = models.CharField(max_length=255)
     trait_visibility = models.JSONField()
     recessive_visibility = models.JSONField()
@@ -101,38 +101,86 @@ class Class(models.Model):
             connectedclass=self, startdate__lte=now(), duedate__gte=now()
         )
 
-    def update_trend_log(self, save: bool = True) -> None:
-        capture = {"genotype": defaultdict(int), "phenotype": defaultdict(int)}
-        net_merit_capture = 0
+    def update_trend_log(
+        self,
+        save: bool = True,
+        new_animals: Optional[list[Animal]] = None,
+        old_animals: Optional[list[Animal]] = None,
+    ) -> None:
+        if new_animals is not None and old_animals is not None:
+            last = self.trend_log[-1]
+            last_pop = last[self.POPULATION_SIZE_KEY]
+            new_pop = last_pop - len(old_animals) + len(new_animals)
 
-        animals = Animal.objects.filter(connectedclass=self)
-        num_animals_alive = 0
-        for animal in animals:
+            capture = {"genotype": {}, "phenotype": {}}
+            for key, val in last["genotype"].items():
+                old_sum = 0
+                for animal in old_animals:
+                    old_sum += animal.genotype[key]
 
-            if animal.herd_id is None:
-                continue
-            else:
-                num_animals_alive += 1
+                new_sum = 0
+                for animal in new_animals:
+                    new_sum += animal.genotype[key]
 
-            net_merit_capture += animal.net_merit
+                capture["genotype"][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
 
-            for key, val in animal.genotype.items():
-                capture["genotype"][key] += val
+            for key, val in last["phenotype"].items():
+                old_sum = 0
+                for animal in old_animals:
+                    old_sum += animal.phenotype[key]
 
-            for key, val in animal.phenotype.items():
-                capture["phenotype"][key] += val
+                new_sum = 0
+                for animal in new_animals:
+                    new_sum += animal.phenotype[key]
 
-        net_merit_capture = net_merit_capture / num_animals_alive
+                capture["phenotype"][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
 
-        for key, val in capture["genotype"].items():
-            capture["genotype"][key] = val / num_animals_alive
+            old_nm = 0
+            for animal in old_animals:
+                old_nm += animal.net_merit
 
-        for key, val in capture["phenotype"].items():
-            capture["phenotype"][key] = val / num_animals_alive
+            new_nm = 0
+            for animal in new_animals:
+                new_nm += animal.net_merit
 
-        capture[self.TIME_STAMP_KEY] = now().isoformat()
-        capture[self.POPULATION_SIZE_KEY] = num_animals_alive
-        capture[Animal.DataKeys.NetMerit.value] = net_merit_capture
+            last_nm = last[Animal.DataKeys.NetMerit.value]
+            capture[Animal.DataKeys.NetMerit.value] = (
+                (last_nm * last_pop) - old_nm + new_nm
+            ) / new_pop
+
+            capture[self.TIME_STAMP_KEY] = now().isoformat()
+        else:
+            capture = {"genotype": defaultdict(int), "phenotype": defaultdict(int)}
+            net_merit_capture = 0
+
+            animals = Animal.objects.filter(connectedclass=self)
+            num_animals_alive = 0
+            for animal in animals:
+                if animal.herd_id is None:
+                    continue
+                else:
+                    num_animals_alive += 1
+
+                net_merit_capture += animal.net_merit
+
+                for key, val in animal.genotype.items():
+                    capture["genotype"][key] += val
+
+                for key, val in animal.phenotype.items():
+                    capture["phenotype"][key] += val
+
+            net_merit_capture = net_merit_capture / num_animals_alive
+
+            for key, val in capture["genotype"].items():
+                capture["genotype"][key] = val / num_animals_alive
+
+            for key, val in capture["phenotype"].items():
+                capture["phenotype"][key] = val / num_animals_alive
+
+            capture[self.TIME_STAMP_KEY] = now().isoformat()
+            capture[self.POPULATION_SIZE_KEY] = num_animals_alive
+            capture[Animal.DataKeys.NetMerit.value] = net_merit_capture
+
         self.trend_log.append(capture)
 
         if save:
@@ -340,7 +388,7 @@ class Herd(models.Model):
 
         Animal.objects.bulk_update(total_dead, ["herd"])
 
-        self.connectedclass.update_trend_log()
+        self.connectedclass.update_trend_log(new_animals=animals, old_animals=total_dead)
         self.save()
 
         return self.BreedingResults(len(recessive_deaths), len(age_deaths))
@@ -375,7 +423,6 @@ class Herd(models.Model):
             for key, val in summary["phenotype"].items():
                 summary["phenotype"][key] = val / num_animals
 
-        if not self.connectedclass.net_merit_visibility:
             summary.pop(Animal.DataKeys.NetMerit.value)
 
         return {
@@ -444,7 +491,7 @@ class Enrollment(models.Model):
         new.herd.save()
 
         enrollment_request.delete()
-        new.connectedclass.update_trend_log(save=False)
+        new.connectedclass.update_trend_log(save=False, new_animals=Animal.objects.filter(herd=new.herd), old_animals=[])
         new.connectedclass.decrement_enrollment_tokens()
 
         assignment_fulfillments = []
@@ -712,7 +759,6 @@ class Animal(models.Model):
                     return self.id
 
     def json_dict(self) -> dict[str | Any]:
-
         DataKeys = self.DataKeys
         json = {}
 
@@ -783,9 +829,7 @@ class Assignment(models.Model):
 
         assignment_steps = []
         for idx, step in enumerate(steps):
-            assignment_steps.append(
-                AssignmentStep(number=idx, assignment=new, step=step)
-            )
+            assignment_steps.append(AssignmentStep(number=idx, assignment=new, step=step))
         AssignmentStep.objects.bulk_create(assignment_steps)
 
         return new
