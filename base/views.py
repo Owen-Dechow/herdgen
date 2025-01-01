@@ -1,4 +1,3 @@
-import time
 from django.http import (
     FileResponse,
     Http404,
@@ -129,11 +128,14 @@ def openclass(request: HttpRequest, classid: int) -> HttpResponse:
             form = forms.UpdateClassForm(
                 class_auth.connectedclass, instance=connectedclass
             )
-
     elif type(class_auth) is ClassAuth.Student:
         enrollment = class_auth.enrollment
         form = forms.ClassReadonlyForm(instance=connectedclass)
         enrollment_form = forms.UpdateEnrollmentForm(instance=enrollment)
+    else:
+        form = None
+        enrollment = None
+        enrollment_form = None
 
     return render(
         request,
@@ -311,7 +313,7 @@ def delete_assignment(
 def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     class_auth = auth_class(request, classid)
     if type(class_auth) in ClassAuth.TEACHER_ADMIN:
-        raise HttpRequest("Must be teacher to delete class")
+        raise Http404("Must be teacher to delete class")
 
     class_auth.connectedclass.delete()
     return HttpResponseRedirect("/")
@@ -392,7 +394,7 @@ def confirm_enrollment(
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        return Http404("Must be teacher to confirm enrollment")
+        raise Http404("Must be teacher to confirm enrollment")
 
     if class_auth.connectedclass.enrollment_tokens > 0:
         enrollment_request = get_object_or_404(
@@ -423,7 +425,7 @@ def remove_enrollment(
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        return Http404("Must be teacher to remove enrollment")
+        raise Http404("Must be teacher to remove enrollment")
 
     enrollment = get_object_or_404(
         models.Enrollment, id=enrollmentid, connectedclass=class_auth.connectedclass
@@ -440,7 +442,7 @@ def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonR
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        return Http404("Must be teacher to deny enrollment")
+        raise Http404("Must be teacher to deny enrollment")
 
     enrollment_request = get_object_or_404(
         models.EnrollmentRequest, id=requestid, connectedclass=class_auth.connectedclass
@@ -456,7 +458,7 @@ def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        raise HttpRequest("Must be teacher to get trend chart")
+        raise Http404("Must be teacher to get trend chart")
 
     traitset = Traitset(class_auth.connectedclass.traitset)
     headers = (
@@ -486,11 +488,11 @@ def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
 
 
 @login_required
-def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
+def _get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        raise HttpRequest("Must be teacher to get animal chart")
+        raise Http404("Must be teacher to get animal chart")
 
     path = class_auth.connectedclass.get_animal_file()
     with open(path) as f:
@@ -498,13 +500,33 @@ def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
         response["Content-Disposition"] = f'attachment; filename="{class_auth.connectedclass.name} Animals.csv"'
         return response
 
+def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
+        raise Http404("Must be teacher to get animal chart")
+
+    headers = class_auth.connectedclass.get_animal_file_headers()
+    data_keys = class_auth.connectedclass.get_animal_file_data_order()
+
+    data = []
+    for animal in models.Animal.objects.filter(connectedclass=class_auth.connectedclass):
+        row = []
+        for key in data_keys:
+            row.append(animal.resolve_data_key(key))
+
+        data.append(row)
+
+    return csv.create_csv_response("animals.csv", headers, data)
+
+
 #### JSON VIEWS ####
 @login_required
 def get_enrollments(request: HttpRequest, classid: int) -> JsonResponse:
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        return Http404("Must be teacher to get_enrollments")
+        raise Http404("Must be teacher to get_enrollments")
 
     json = {
         "enrollments": [

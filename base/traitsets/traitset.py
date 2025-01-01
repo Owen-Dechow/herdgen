@@ -5,6 +5,7 @@ from typing import Optional
 import numpy as np
 from scipy.linalg import cholesky
 
+
 TRAITSET_PATH = Path(__file__).parent / "traitsets"
 
 TRAITS_KEY = "traits"
@@ -146,19 +147,43 @@ class Trait:
     ) -> float:
         genotype = genotype * self.calculated_standard_deviation
 
-        phenotypic_variance = (
-            self.calculated_standard_deviation**2
-        ) / self.heritability
+        phenotypic_variance = (self.calculated_standard_deviation**2) / self.heritability
         residual_variance = phenotypic_variance * (1 - self.heritability)
         residual_standard_deviation = np.sqrt(residual_variance)
         phenotype = genotype * 2 + self.mendelian_sample(
             scale=residual_standard_deviation
         )
-        phenotype += (
-            inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
-        )
+
+        phenotype += inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
 
         return phenotype / self.calculated_standard_deviation
+
+    def convert_genotype_to_pta(
+        self, genotype: float, number_of_daughters: int, genomic_tests: int
+    ) -> float:
+
+        n = number_of_daughters + genomic_tests * 2 * (
+            1 / self.heritability
+        )
+
+        bv = genotype * self.calculated_standard_deviation
+
+        k = (4 - self.heritability) / self.heritability
+
+        rel = self.heritability + (
+            n / (n + k)
+        )
+        rel = min(rel, 0.99)
+
+        w1 = np.sqrt(rel)
+        w2 = np.sqrt(1 - rel)
+
+        noise = self.mendelian_sample(self.calculated_standard_deviation)
+        PTA = w1 * bv + w2 * noise
+        PTA *= rel
+        PTA /= 2
+
+        return PTA / self.calculated_standard_deviation
 
     def get_from_breeding(
         self, sire_val: float, dam_val: float, mendelian_sample: float
@@ -356,6 +381,16 @@ class Traitset:
         return {
             trait.uid: val
             for trait, val in zip(self.traits, correlated_values, strict=True)
+        }
+
+    def derive_ptas_from_genotype(
+        self, genotype: dict[str, float], number_of_daughters: int, genomic_tests: int
+    ) -> dict[str, float]:
+        return {
+            key: self.find_trait_or_null(key).convert_genotype_to_pta(
+                val, number_of_daughters, genomic_tests
+            )
+            for key, val in genotype.items()
         }
 
     def derive_net_merit_from_genotype(self, genotype: dict[str, float]) -> float:

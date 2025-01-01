@@ -7,7 +7,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from random import choice
 from django.utils.timezone import now, datetime
-from django.conf import settings
 
 from base import csv
 from .templatetags.animal_filters import filter_text_to_default
@@ -104,8 +103,8 @@ class Class(models.Model):
     def update_trend_log(
         self,
         save: bool = True,
-        new_animals: Optional[list[Animal]] = None,
-        old_animals: Optional[list[Animal]] = None,
+        new_animals: Optional[list["Animal"]] = None,
+        old_animals: Optional[list["Animal"]] = None,
     ) -> None:
         if new_animals is not None and old_animals is not None:
             last = self.trend_log[-1]
@@ -122,7 +121,9 @@ class Class(models.Model):
                 for animal in new_animals:
                     new_sum += animal.genotype[key]
 
-                capture["genotype"][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
+                capture["genotype"][key] = (
+                    (val * last_pop) - old_sum + new_sum
+                ) / new_pop
 
             for key, val in last["phenotype"].items():
                 old_sum = 0
@@ -133,7 +134,9 @@ class Class(models.Model):
                 for animal in new_animals:
                     new_sum += animal.phenotype[key]
 
-                capture["phenotype"][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
+                capture["phenotype"][key] = (
+                    (val * last_pop) - old_sum + new_sum
+                ) / new_pop
 
             old_nm = 0
             for animal in old_animals:
@@ -206,12 +209,13 @@ class Class(models.Model):
             ]
             + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.traits]
             + [filter_text_to_default(f"ph: <{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"pta: <{x.uid}>", self) for x in traitset.traits]
             + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.recessives]
         )
 
     def get_animal_file_data_order(
         self,
-    ) -> list[Animal.DataKeys | tuple[Animal.DataKeys, str]]:
+    ) -> list[Animal.DataKeys | tuple["Animal.DataKeys", str]]:
         traitset = Traitset(self.traitset)
         DataKeys = Animal.DataKeys
 
@@ -230,6 +234,7 @@ class Class(models.Model):
             ]
             + [(DataKeys.Genotype, x.uid) for x in traitset.traits]
             + [(DataKeys.Phenotype, x.uid) for x in traitset.traits]
+            + [(DataKeys.Pta, x.uid) for x in traitset.traits]
             + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
         )
 
@@ -275,6 +280,24 @@ class Class(models.Model):
 
         return Path(FILE)
 
+    def recalculate_ptas(self, genomic_test: bool = False):
+        traitset = Traitset(self.traitset)
+        sire_daughters = models.Count("sire", filter=models.Q(sire__male=False))
+        dam_daughters = models.Count("dam", filter=models.Q(dam__male=False))
+        animals = Animal.objects.annotate(
+            number_of_daughters_sire=sire_daughters, number_of_daughters_dam=dam_daughters
+        ).filter(connectedclass=self, herd__isnull=False)
+
+        for animal in animals:
+            if genomic_test:
+                animal.genomic_tests += 1
+
+            animal.recalculate_pta_unsaved(
+                animal.number_of_daughters_sire + animal.number_of_daughters_dam, traitset
+            )
+
+        Animal.objects.bulk_update(animals, ["genomic_tests", "ptas"])
+
 
 class Herd(models.Model):
     class BreedingResults:
@@ -311,19 +334,21 @@ class Herd(models.Model):
         new = cls(name=name, connectedclass=connectedclass)
         new.save()
 
-        males = [
+        male_animals = [
             Animal.generate_random_unsaved(True, new, traitset, connectedclass)
             for _ in range(males)
         ]
-        females = [
+        female_animals = [
             Animal.generate_random_unsaved(False, new, traitset, connectedclass)
             for _ in range(females)
         ]
 
-        Animal.objects.bulk_create(males + females)
-        for animal in males + females:
+        Animal.objects.bulk_create(male_animals + female_animals)
+        for animal in male_animals + female_animals:
             animal.finalize_animal_unsaved(new)
-        Animal.objects.bulk_update(males + females, ["name", "pedigree", "inbreeding"])
+        Animal.objects.bulk_update(
+            male_animals + female_animals, ["name", "pedigree", "inbreeding"]
+        )
 
         return new
 
@@ -393,7 +418,7 @@ class Herd(models.Model):
 
         return self.BreedingResults(len(recessive_deaths), len(age_deaths))
 
-    def json_dict(self) -> dict[str | Any]:
+    def json_dict(self) -> dict[str, Any]:
         animals = Animal.objects.select_related("connectedclass").filter(herd=self)
         num_animals = animals.count()
 
@@ -491,7 +516,9 @@ class Enrollment(models.Model):
         new.herd.save()
 
         enrollment_request.delete()
-        new.connectedclass.update_trend_log(save=False, new_animals=Animal.objects.filter(herd=new.herd), old_animals=[])
+        new.connectedclass.update_trend_log(
+            save=False, new_animals=Animal.objects.filter(herd=new.herd), old_animals=[]
+        )
         new.connectedclass.decrement_enrollment_tokens()
 
         assignment_fulfillments = []
@@ -515,7 +542,7 @@ class Enrollment(models.Model):
             "connectedclass": self.connectedclass_id,
         }
 
-    def get_open_assignments_json_dict(self) -> dict[str | Any]:
+    def get_open_assignments_json_dict(self) -> dict[str, Any]:
         json = {}
 
         assignments = Assignment.objects.prefetch_related(
@@ -584,6 +611,7 @@ class Animal(models.Model):
         InbreedingPercentage = "inbreedingpercentage"
         Genotype = "genotype"
         Phenotype = "phenotype"
+        Pta = "pta"
         Recessives = "recessives"
         NiceRecessives = "nicerecessive"
         Male = "male"
@@ -595,9 +623,11 @@ class Animal(models.Model):
     name = models.CharField(max_length=255)
     generation = models.IntegerField(default=0)
     male = models.BooleanField()
+    genomic_tests = models.IntegerField(default=0)
 
     genotype = models.JSONField()
     phenotype = models.JSONField()
+    ptas = models.JSONField()
     recessives = models.JSONField()
 
     sire = models.ForeignKey(
@@ -633,6 +663,7 @@ class Animal(models.Model):
         new.phenotype = traitset.derive_phenotype_from_genotype(
             new.genotype, new.inbreeding
         )
+        new.ptas = traitset.derive_ptas_from_genotype(new.genotype, 0, new.genomic_tests)
         new.recessives = traitset.get_random_recessives()
         new.pedigree = {"sire": None, "dam": None, "id": None}
 
@@ -701,6 +732,19 @@ class Animal(models.Model):
             .phenotype_average
         )
 
+        adjust_pta = lambda val, uid: (
+            val
+            if class_traitset is None
+            else val
+            * class_traitset.find_trait_or_null(uid)
+            .animals[connectedclass.default_animal]
+            .standard_deviation
+            * 2
+            + class_traitset.find_trait_or_null(uid)
+            .animals[connectedclass.default_animal]
+            .phenotype_average
+        )
+
         if type(data_key) is tuple:
             match data_key[0]:
                 case self.DataKeys.Genotype:
@@ -709,6 +753,8 @@ class Animal(models.Model):
                     return adjust_phen(self.phenotype[data_key[1]], data_key[1])
                 case self.DataKeys.Recessives:
                     return self.recessives[data_key[1]]
+                case self.DataKeys.Pta:
+                    return adjust_pta(self.ptas[data_key[1]], data_key[1])
                 case self.DataKeys.NiceRecessives:
                     match self.recessives[data_key[1]]:
                         case traitset.HOMOZYGOUS_FREE_KEY:
@@ -758,7 +804,7 @@ class Animal(models.Model):
                 case self.DataKeys.Id:
                     return self.id
 
-    def json_dict(self) -> dict[str | Any]:
+    def json_dict(self) -> dict[str, Any]:
         DataKeys = self.DataKeys
         json = {}
 
@@ -792,6 +838,11 @@ class Animal(models.Model):
                 if self.connectedclass.recessive_visibility[key]
             },
         }
+
+    def recalculate_pta_unsaved(self, number_of_daughters: int, traitset: Traitset):
+        self.ptas = traitset.derive_ptas_from_genotype(
+            self.genotype, number_of_daughters, self.genomic_tests
+        )
 
 
 class Assignment(models.Model):
