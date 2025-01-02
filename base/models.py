@@ -1,12 +1,10 @@
 from collections import defaultdict
-import enum
 from pathlib import Path
 from typing import Any, Optional
 from django.db import models
 from django.contrib.auth.models import User
 from random import choice
 from django.utils.timezone import now, datetime
-from six import print_
 
 from base import csv
 from .templatetags.animal_filters import filter_text_to_default
@@ -15,6 +13,7 @@ from .traitsets import Traitset
 from .traitsets import traitset
 from .traitsets.traitset import HOMOZYGOUS_CARRIER_KEY
 from .inbreeding import calculate_inbreeding
+from . import names as nms
 
 
 # Create your models here.
@@ -39,10 +38,6 @@ class Class(models.Model):
         null=True,
     )
     enrollment_tokens = models.IntegerField(default=0)
-
-    TIME_STAMP_KEY = "timestamp"
-    POPULATION_SIZE_KEY = "populationsize"
-
     def __str__(self) -> str:
         return f"{self.id} | {self.name}"
 
@@ -108,11 +103,11 @@ class Class(models.Model):
     ) -> None:
         if new_animals is not None and old_animals is not None:
             last = self.trend_log[-1]
-            last_pop = last[self.POPULATION_SIZE_KEY]
+            last_pop = last[nms.POPULATION_SIZE_KEY]
             new_pop = last_pop - len(old_animals) + len(new_animals)
 
-            capture = {"genotype": {}, "phenotype": {}, "ptas": {}}
-            for key, val in last["genotype"].items():
+            capture = {nms.GENOTYPE_KEY: {}, nms.PHENOTYPE_KEY: {}, nms.PTA_KEY: {}}
+            for key, val in last[nms.GENOTYPE_KEY].items():
                 old_sum = 0
                 for animal in old_animals:
                     old_sum += animal.genotype[key]
@@ -121,11 +116,11 @@ class Class(models.Model):
                 for animal in new_animals:
                     new_sum += animal.genotype[key]
 
-                capture["genotype"][key] = (
+                capture[nms.GENOTYPE_KEY][key] = (
                     (val * last_pop) - old_sum + new_sum
                 ) / new_pop
 
-            for key, val in last["phenotype"].items():
+            for key, val in last[nms.PHENOTYPE_KEY].items():
                 old_sum = 0
                 for animal in old_animals:
                     old_sum += animal.phenotype[key] or 0
@@ -134,11 +129,11 @@ class Class(models.Model):
                 for animal in new_animals:
                     new_sum += animal.phenotype[key] or 0
 
-                capture["phenotype"][key] = (
+                capture[nms.PHENOTYPE_KEY][key] = (
                     (val * last_pop) - old_sum + new_sum
                 ) / new_pop
 
-            for key, val in last["ptas"].items():
+            for key, val in last[nms.PTA_KEY].items():
                 old_sum = 0
                 for animal in old_animals:
                     old_sum += animal.ptas[key]
@@ -147,7 +142,7 @@ class Class(models.Model):
                 for animal in new_animals:
                     old_sum += animal.ptas[key]
 
-                capture["ptas"][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
+                capture[nms.PTA_KEY][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
 
             old_nm = 0
             for animal in old_animals:
@@ -157,18 +152,18 @@ class Class(models.Model):
             for animal in new_animals:
                 new_nm += animal.net_merit
 
-            last_nm = last[Animal.DataKeys.NetMerit.value]
-            capture[Animal.DataKeys.NetMerit.value] = (
+            last_nm = last[nms.NETMERIT_KEY]
+            capture[nms.NETMERIT_KEY] = (
                 (last_nm * last_pop) - old_nm + new_nm
             ) / new_pop
-            capture[self.POPULATION_SIZE_KEY] = new_pop
+            capture[nms.POPULATION_SIZE_KEY] = new_pop
 
-            capture[self.TIME_STAMP_KEY] = now().isoformat()
+            capture[nms.TIME_STAMP_KEY] = now().isoformat()
         else:
             capture = {
-                "genotype": defaultdict(int),
-                "phenotype": defaultdict(int),
-                "ptas": defaultdict(int),
+                nms.GENOTYPE_KEY: defaultdict(int),
+                nms.PHENOTYPE_KEY: defaultdict(int),
+                nms.PTA_KEY: defaultdict(int),
             }
             net_merit_capture = 0
 
@@ -183,28 +178,28 @@ class Class(models.Model):
                 net_merit_capture += animal.net_merit
 
                 for key, val in animal.genotype.items():
-                    capture["genotype"][key] += val
+                    capture[nms.GENOTYPE_KEY][key] += val
 
                 for key, val in animal.phenotype.items():
-                    capture["phenotype"][key] += val or 0
+                    capture[nms.PHENOTYPE_KEY][key] += val or 0
 
                 for key, val in animal.ptas.items():
-                    capture["ptas"][key] += val
+                    capture[nms.PTA_KEY][key] += val
 
             net_merit_capture = net_merit_capture / num_animals_alive
 
-            for key, val in capture["genotype"].items():
-                capture["genotype"][key] = val / num_animals_alive
+            for key, val in capture[nms.GENOTYPE_KEY].items():
+                capture[nms.GENOTYPE_KEY][key] = val / num_animals_alive
 
-            for key, val in capture["phenotype"].items():
-                capture["phenotype"][key] = val / num_animals_alive
+            for key, val in capture[nms.PHENOTYPE_KEY].items():
+                capture[nms.PHENOTYPE_KEY][key] = val / num_animals_alive
 
-            for key, val in capture["ptas"].items():
-                capture["ptas"][key] = val / num_animals_alive
+            for key, val in capture[nms.PTA_KEY].items():
+                capture[nms.PTA_KEY][key] = val / num_animals_alive
 
-            capture[self.TIME_STAMP_KEY] = now().isoformat()
-            capture[self.POPULATION_SIZE_KEY] = num_animals_alive
-            capture[Animal.DataKeys.NetMerit.value] = net_merit_capture
+            capture[nms.TIME_STAMP_KEY] = now().isoformat()
+            capture[nms.POPULATION_SIZE_KEY] = num_animals_alive
+            capture[nms.NETMERIT_KEY] = net_merit_capture
 
         self.trend_log.append(capture)
 
@@ -237,27 +232,25 @@ class Class(models.Model):
 
     def get_animal_file_data_order(
         self,
-    ) -> list["Animal.DataKeys | tuple['Animal.DataKeys', str]"]:
+    ) -> list[str | tuple[str, str]]:
         traitset = Traitset(self.traitset)
-        DataKeys = Animal.DataKeys
-
         return (
             [
-                DataKeys.Id,
-                DataKeys.Name,
-                DataKeys.HerdName,
-                DataKeys.ClassName,
-                DataKeys.Generation,
-                DataKeys.Sex,
-                DataKeys.SireId,
-                DataKeys.DamId,
-                DataKeys.InbreedingPercentage,
-                DataKeys.NetMerit,
+                nms.ID_KEY,
+                nms.NAME_KEY,
+                nms.HERD_NAME_KEY,
+                nms.CLASS_NAME_KEY,
+                nms.GENERATION_KEY,
+                nms.SEX_KEY,
+                nms.SIRE_ID_KEY,
+                nms.DAM_ID_KEY,
+                nms.INBREEDING_PERCENTAGE_KEY,
+                nms.NETMERIT_KEY
             ]
-            + [(DataKeys.Genotype, x.uid) for x in traitset.traits]
-            + [(DataKeys.Phenotype, x.uid) for x in traitset.traits]
-            + [(DataKeys.Pta, x.uid) for x in traitset.traits]
-            + [(DataKeys.NiceRecessives, x.uid) for x in traitset.recessives]
+            + [(nms.GENOTYPE_KEY, x.uid) for x in traitset.traits]
+            + [(nms.PHENOTYPE_KEY, x.uid) for x in traitset.traits]
+            + [(nms.PTA_KEY, x.uid) for x in traitset.traits]
+            + [(nms.FORMATTED_RECESSIVES_KEY, x.uid) for x in traitset.recessives]
         )
 
     def update_animal_file(self) -> None:
@@ -453,42 +446,42 @@ class Herd(models.Model):
         num_animals = animals.count()
 
         summary = {
-            "genotype": defaultdict(int),
-            "phenotype": defaultdict(int),
-            "ptas": defaultdict(int),
-            Animal.DataKeys.NetMerit.value: 0,
+            nms.GENOTYPE_KEY: defaultdict(int),
+            nms.PHENOTYPE_KEY: defaultdict(int),
+            nms.PTA_KEY: defaultdict(int),
+            nms.NETMERIT_KEY: 0,
         }
 
         if num_animals > 0:
             for animal in animals:
-                summary[Animal.DataKeys.NetMerit.value] += animal.net_merit
+                summary[nms.NETMERIT_KEY] += animal.net_merit
                 for key, val in animal.genotype.items():
                     if self.connectedclass.trait_visibility[key][0]:
-                        summary["genotype"][key] += val
+                        summary[nms.GENOTYPE_KEY][key] += val
                 for key, val in animal.phenotype.items():
                     if self.connectedclass.trait_visibility[key][1]:
-                        summary["phenotype"][key] += val or 0
+                        summary[nms.PHENOTYPE_KEY][key] += val or 0
                 for key, val in animal.ptas.items():
                     if self.connectedclass.trait_visibility[key][2]:
-                        summary["ptas"][key] += val
+                        summary[nms.PTA_KEY][key] += val
 
-            summary[Animal.DataKeys.NetMerit.value] = (
-                summary[Animal.DataKeys.NetMerit.value] / num_animals
+            summary[nms.NETMERIT_KEY] = (
+                summary[nms.NETMERIT_KEY] / num_animals
             )
 
-            for key, val in summary["genotype"].items():
-                summary["genotype"][key] = val / num_animals
+            for key, val in summary[nms.GENOTYPE_KEY].items():
+                summary[nms.GENOTYPE_KEY][key] = val / num_animals
 
-            for key, val in summary["phenotype"].items():
-                summary["phenotype"][key] = val / num_animals
+            for key, val in summary[nms.PHENOTYPE_KEY].items():
+                summary[nms.PHENOTYPE_KEY][key] = val / num_animals
 
-            for key, val in summary["ptas"].items():
-                summary["ptas"][key] = val / num_animals
+            for key, val in summary[nms.PTA_KEY].items():
+                summary[nms.PTA_KEY][key] = val / num_animals
 
-            summary.pop(Animal.DataKeys.NetMerit.value)
+            summary.pop(nms.NETMERIT_KEY)
 
         return {
-            "name": self.name,
+            nms.NAME_KEY: self.name,
             "connectedclass": self.connectedclass_id,
             "breedings": self.breedings,
             "animals": {x.id: x.json_dict() for x in animals},
@@ -572,7 +565,7 @@ class Enrollment(models.Model):
             "id": self.id,
             "student": {
                 "id": self.student.id,
-                "name": self.student.get_full_name(),
+                nms.NAME_KEY: self.student.get_full_name(),
                 "email": self.student.email,
             },
             "herd": self.herd_id,
@@ -589,7 +582,7 @@ class Enrollment(models.Model):
         )
         for assignment in assignments:
             json[assignment.id] = {
-                "name": assignment.name,
+                nms.NAME_KEY: assignment.name,
                 "id": assignment.id,
                 "startdate": assignment.startdate,
                 "duedate": assignment.duedate,
@@ -626,7 +619,7 @@ class EnrollmentRequest(models.Model):
             "id": self.id,
             "student": {
                 "id": self.student.id,
-                "name": self.student.get_full_name(),
+                nms.NAME_KEY: self.student.get_full_name(),
                 "email": self.student.email,
             },
             "connectedclass": self.connectedclass_id,
@@ -634,27 +627,6 @@ class EnrollmentRequest(models.Model):
 
 
 class Animal(models.Model):
-    class DataKeys(enum.Enum):
-        HerdId = "herd"
-        HerdName = "herdname"
-        ClassId = "class"
-        ClassName = "classname"
-        Name = "name"
-        Generation = "generation"
-        Sex = "sex"
-        SireId = "sire"
-        DamId = "dam"
-        InbreedingCoefficient = "inbreeding"
-        InbreedingPercentage = "inbreedingpercentage"
-        Genotype = "genotype"
-        Phenotype = "phenotype"
-        Pta = "ptas"
-        Recessives = "recessives"
-        NiceRecessives = "nicerecessive"
-        Male = "male"
-        Id = "id"
-        NetMerit = "NM$"
-
     herd = models.ForeignKey(to="Herd", on_delete=models.CASCADE, null=True)
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -706,7 +678,7 @@ class Animal(models.Model):
 
         new.ptas = traitset.derive_ptas_from_genotype(new.genotype, 0, new.genomic_tests)
         new.recessives = traitset.get_random_recessives()
-        new.pedigree = {"sire": None, "dam": None, "id": None}
+        new.pedigree = {nms.SIRE_ID_KEY: None, nms.DAM_ID_KEY: None, nms.ID_KEY: None}
 
         return new
 
@@ -721,7 +693,7 @@ class Animal(models.Model):
         dam: "Animal",
     ) -> "Animal":
         new = cls(male=male, herd=herd, connectedclass=connectedclass)
-        new.pedigree = {"sire": sire.pedigree, "dam": dam.pedigree, "id": None}
+        new.pedigree = {nms.SIRE_ID_KEY: sire.pedigree, nms.DAM_ID_KEY: dam.pedigree, nms.ID_KEY: None}
         new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
         new.inbreeding = calculate_inbreeding(new.pedigree)
@@ -751,7 +723,7 @@ class Animal(models.Model):
 
     def resolve_data_key(
         self,
-        data_key: DataKeys | tuple[DataKeys, str],
+        data_key: str | tuple[str, str],
         connectedclass: Optional[Class] = None,
     ) -> Any:
         class_traitset = (
@@ -796,15 +768,15 @@ class Animal(models.Model):
 
         if type(data_key) is tuple:
             match data_key[0]:
-                case self.DataKeys.Genotype:
+                case nms.GENOTYPE_KEY:
                     return adjust_gen(self.genotype[data_key[1]], data_key[1])
-                case self.DataKeys.Phenotype:
+                case nms.PHENOTYPE_KEY:
                     return adjust_phen(self.phenotype[data_key[1]], data_key[1])
-                case self.DataKeys.Recessives:
+                case nms.RECESSIVES_KEY:
                     return self.recessives[data_key[1]]
-                case self.DataKeys.Pta:
+                case nms.PTA_KEY:
                     return adjust_pta(self.ptas[data_key[1]], data_key[1])
-                case self.DataKeys.NiceRecessives:
+                case nms.FORMATTED_RECESSIVES_KEY:
                     match self.recessives[data_key[1]]:
                         case traitset.HOMOZYGOUS_FREE_KEY:
                             return "Tested Free"
@@ -814,80 +786,79 @@ class Animal(models.Model):
                             return "Carrier"
         else:
             match data_key:
-                case self.DataKeys.HerdId:
+                case nms.HERD_ID_KEY:
                     return self.herd.id if self.herd else None
-                case self.DataKeys.HerdName:
+                case nms.HERD_NAME_KEY:
                     return self.herd.name if self.herd else None
-                case self.DataKeys.ClassId:
+                case nms.CLASS_ID_KEY:
                     return self.connectedclass.id
-                case self.DataKeys.ClassName:
+                case nms.CLASS_ID_KEY:
                     return self.connectedclass.name
-                case self.DataKeys.Name:
+                case nms.NAME_KEY:
                     return self.name
-                case self.DataKeys.Generation:
+                case nms.GENERATION_KEY:
                     return self.generation
-                case self.DataKeys.Sex:
+                case nms.SEX_KEY:
                     return "male" if self.male else "female"
-                case self.DataKeys.SireId:
-                    sire = self.pedigree["sire"]
+                case nms.SIRE_ID_KEY:
+                    sire = self.pedigree[nms.SIRE_ID_KEY]
                     if sire is not None:
-                        return sire["id"]
-                case self.DataKeys.DamId:
-                    dam = self.pedigree["dam"]
+                        return sire[nms.ID_KEY]
+                case nms.DAM_ID_KEY:
+                    dam = self.pedigree[nms.DAM_ID_KEY]
                     if dam is not None:
-                        return dam["id"]
-                case self.DataKeys.InbreedingCoefficient:
+                        return dam[nms.ID_KEY]
+                case nms.INBREEDING_COEFFICIENT_KEY:
                     return self.inbreeding
-                case self.DataKeys.InbreedingPercentage:
+                case nms.INBREEDING_PERCENTAGE_KEY:
                     return self.inbreeding * 100
-                case self.DataKeys.Genotype:
+                case nms.GENOTYPE_KEY:
                     return self.genotype
-                case self.DataKeys.Phenotype:
+                case nms.PHENOTYPE_KEY:
                     return self.phenotype
-                case self.DataKeys.Recessives:
+                case nms.RECESSIVES_KEY:
                     return self.recessives
-                case self.DataKeys.Male:
+                case nms.MALE_KEY:
                     return self.male
-                case self.DataKeys.NetMerit:
+                case nms.NETMERIT_KEY:
                     return self.net_merit
-                case self.DataKeys.Id:
+                case nms.ID_KEY:
                     return self.id
 
     def json_dict(self) -> dict[str, Any]:
-        DataKeys = self.DataKeys
         json = {}
 
         data_keys = [
-            DataKeys.Id,
-            DataKeys.Name,
-            DataKeys.Generation,
-            DataKeys.Male,
-            DataKeys.DamId,
-            DataKeys.SireId,
-            DataKeys.InbreedingCoefficient,
-        ] + ([DataKeys.NetMerit] if self.connectedclass.net_merit_visibility else [])
+            nms.ID_KEY,
+            nms.NAME_KEY,
+            nms.GENERATION_KEY,
+            nms.DAM_ID_KEY,
+            nms.SIRE_ID_KEY,
+            nms.INBREEDING_COEFFICIENT_KEY,
+            nms.MALE_KEY
+        ] + ([nms.NETMERIT_KEY] if self.connectedclass.net_merit_visibility else [])
 
         for data_key in data_keys:
-            json[data_key.value] = self.resolve_data_key(data_key)
+            json[data_key] = self.resolve_data_key(data_key)
 
         return json | {
-            DataKeys.Genotype.value: {
+            nms.GENOTYPE_KEY: {
                 key: val
                 for key, val in self.genotype.items()
                 if self.connectedclass.trait_visibility[key][0]
             },
-            DataKeys.Phenotype.value: {
+            nms.PHENOTYPE_KEY: {
                 key: val
                 for key, val in self.phenotype.items()
                 if self.connectedclass.trait_visibility[key][1]
             },
-            DataKeys.Pta.value: {
+            nms.PTA_KEY: {
                 key: val
                 for key, val in self.ptas.items()
                 if self.connectedclass.trait_visibility[key][2]
                 and (self.male or not self.connectedclass.hide_female_pta)
             },
-            DataKeys.Recessives.value: {
+            nms.RECESSIVES_KEY: {
                 key: val
                 for key, val in self.recessives.items()
                 if self.connectedclass.recessive_visibility[key]

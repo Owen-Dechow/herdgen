@@ -165,18 +165,13 @@ class Trait:
     def convert_genotype_to_pta(
         self, genotype: float, number_of_daughters: int, genomic_tests: int
     ) -> float:
-
-        n = number_of_daughters + genomic_tests * 2 * (
-            1 / self.heritability
-        )
+        n = number_of_daughters + genomic_tests * 2 * (1 / self.heritability)
 
         bv = genotype * self.calculated_standard_deviation
 
         k = (4 - self.heritability) / self.heritability
 
-        rel = self.heritability + (
-            n / (n + k)
-        )
+        rel = self.heritability + (n / (n + k))
         rel = min(rel, 0.99)
 
         w1 = np.sqrt(rel)
@@ -331,7 +326,7 @@ class Traitset:
                 animals_dict[x][DAMS_KEY],
                 animals_dict[x][GENOTYPE_PREFIX_KEY],
                 animals_dict[x][PHENOTYPE_PREFIX_KEY],
-                animals_dict[x][PTA_PREFIX_KEY]
+                animals_dict[x][PTA_PREFIX_KEY],
             )
             for x in animals_dict
         }
