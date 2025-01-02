@@ -15,7 +15,7 @@ async function getHerd(classId, herdId) {
 };
 
 function createAnimalCard(animalId, animalName, animal, classId, herdId) {
-    let btn = $("<button></button>", { id: `anim-${animalId}`, class: "animal-btn", autofilter: true });
+    let btn = $("<button></button>", {id: `anim-${animalId}`, class: "animal-btn", autofilter: true});
     btn.text(animalName);
     btn.click(() => {
         $(".animal-btn.selected").removeClass("selected");
@@ -87,7 +87,7 @@ function loadHerd(sortKey, reversed, contains, classId, herdId) {
 }
 
 function createSortOptionCard(text, value) {
-    let opt = $(`<option></option>`, { value: value, autofilter: true });
+    let opt = $(`<option></option>`, {value: value, autofilter: true});
     opt.text(text);
     return opt;
 }
@@ -96,23 +96,23 @@ function loadSortOptions() {
     $("#sort-options").append(createSortOptionCard("Id", `id`));
     $("#sort-options").append(createSortOptionCard("Generation", `generation`));
     $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
-    $("#sort-options").append(createSortOptionCard("Sire", `sire`));
-    $("#sort-options").append(createSortOptionCard("Dam", `dam`));
+    $("#sort-options").append(createSortOptionCard(Filter["Sire"], `sire`));
+    $("#sort-options").append(createSortOptionCard(Filter["Dam"], `dam`));
 
     if (Herd["summary"]["NM$"])
         $("#sort-options").append(createSortOptionCard("NM$", `NM$`));
 
 
-    let traits = Herd["summary"]["genotype"];
-
-
-
-    for (let t in traits) {
-        $("#sort-options").append(createSortOptionCard(`<${t}>`, `genotype,${t}`));
+    for (let t in Herd["summary"]["genotype"]) {
+        $("#sort-options").append(createSortOptionCard(`${Filter["genotype_prefix"]}: <${t}>`, `genotype,${t}`));
     }
 
-    for (let t in traits) {
-        $("#sort-options").append(createSortOptionCard(`ph: <${t}>`, `phenotype,${t}`));
+    for (let t in Herd["summary"]["phenotype"]) {
+        $("#sort-options").append(createSortOptionCard(`(${Filter["dam"]}) ${Filter["phenotype_prefix"]}: <${t}>`, `phenotype,${t}`));
+    }
+
+    for (let t in Herd["summary"]["ptas"]) {
+        $("#sort-options").append(createSortOptionCard(`${Filter["pta_prefix"]} <${t}> `, `ptas,${t}`));
     }
 
     let keys = Object.keys(Herd["animals"]);
@@ -135,10 +135,10 @@ async function setUpHerd(classId, herdId) {
 
 function createInfoCard(field, value) {
     let div = $("<div></div>");
-    let span1 = $("<span></span>", { autofilter: true });
+    let span1 = $("<span></span>", {autofilter: true});
     span1.text(field);
 
-    let span2 = $("<span></span>", { autofilter: true });
+    let span2 = $("<span></span>", {autofilter: true});
     span2.text(value);
 
     div.append(span1);
@@ -191,6 +191,20 @@ function showSummary() {
         );
     }
 
+    for (let p in Herd["summary"]["ptas"]) {
+        info.append(
+            createInfoCard(
+                `${Filter["pta_prefix"]}: <${p}>`,
+                formatInfoValue(
+                    Herd["summary"]["ptas"][p] * Filter[p]["standard_deviation"],
+                    PTA_DECIMALS,
+                    "",
+                    Filter[p]["unit"]
+                )
+            )
+        );
+    }
+
     filterAll();
 }
 
@@ -205,7 +219,7 @@ function createSubmitFormCard(animal, classId, herdId) {
         type: "submit"
     });
     button.text("Submit to class herd");
-    form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
+    form.append($("<input></input>", {type: "hidden", name: "assignment", value: $("#assignment-select").val()}));
     form.append($("input[name=csrfmiddlewaretoken]").first().clone());
     form.append(button);
 
@@ -218,8 +232,8 @@ function animalSelected(animal, classId, herdId) {
     let info = $("#info");
     info.html("");
     if (animal["male"]) {
-        let button = $("<button></button>", { class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ") });
-        let div = $("<div></div>", { class: "pad-small" });
+        let button = $("<button></button>", {class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ")});
+        let div = $("<div></div>", {class: "pad-small"});
         button.text("Save");
         button.click(() => {
             let cookie = "savedMales" + classId;
@@ -250,8 +264,8 @@ function animalSelected(animal, classId, herdId) {
     info.append(createInfoCard("Id", animal["id"]));
     info.append(createInfoCard("Name", animal["name"]));
     info.append(createInfoCard("Generation", animal["generation"]));
-    info.append(createInfoCard("Sire", animal["sire"] ? animal["sire"] : "N/A"));
-    info.append(createInfoCard("Dam", animal["dam"] ? animal["dam"] : "N/A"));
+    info.append(createInfoCard(Filter["Sire"], animal["sire"] ? animal["sire"] : "N/A"));
+    info.append(createInfoCard(Filter["Dam"], animal["dam"] ? animal["dam"] : "N/A"));
     info.append(createInfoCard("Inbreeding Percentage", animal["inbreeding"] * 100 + "%"));
 
     if (animal["NM$"])
@@ -268,17 +282,31 @@ function animalSelected(animal, classId, herdId) {
         ));
     }
 
-    if (!animal["male"]) {
-        for (let p in animal["phenotype"]) {
-            info.append(createInfoCard(`${Filter["phenotype_prefix"]}: <${p}>`,
-                formatInfoValue(
+    for (let p in animal["phenotype"]) {
+        info.append(createInfoCard(
+            animal["male"]
+                ? `${Filter["dam"]} ${Filter["phenotype_prefix"]}: <${p}>`
+                : `${Filter["phenotype_prefix"]}: <${p}>`,
+            animal["phenotype"][p] === null
+                ? "~"
+                : formatInfoValue(
                     animal["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[p]["phenotype_average"],
                     PTA_DECIMALS,
                     "",
                     Filter[p]["unit"],
                 )
-            ));
-        }
+        ));
+    }
+
+    for (let p in animal["ptas"]) {
+        info.append(createInfoCard(`${Filter["pta_prefix"]}: <${p}>`,
+            formatInfoValue(
+                animal["ptas"][p] * Filter[p]["standard_deviation"],
+                PTA_DECIMALS,
+                "",
+                Filter[p]["unit"],
+            )
+        ));
     }
 
     for (let r in animal["recessives"]) {
@@ -286,9 +314,9 @@ function animalSelected(animal, classId, herdId) {
             createInfoCard(
                 `<${r}>`,
                 {
-                    "he": "Heterozygous",
-                    "ho(c)": "Homozygous Carrier",
-                    "ho(f)": "Homozygous Free"
+                    "he": "Carrier",
+                    "ho(c)": "Positive",
+                    "ho(f)": "Tested Free"
                 }[animal["recessives"][r]]
             )
         );
@@ -306,7 +334,7 @@ function resortAnimals(classId, herdId) {
 }
 
 function loadAssignments() {
-    let assignmentSelect = $("<select></select>", { id: "assignment-select" });
+    let assignmentSelect = $("<select></select>", {id: "assignment-select"});
 
     if (Object.keys(Assignments).length == 0) {
         assignmentSelect.remove();
@@ -315,7 +343,7 @@ function loadAssignments() {
 
     for (let assignment in Assignments) {
         assignment = Assignments[assignment];
-        let option = $("<option></option>", { value: assignment["id"] });
+        let option = $("<option></option>", {value: assignment["id"]});
         option.text(assignment["name"]);
         assignmentSelect.append(option);
     }
@@ -340,12 +368,12 @@ function showAssignment() {
     for (let stepIdx in Assignments[assignmentSelected]["steps"]) {
         step = Assignments[assignmentSelected]["steps"][stepIdx];
         let fulfilled = stepIdx < stepsFulfilled ? "complete" : "incomplete";
-        let span = $("<span></span>", { class: ["pad-small", fulfilled, "step"].join(" ") });
+        let span = $("<span></span>", {class: ["pad-small", fulfilled, "step"].join(" ")});
         span.text(step["verbose"]);
         div.append(span);
     }
 
-    let span = $("<span></span>", { class: ["pad-small", "status"].join(" ") });
+    let span = $("<span></span>", {class: ["pad-small", "status"].join(" ")});
     span.text(`${Assignments[assignmentSelected]["fulfillment"]}/${Assignments[assignmentSelected]["steps"].length} steps complete`);
     div.append(span);
 
@@ -386,8 +414,8 @@ function confirmBreedingSubmission() {
 
 function createMaleCardForBreeding(classId, herdId, val) {
     let id = Math.round(Math.random() * Math.pow(10, 16));
-    let div = $("<div></div>", { id: id, class: [].join(" ") });
-    let input = $("<input></input>", { type: "number", min: "max" });
+    let div = $("<div></div>", {id: id, class: [].join(" ")});
+    let input = $("<input></input>", {type: "number", min: "max"});
     input.on("input", () => updateMaleDataForBreeding(classId, herdId));
     input.val(val);
     let button = $(
@@ -442,8 +470,8 @@ async function validateMalesForBreeding(classId, herdId) {
     let data = await $.ajax({
         url: `/class/${classId}/herd/${herdId}/breed/get-validation`,
         dataType: "JSON",
-        data: { males: $("#id_males").val(), assignment: $("#id_assignment").val() },
-        fail: () => { alert("Error: Could not validate breeding selections."); }
+        data: {males: $("#id_males").val(), assignment: $("#id_assignment").val()},
+        fail: () => {alert("Error: Could not validate breeding selections.");}
     });
     ValidatingMalesForBreeding = false;
 

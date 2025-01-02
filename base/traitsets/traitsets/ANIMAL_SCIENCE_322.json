@@ -49,7 +49,8 @@
     ],
     "animals": {
         "Holstein Dairy Cattle": {
-            "genotype_prefix": "PTA",
+            "genotype_prefix": "gen",
+            "pta_prefix": "PTA",
             "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
@@ -85,7 +86,8 @@
             "dams": "dams"
         },
         "Beef Cattle": {
-            "genotype_prefix": "EPD",
+            "genotype_prefix": "gen",
+            "pta_prefix": "EPD",
             "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
@@ -121,7 +123,8 @@
             "dams": "dams"
         },
         "Horse": {
-            "genotype_prefix": "EPD",
+            "genotype_prefix": "gen",
+            "pta_prefix": "EPD",
             "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
@@ -157,7 +160,8 @@
             "dams": "dams"
         },
         "Lab Dog": {
-            "genotype_prefix": "EPD",
+            "genotype_prefix": "gen",
+            "pta_prefix": "EPD",
             "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
@@ -193,7 +197,8 @@
             "dams": "dams"
         },
         "Deer": {
-            "genotype_prefix": "EPD",
+            "genotype_prefix": "gen",
+            "pta_prefix": "EPD",
             "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {

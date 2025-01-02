@@ -2,6 +2,7 @@ from django.contrib.auth import forms as auth_forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django import forms
+from django.forms import widgets
 from django.http import Http404
 from typing import Optional
 from .templatetags.animal_filters import filter_text_to_default
@@ -133,6 +134,7 @@ class UpdateClassForm(forms.ModelForm):
                 if self.instance.trait_visibility[x][0]
             ],
         )
+
         self.fields["phenotype_visibility"] = forms.MultipleChoiceField(
             required=False,
             choices=trait_visibility_choices,
@@ -143,6 +145,18 @@ class UpdateClassForm(forms.ModelForm):
                 if self.instance.trait_visibility[x][1]
             ],
         )
+
+        self.fields["pta_visibility"] = forms.MultipleChoiceField(
+            required=False,
+            choices=trait_visibility_choices,
+            widget=forms.CheckboxSelectMultiple(),
+            initial=[
+                x
+                for x, _ in trait_visibility_choices
+                if self.instance.trait_visibility[x][2]
+            ],
+        )
+
         self.fields["recessive_visibility"] = forms.MultipleChoiceField(
             required=False,
             choices=recessive_visibility_choices,
@@ -154,9 +168,7 @@ class UpdateClassForm(forms.ModelForm):
             ],
         )
 
-        self.fields["default_animal"] = forms.ChoiceField(
-            choices=traitset.animal_choices
-        )
+        self.fields["default_animal"] = forms.ChoiceField(choices=traitset.animal_choices)
 
     def save(self) -> None:
         self.instance.info = self.cleaned_data["info"]
@@ -165,6 +177,7 @@ class UpdateClassForm(forms.ModelForm):
             self.instance.trait_visibility[trait] = [
                 trait in self.cleaned_data["genotype_visibility"],
                 trait in self.cleaned_data["phenotype_visibility"],
+                trait in self.cleaned_data["pta_visibility"],
             ]
 
         for recessive in self.instance.recessive_visibility:
@@ -420,8 +433,7 @@ class UpdateAssignment(forms.ModelForm):
         super(UpdateAssignment, self).__init__(*args, **kwargs)
 
         self.fields["steps"].initial = [
-            x.step
-            for x in models.AssignmentStep.objects.filter(assignment=self.instance)
+            x.step for x in models.AssignmentStep.objects.filter(assignment=self.instance)
         ]
 
     class Meta:

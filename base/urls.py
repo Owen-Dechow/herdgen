@@ -26,7 +26,12 @@ urlpatterns = [
     path("class/<int:classid>/delete", views.deleteclass),
     path("class/<int:classid>/get-trend-chart", views.get_trend_chart),
     path("class/<int:classid>/get-animal-chart", views.get_animal_chart),
+    path("class/<int:classid>/generating-file", views.generating_file),
     path("class/<int:classid>/get-enrollments", views.get_enrollments),
+    path("class/<int:classid>/calculate-ptas", views.calculate_ptas),
+    path("class/<int:classid>/calculated-ptas", views.pta_calculation_complete),
+    path("class/<int:classid>/genomic-test", views.genomic_test),
+    path("class/<int:classid>/ran-genomic-test", views.genomic_test_complete),
     path(
         "class/<int:classid>/enrollments/<int:enrollmentid>/remove",
         views.remove_enrollment,
@@ -50,9 +55,7 @@ urlpatterns = [
         "class/<int:classid>/herd/<int:herdid>/breed",
         views.breed_herd,
     ),
-    path(
-        "class/<int:classid>/herd/<int:herdid>/assignments/get", views.get_assignments
-    ),
+    path("class/<int:classid>/herd/<int:herdid>/assignments/get", views.get_assignments),
     path(
         "class/<int:classid>/herd/<int:herdid>/assignments/submit-animal/<int:animalid>",
         views.submit_animal,

@@ -41,8 +41,9 @@ HETEROZYGOUS_KEY = "he"
 HOMOZYGOUS_CARRIER_KEY = "ho(c)"
 HOMOZYGOUS_FREE_KEY = "ho(f)"
 
-PHENOTYPE_PREFIX = "phenotype_prefix"
-GENOTYPE_PREFIX = "genotype_prefix"
+PHENOTYPE_PREFIX_KEY = "phenotype_prefix"
+GENOTYPE_PREFIX_KEY = "genotype_prefix"
+PTA_PREFIX_KEY = "pta_prefix"
 
 
 class RecessiveAnimalFilter:
@@ -84,6 +85,7 @@ class TraitsetAnimalFilter:
     females: str
     phenotype_prefix: str
     genotype_prefix: str
+    pta_prefix: str
 
     def __init__(
         self,
@@ -99,6 +101,7 @@ class TraitsetAnimalFilter:
         dams: str,
         genotype_prefix: str,
         phenotype_prefix: str,
+        pta_prefix: str,
     ):
         self.herd = herd
         self.male = male
@@ -112,6 +115,7 @@ class TraitsetAnimalFilter:
         self.dams = dams
         self.genotype_prefix = genotype_prefix
         self.phenotype_prefix = phenotype_prefix
+        self.pta_prefix = pta_prefix
 
 
 class Trait:
@@ -325,8 +329,9 @@ class Traitset:
                 animals_dict[x][FEMALES_KEY],
                 animals_dict[x][SIRES_KEY],
                 animals_dict[x][DAMS_KEY],
-                animals_dict[x][GENOTYPE_PREFIX],
-                animals_dict[x][PHENOTYPE_PREFIX],
+                animals_dict[x][GENOTYPE_PREFIX_KEY],
+                animals_dict[x][PHENOTYPE_PREFIX_KEY],
+                animals_dict[x][PTA_PREFIX_KEY]
             )
             for x in animals_dict
         }
@@ -334,7 +339,7 @@ class Traitset:
         self.animal_choices = [(x, x) for x in animals_dict]
 
     def get_default_trait_visibility(self) -> dict[str, list[bool]]:
-        return {x.uid: [True, True] for x in self.traits}
+        return {x.uid: [True, True, True] for x in self.traits}
 
     def get_default_recessive_visibility(self) -> dict[str, bool]:
         return {x.uid: True for x in self.recessives}
@@ -382,6 +387,9 @@ class Traitset:
             trait.uid: val
             for trait, val in zip(self.traits, correlated_values, strict=True)
         }
+
+    def get_null_phenotype(self) -> dict[str, None]:
+        return {x.uid: None for x in self.traits}
 
     def derive_ptas_from_genotype(
         self, genotype: dict[str, float], number_of_daughters: int, genomic_tests: int

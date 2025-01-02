@@ -1,3 +1,4 @@
+from typing import Any, Iterator
 from django.http import (
     FileResponse,
     Http404,
@@ -5,6 +6,7 @@ from django.http import (
     HttpResponseRedirect,
     HttpResponse,
     JsonResponse,
+    StreamingHttpResponse,
 )
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
@@ -15,6 +17,7 @@ from django.contrib.auth.views import LoginView
 
 from django.db import transaction
 from django.views.decorators.http import require_POST
+from numpy import mod
 
 from .templatetags.animal_filters import filter_text_to_default
 from base.traitsets.traitset import Traitset
@@ -191,9 +194,9 @@ def assignments(
                 "enrollment__student__first_name", "enrollment__student__last_name"
             ),
         )
-        for a in models.Assignment.objects.filter(
-            connectedclass=connectedclass
-        ).order_by("duedate")
+        for a in models.Assignment.objects.filter(connectedclass=connectedclass).order_by(
+            "duedate"
+        )
     ]
 
     return render(
@@ -361,6 +364,32 @@ def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseR
 
 @transaction.atomic
 @login_required
+def genomic_test(request: HttpRequest, classid: int) -> HttpResponseRedirect:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
+        raise Http404("Must be teacher to genomic test")
+
+    class_auth.connectedclass.recalculate_ptas(True)
+
+    return HttpResponseRedirect(f"/class/{classid}/ran-genomic-test")
+
+
+@transaction.atomic
+@login_required
+def calculate_ptas(request: HttpRequest, classid: int) -> HttpResponseRedirect:
+    class_auth = auth_class(request, classid)
+
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
+        raise Http404("Must be teacher to calculate ptas")
+
+    class_auth.connectedclass.recalculate_ptas()
+
+    return HttpResponseRedirect(f"/class/{classid}/calculated-ptas")
+
+
+@transaction.atomic
+@login_required
 @require_POST
 def submit_animal(
     request: HttpRequest, classid: int, herdid: int, animalid: int
@@ -398,16 +427,12 @@ def confirm_enrollment(
 
     if class_auth.connectedclass.enrollment_tokens > 0:
         enrollment_request = get_object_or_404(
-            models.EnrollmentRequest.objects.select_related(
-                "connectedclass", "student"
-            ),
+            models.EnrollmentRequest.objects.select_related("connectedclass", "student"),
             id=requestid,
             connectedclass=class_auth.connectedclass,
         )
 
-        enrollment = models.Enrollment.create_from_enrollment_request(
-            enrollment_request
-        )
+        enrollment = models.Enrollment.create_from_enrollment_request(enrollment_request)
 
         data = enrollment.json_dict()
     else:
@@ -452,6 +477,27 @@ def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonR
     return JsonResponse({})
 
 
+@login_required
+def generating_file(request: HttpRequest, classid: int) -> HttpResponse:
+    _class_auth = auth_class(request, classid)
+
+    return render(request, "base/generatingfile.html")
+
+
+@login_required
+def genomic_test_complete(request: HttpRequest, classid: int) -> HttpResponse:
+    _class_auth = auth_class(request, classid)
+
+    return render(request, "base/genomic_test_complete.html")
+
+
+@login_required
+def pta_calculation_complete(request: HttpRequest, classid: int) -> HttpResponse:
+    _class_auth = auth_class(request, classid)
+
+    return render(request, "base/pta_calculation_complete.html")
+
+
 #### FILE VIEWS ####
 @login_required
 def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
@@ -488,36 +534,16 @@ def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
 
 
 @login_required
-def _get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
+@transaction.atomic()
+def get_animal_chart(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     class_auth = auth_class(request, classid)
 
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to get animal chart")
 
-    path = class_auth.connectedclass.get_animal_file()
-    with open(path) as f:
-        response = FileResponse(f.read())
-        response["Content-Disposition"] = f'attachment; filename="{class_auth.connectedclass.name} Animals.csv"'
-        return response
+    csv.create_animal_csv(classid, request.user.id)
 
-def get_animal_chart(request: HttpRequest, classid: int) -> FileResponse:
-    class_auth = auth_class(request, classid)
-
-    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
-        raise Http404("Must be teacher to get animal chart")
-
-    headers = class_auth.connectedclass.get_animal_file_headers()
-    data_keys = class_auth.connectedclass.get_animal_file_data_order()
-
-    data = []
-    for animal in models.Animal.objects.filter(connectedclass=class_auth.connectedclass):
-        row = []
-        for key in data_keys:
-            row.append(animal.resolve_data_key(key))
-
-        data.append(row)
-
-    return csv.create_csv_response("animals.csv", headers, data)
+    return HttpResponseRedirect(f"/class/{classid}/generating-file")
 
 
 #### JSON VIEWS ####

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+{% endblock head %}
+
+{% block main %}
+<form class="std-form margin-auto" method="POST">
+    <h1>Genomic Test Complete</h1>
+    <a href="/" class="as-btn background-green pad border-radius full-width center-text">Return home</a>
+</form>
+
+{% endblock main %}

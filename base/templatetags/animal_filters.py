@@ -1,12 +1,15 @@
-from __future__ import annotations
 from json import dumps
 from django import template
-from django.utils.safestring import mark_safe, SafeText
+from django.utils.safestring import SafeString
 from typing import Any
-
 
 from ..traitsets import Traitset
 from ..traitsets.traitset import TraitsetAnimalFilter
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from models import Class
 
 register = template.Library()
 
@@ -60,6 +63,7 @@ def get_filter_dict(
         "dams": contextcast.animalfilter.dams,
         "phenotype_prefix": contextcast.animalfilter.phenotype_prefix,
         "genotype_prefix": contextcast.animalfilter.genotype_prefix,
+        "pta_prefix": contextcast.animalfilter.pta_prefix,
     }
 
     cap_filter_dict = {}
@@ -90,12 +94,11 @@ def get_filter_dict(
 
 
 @register.simple_tag(takes_context=True)
-def load_filter_dict(context: dict[str, Any]) -> SafeText:
+def load_filter_dict(context: dict[str, Any]) -> SafeString:
     contextcast = ContextCast(context)
-    safe_text: SafeText = mark_safe(
-        f"<script>var Filter = {dumps(get_filter_dict(contextcast))}</script>"
-    )
-    return safe_text
+    safe_text = f"<script>var Filter = {dumps(get_filter_dict(contextcast))}</script>"
+
+    return SafeString(safe_text)
 
 
 @register.simple_tag(takes_context=True)

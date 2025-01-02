@@ -1,7 +1,14 @@
+from random import choice
 import zipfile
 from io import BytesIO
-from typing import Any, Callable, Generator
-from django.http import FileResponse, StreamingHttpResponse
+from typing import Any, Iterator
+from django.conf import settings
+from django.core.mail import send_mail
+from django.http import FileResponse
+from background_task import background
+import boto3
+
+from base import models
 
 COL_SEP = ","
 ROW_SEP = "\n"
@@ -24,7 +31,6 @@ def create_csv_response(
     headers: list[str],
     data: list[list[Any]],
 ) -> FileResponse:
-
     file_str = get_file_str(headers, data)
 
     # Correctly instantiate the BytesIO object
@@ -37,14 +43,82 @@ def create_csv_response(
     return FileResponse(bytes_io, as_attachment=True, filename=f"{file_name}.zip")
 
 
-def create_csv_streaming_response(
-    file_name: str, headers: list[str], data_generator: Generator[list[Any], None, None]
-):
-    def generate_file():
-        yield convert_data_row(headers) + ROW_SEP
-        for item in data_generator:
-            yield convert_data_row(item) + ROW_SEP
+@background(schedule=0)
+def create_animal_csv(classid: int, userid: int):
+    import boto3
+    from io import BytesIO
 
-    response = StreamingHttpResponse(generate_file())
-    response["Content-Disposition"] = f'attachement; filename="{file_name}"'
-    return response
+    s3 = boto3.client("s3")
+    bucketname = settings.AWS_STORAGE_BUCKET_NAME
+    uid = "".join(choice("ABCDEFGHIJKLMNOPQRSTUVWXYZ") for _ in range(10))
+    filekey = f"animal_charts/AnimalChart-{uid}.csv"
+    connectedclass = models.Class.objects.get(id=classid)
+    headers = connectedclass.get_animal_file_headers()
+    data_keys = connectedclass.get_animal_file_data_order()
+
+    def iterator() -> Iterator[list[Any]]:
+        for animal in models.Animal.objects.filter(
+            connectedclass=connectedclass
+        ).iterator(chunk_size=5_000):
+            row = []
+            for key in data_keys:
+                row.append(animal.resolve_data_key(key))
+            yield row
+
+    # Initialize multipart upload
+    response = s3.create_multipart_upload(Bucket=bucketname, Key=filekey)
+    upload_id = response["UploadId"]
+    part_number = 1
+    parts = []
+    min_part_size = 5 * 1024 * 1024  # 5MB
+
+    buffer = BytesIO()
+    buffer.write(f"{convert_data_row(headers)}{ROW_SEP}".encode("utf-8"))
+
+    for item in iterator():
+        buffer.write(f"{convert_data_row(item)}{ROW_SEP}".encode("utf-8"))
+
+        if buffer.tell() >= min_part_size:
+            buffer.seek(0)
+            response = s3.upload_part(
+                Bucket=bucketname,
+                Key=filekey,
+                PartNumber=part_number,
+                UploadId=upload_id,
+                Body=buffer,
+            )
+            parts.append({"PartNumber": part_number, "ETag": response["ETag"]})
+            part_number += 1
+            buffer = BytesIO()
+
+    # Upload the last part
+    if buffer.tell() > 0:
+        buffer.seek(0)
+        response = s3.upload_part(
+            Bucket=bucketname,
+            Key=filekey,
+            PartNumber=part_number,
+            UploadId=upload_id,
+            Body=buffer,
+        )
+        parts.append({"PartNumber": part_number, "ETag": response["ETag"]})
+
+    # Complete multipart upload
+    s3.complete_multipart_upload(
+        Bucket=bucketname,
+        Key=filekey,
+        UploadId=upload_id,
+        MultipartUpload={"Parts": parts},
+    )
+
+    user = models.User.objects.get(id=userid)
+    link = f"https://{bucketname}.s3.amazonaws.com/{filekey}"
+
+    send_mail(
+        "Animal Char Ready",
+        "The animal chart you requested from HerdGenetics is ready."
+        + f" You can download the file at {link}",
+        settings.EMAIL_HOST_USER,
+        [user],
+        fail_silently=False,
+    )

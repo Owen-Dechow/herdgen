@@ -1,4 +1,3 @@
-from __future__ import annotations
 from collections import defaultdict
 import enum
 from pathlib import Path
@@ -111,7 +110,7 @@ class Class(models.Model):
             last_pop = last[self.POPULATION_SIZE_KEY]
             new_pop = last_pop - len(old_animals) + len(new_animals)
 
-            capture = {"genotype": {}, "phenotype": {}}
+            capture = {"genotype": {}, "phenotype": {}, "ptas": {}}
             for key, val in last["genotype"].items():
                 old_sum = 0
                 for animal in old_animals:
@@ -128,15 +127,26 @@ class Class(models.Model):
             for key, val in last["phenotype"].items():
                 old_sum = 0
                 for animal in old_animals:
-                    old_sum += animal.phenotype[key]
+                    old_sum += animal.phenotype[key] or 0
 
                 new_sum = 0
                 for animal in new_animals:
-                    new_sum += animal.phenotype[key]
+                    new_sum += animal.phenotype[key] or 0
 
                 capture["phenotype"][key] = (
                     (val * last_pop) - old_sum + new_sum
                 ) / new_pop
+
+            for key, val in last["ptas"].items():
+                old_sum = 0
+                for animal in old_animals:
+                    old_sum += animal.ptas[key]
+
+                new_sum = 0
+                for animal in new_animals:
+                    old_sum += animal.ptas[key]
+
+                capture["ptas"][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
 
             old_nm = 0
             for animal in old_animals:
@@ -150,10 +160,15 @@ class Class(models.Model):
             capture[Animal.DataKeys.NetMerit.value] = (
                 (last_nm * last_pop) - old_nm + new_nm
             ) / new_pop
+            capture[self.POPULATION_SIZE_KEY] = new_pop
 
             capture[self.TIME_STAMP_KEY] = now().isoformat()
         else:
-            capture = {"genotype": defaultdict(int), "phenotype": defaultdict(int)}
+            capture = {
+                "genotype": defaultdict(int),
+                "phenotype": defaultdict(int),
+                "ptas": defaultdict(int),
+            }
             net_merit_capture = 0
 
             animals = Animal.objects.filter(connectedclass=self)
@@ -170,7 +185,10 @@ class Class(models.Model):
                     capture["genotype"][key] += val
 
                 for key, val in animal.phenotype.items():
-                    capture["phenotype"][key] += val
+                    capture["phenotype"][key] += val or 0
+
+                for key, val in animal.ptas.items():
+                    capture["ptas"][key] += val
 
             net_merit_capture = net_merit_capture / num_animals_alive
 
@@ -179,6 +197,9 @@ class Class(models.Model):
 
             for key, val in capture["phenotype"].items():
                 capture["phenotype"][key] = val / num_animals_alive
+
+            for key, val in capture["ptas"].items():
+                capture["ptas"][key] = val / num_animals_alive
 
             capture[self.TIME_STAMP_KEY] = now().isoformat()
             capture[self.POPULATION_SIZE_KEY] = num_animals_alive
@@ -207,7 +228,7 @@ class Class(models.Model):
                 "Inbreeding Percent",
                 "Net Merit $",
             ]
-            + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"gen: <{x.uid}>", self) for x in traitset.traits]
             + [filter_text_to_default(f"ph: <{x.uid}>", self) for x in traitset.traits]
             + [filter_text_to_default(f"pta: <{x.uid}>", self) for x in traitset.traits]
             + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.recessives]
@@ -215,7 +236,7 @@ class Class(models.Model):
 
     def get_animal_file_data_order(
         self,
-    ) -> list[Animal.DataKeys | tuple["Animal.DataKeys", str]]:
+    ) -> list["Animal.DataKeys | tuple['Animal.DataKeys', str]"]:
         traitset = Traitset(self.traitset)
         DataKeys = Animal.DataKeys
 
@@ -338,6 +359,7 @@ class Herd(models.Model):
             Animal.generate_random_unsaved(True, new, traitset, connectedclass)
             for _ in range(males)
         ]
+
         female_animals = [
             Animal.generate_random_unsaved(False, new, traitset, connectedclass)
             for _ in range(females)
@@ -425,6 +447,7 @@ class Herd(models.Model):
         summary = {
             "genotype": defaultdict(int),
             "phenotype": defaultdict(int),
+            "ptas": defaultdict(int),
             Animal.DataKeys.NetMerit.value: 0,
         }
 
@@ -436,7 +459,10 @@ class Herd(models.Model):
                         summary["genotype"][key] += val
                 for key, val in animal.phenotype.items():
                     if self.connectedclass.trait_visibility[key][1]:
-                        summary["phenotype"][key] += val
+                        summary["phenotype"][key] += val or 0
+                for key, val in animal.ptas.items():
+                    if self.connectedclass.trait_visibility[key][2]:
+                        summary["ptas"][key] += val
 
             summary[Animal.DataKeys.NetMerit.value] = (
                 summary[Animal.DataKeys.NetMerit.value] / num_animals
@@ -447,6 +473,9 @@ class Herd(models.Model):
 
             for key, val in summary["phenotype"].items():
                 summary["phenotype"][key] = val / num_animals
+
+            for key, val in summary["ptas"].items():
+                summary["ptas"][key] = val / num_animals
 
             summary.pop(Animal.DataKeys.NetMerit.value)
 
@@ -611,7 +640,7 @@ class Animal(models.Model):
         InbreedingPercentage = "inbreedingpercentage"
         Genotype = "genotype"
         Phenotype = "phenotype"
-        Pta = "pta"
+        Pta = "ptas"
         Recessives = "recessives"
         NiceRecessives = "nicerecessive"
         Male = "male"
@@ -660,9 +689,13 @@ class Animal(models.Model):
 
         new.genotype = traitset.get_random_genotype()
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
-        new.phenotype = traitset.derive_phenotype_from_genotype(
-            new.genotype, new.inbreeding
+
+        new.phenotype = (
+            traitset.get_null_phenotype()
+            if male
+            else traitset.derive_phenotype_from_genotype(new.genotype, new.inbreeding)
         )
+
         new.ptas = traitset.derive_ptas_from_genotype(new.genotype, 0, new.genomic_tests)
         new.recessives = traitset.get_random_recessives()
         new.pedigree = {"sire": None, "dam": None, "id": None}
@@ -684,9 +717,15 @@ class Animal(models.Model):
         new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
         new.inbreeding = calculate_inbreeding(new.pedigree)
-        new.phenotype = traitset.derive_phenotype_from_genotype(
-            new.genotype, new.inbreeding
+
+        new.phenotype = (
+            dam.phenotype
+            if male
+            else traitset.derive_phenotype_from_genotype(new.genotype, new.inbreeding)
         )
+
+        new.ptas = traitset.derive_ptas_from_genotype(new.genotype, 0, 0)
+
         new.recessives = traitset.get_recessives_from_breeding(
             sire.recessives, dam.recessives
         )
@@ -730,6 +769,8 @@ class Animal(models.Model):
             + class_traitset.find_trait_or_null(uid)
             .animals[connectedclass.default_animal]
             .phenotype_average
+            if val is not None
+            else None
         )
 
         adjust_pta = lambda val, uid: (
@@ -758,11 +799,11 @@ class Animal(models.Model):
                 case self.DataKeys.NiceRecessives:
                     match self.recessives[data_key[1]]:
                         case traitset.HOMOZYGOUS_FREE_KEY:
-                            return "Homozygous Free"
+                            return "Tested Free"
                         case traitset.HOMOZYGOUS_CARRIER_KEY:
-                            return "Homozygous Carrier"
+                            return "Positive"
                         case traitset.HETEROZYGOUS_KEY:
-                            return "Heterozygous"
+                            return "Carrier"
         else:
             match data_key:
                 case self.DataKeys.HerdId:
@@ -831,6 +872,11 @@ class Animal(models.Model):
                 key: val
                 for key, val in self.phenotype.items()
                 if self.connectedclass.trait_visibility[key][1]
+            },
+            DataKeys.Pta.value: {
+                key: val
+                for key, val in self.ptas.items()
+                if self.connectedclass.trait_visibility[key][2]
             },
             DataKeys.Recessives.value: {
                 key: val
