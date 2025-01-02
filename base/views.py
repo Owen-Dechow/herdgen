@@ -115,7 +115,7 @@ def createclass(request: HttpRequest) -> HttpResponse:
 @transaction.atomic
 @login_required
 def openclass(request: HttpRequest, classid: int) -> HttpResponse:
-    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
+    class_auth = auth_class(request, classid, "class_herd")
     connectedclass = class_auth.connectedclass
 
     if type(class_auth) in ClassAuth.TEACHER_ADMIN:
@@ -259,7 +259,7 @@ def requestedclass(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def openherd(request: HttpRequest, classid: int, herdid: int) -> HttpResponse:
-    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
+    class_auth = auth_class(request, classid, "class_herd")
     herd_auth = auth_herd(class_auth, herdid, "enrollment")
 
     context = {}
@@ -327,7 +327,7 @@ def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
 @require_POST
 def breed_herd(request: HttpRequest, classid: int, herdid: int) -> HttpResponseRedirect:
     form = forms.BreedHerd(request.POST)
-    class_auth = auth_class(request, classid, "class_herd", "starter_herd")
+    class_auth = auth_class(request, classid, "class_herd")
     herd_auth = auth_herd(class_auth, herdid, "connectedclass")
 
     if type(class_auth) is not ClassAuth.Student:
@@ -479,23 +479,31 @@ def deny_enrollment(request: HttpRequest, classid: int, requestid: int) -> JsonR
 
 @login_required
 def generating_file(request: HttpRequest, classid: int) -> HttpResponse:
-    _class_auth = auth_class(request, classid)
+    class_auth = auth_class(request, classid)
 
-    return render(request, "base/generatingfile.html")
+    return render(
+        request, "base/generatingfile.html", {"class": class_auth.connectedclass}
+    )
 
 
 @login_required
 def genomic_test_complete(request: HttpRequest, classid: int) -> HttpResponse:
-    _class_auth = auth_class(request, classid)
+    class_auth = auth_class(request, classid)
 
-    return render(request, "base/genomic_test_complete.html")
+    return render(
+        request, "base/genomic_test_complete.html", {"class": class_auth.connectedclass}
+    )
 
 
 @login_required
 def pta_calculation_complete(request: HttpRequest, classid: int) -> HttpResponse:
-    _class_auth = auth_class(request, classid)
+    class_auth = auth_class(request, classid)
 
-    return render(request, "base/pta_calculation_complete.html")
+    return render(
+        request,
+        "base/pta_calculation_complete.html",
+        {"class": class_auth.connectedclass},
+    )
 
 
 #### FILE VIEWS ####
@@ -574,7 +582,7 @@ def get_enrollments(request: HttpRequest, classid: int) -> JsonResponse:
 
 @login_required
 def get_herd(request: HttpRequest, classid: int, herdid: int) -> JsonResponse:
-    class_auth = auth_class(request, classid, "class_herd", "starter_herd")
+    class_auth = auth_class(request, classid, "class_herd")
     herd_auth = auth_herd(class_auth, herdid)
     json = herd_auth.herd.json_dict()
 
@@ -583,7 +591,7 @@ def get_herd(request: HttpRequest, classid: int, herdid: int) -> JsonResponse:
 
 @login_required
 def get_assignments(request: HttpRequest, classid: int, herdid: int) -> JsonResponse:
-    class_auth = auth_class(request, classid, "starter_herd", "class_herd")
+    class_auth = auth_class(request, classid, "class_herd")
     herd_auth = auth_herd(class_auth, herdid)
 
     if type(herd_auth) is not HerdAuth.EnrollmentHerd:

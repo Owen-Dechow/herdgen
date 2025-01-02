@@ -1,6 +1,7 @@
 from typing import Any
 from django import template
 from django.utils.safestring import mark_safe, SafeText
+from numpy import take
 
 from .animal_filters import auto_filter_text
 
@@ -19,7 +20,7 @@ def build_class_path(context: dict[str, Any], classes: str) -> SafeText:
     if connectedclass is None:
         connectedclass = context.get("connectedclass")
 
-    return mark_safe(
+    return SafeText(
         f'<a href="/class/{connectedclass.id}" class="{classes}">{clean(connectedclass.name)}/</a>'
     )
 
@@ -30,7 +31,7 @@ def build_enrollments_path(context: dict[str, Any], classes: str) -> SafeText:
     if connectedclass is None:
         connectedclass = context.get("connectedclass")
 
-    return mark_safe(
+    return SafeText(
         f'<a href="/class/{connectedclass.id}/enrollments" class="{classes}">Enrollments/</a>'
     )
 
@@ -41,7 +42,7 @@ def build_assignments_path(context: dict[str, Any], classes: str) -> SafeText:
     if connectedclass is None:
         connectedclass = context.get("connectedclass")
 
-    return mark_safe(
+    return SafeText(
         f'<a href="/class/{connectedclass.id}/assignments" class="{classes}">Assignments/</a>'
     )
 
@@ -54,7 +55,7 @@ def build_assignment_path(context: dict[str, Any], classes: str) -> SafeText:
 
     assignment = context["assignment"]
 
-    return mark_safe(
+    return SafeText(
         f'<a href="/class/{connectedclass.id}/assignments/{assignment.id}" class="{classes}">{clean(assignment.name)}/</a>'
     )
 
@@ -68,6 +69,14 @@ def build_herd_path(context: dict[str, Any], classes: str) -> SafeText:
     herd_auth = context["herd_auth"]
 
     herd_name = auto_filter_text(context, herd_auth.herd.name)
-    return mark_safe(
+    return SafeText(
         f'<a href="/class/{connectedclass.id}/herd/{herd_auth.herd.id}" class="{classes}">{clean(herd_name)}/</a>'
+    )
+
+@register.simple_tag(takes_context=True)
+def titled_self_path(context: dict, title: str, classes: str) -> SafeText:
+    path = context["request"].path
+
+    return SafeText(
+        f'<a href="{path}" class="{classes}">{title}/</a>'
     )

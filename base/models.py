@@ -6,6 +6,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from random import choice
 from django.utils.timezone import now, datetime
+from six import print_
 
 from base import csv
 from .templatetags.animal_filters import filter_text_to_default
@@ -24,17 +25,13 @@ class Class(models.Model):
     info = models.TextField(blank=True, default="")
     classcode = models.CharField(max_length=255)
     trait_visibility = models.JSONField()
+    hide_female_pta = models.BooleanField(default=False)
     recessive_visibility = models.JSONField()
     net_merit_visibility = models.BooleanField(default=True)
     trend_log = models.JSONField(default=list, blank=True)
     default_animal = models.CharField(max_length=255)
     allow_other_animals = models.BooleanField(default=True)
-    starter_herd = models.ForeignKey(
-        to="Herd",
-        on_delete=models.CASCADE,
-        related_name="class_starter_herd",
-        null=True,
-    )
+
     class_herd = models.ForeignKey(
         to="Herd",
         on_delete=models.CASCADE,
@@ -62,7 +59,15 @@ class Class(models.Model):
         )
 
     @classmethod
-    def create_new(cls, user: User, name: str, traitsetname: str, info: str) -> "Class":
+    def create_new(
+        cls,
+        user: User,
+        name: str,
+        traitsetname: str,
+        info: str,
+        initial_males: int,
+        initial_females: int,
+    ) -> "Class":
         new = cls(name=name, traitset=traitsetname, info=info, teacher=user)
         new.classcode = cls.generate_class_code()
 
@@ -72,15 +77,11 @@ class Class(models.Model):
         new.default_animal = traitset.animal_choices[0][0]
         new.save()
 
-        new.starter_herd = Herd.generate_starter_herd(
-            name=f"{name} starter <herd>",
-            females=10,
-            males=30,
-            traitset=traitset,
-            connectedclass=new,
-        )
-        new.class_herd = Herd.generate_empty_herd(
+        new.class_herd = Herd.generate_starter_herd(
             name=f"{name} class <herd>",
+            females=initial_females,
+            males=initial_males,
+            traitset=traitset,
             connectedclass=new,
         )
 
@@ -303,8 +304,12 @@ class Class(models.Model):
 
     def recalculate_ptas(self, genomic_test: bool = False):
         traitset = Traitset(self.traitset)
-        sire_daughters = models.Count("sire", filter=models.Q(sire__male=False))
-        dam_daughters = models.Count("dam", filter=models.Q(dam__male=False))
+        sire_daughters = models.Count(
+            "animal_sire", filter=models.Q(animal_sire__male=False)
+        )
+        dam_daughters = models.Count(
+            "animal_dam", filter=models.Q(animal_dam__male=False)
+        )
         animals = Animal.objects.annotate(
             number_of_daughters_sire=sire_daughters, number_of_daughters_dam=dam_daughters
         ).filter(connectedclass=self, herd__isnull=False)
@@ -313,6 +318,9 @@ class Class(models.Model):
             if genomic_test:
                 animal.genomic_tests += 1
 
+            print(
+                f"{animal.number_of_daughters_dam=}, {animal.number_of_daughters_sire=}"
+            )
             animal.recalculate_pta_unsaved(
                 animal.number_of_daughters_sire + animal.number_of_daughters_dam, traitset
             )
@@ -877,6 +885,7 @@ class Animal(models.Model):
                 key: val
                 for key, val in self.ptas.items()
                 if self.connectedclass.trait_visibility[key][2]
+                and (self.male or not self.connectedclass.hide_female_pta)
             },
             DataKeys.Recessives.value: {
                 key: val

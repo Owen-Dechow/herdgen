@@ -33,7 +33,7 @@
 }
 
 .animal-btn:hover {
-    filter: brightness(85%);
+    background-color: color-mix(in srgb, var(--background-a) 80%, black)
 }
 
 .animal-btn.selected {

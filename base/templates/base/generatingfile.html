@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load path_builder %}
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
 {% endblock head %}
+
+{% block navpath %}
+{% build_class_path "as-link pad-small" %}
+{% titled_self_path "Generating File" "as-link pad-small" %}
+{% endblock navpath %}
 
 {% block main %}
 <form class="std-form margin-auto" method="POST">

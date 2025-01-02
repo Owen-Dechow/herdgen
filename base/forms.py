@@ -62,6 +62,8 @@ class UserCreationForm(auth_forms.UserCreationForm):
 
 class CreateClassForm(forms.ModelForm):
     traitset = forms.ChoiceField(choices=TRAITSET_CHOICES)
+    initial_males = forms.IntegerField(min_value=0, max_value=100)
+    initial_females = forms.IntegerField(min_value=0, max_value=100)
 
     class Meta:
         model = models.Class
@@ -81,6 +83,8 @@ class CreateClassForm(forms.ModelForm):
             name=self.cleaned_data["name"],
             info=self.cleaned_data["info"],
             traitsetname=self.cleaned_data["traitset"],
+            initial_males=self.cleaned_data["initial_males"],
+            initial_females=self.cleaned_data["initial_females"],
         )
 
 
@@ -100,6 +104,7 @@ class UpdateClassForm(forms.ModelForm):
             "default_animal",
             "allow_other_animals",
             "net_merit_visibility",
+            "hide_female_pta",
         ]
 
     def clean_name(self):
@@ -278,6 +283,8 @@ class BreedHerd(forms.Form):
                 herd_auth = auth_herd(class_auth, animal.herd_id)
             except Http404:
                 return False
+
+        return True
 
     def validate_assignment(self, class_auth: ClassAuth.Student) -> bool:
         assignment = self.cleaned_data["assignment"]

@@ -29,7 +29,7 @@ class ClassAuth:
 
 def auth_class(
     request: HttpRequest, classid: int, *related: str
-) -> ClassAuth.Teacher | ClassAuth.Student:
+) -> ClassAuth.Teacher | ClassAuth.Student | ClassAuth.Admin:
     connectedclass = get_object_or_404(
         models.Class.objects.select_related("teacher", *related), id=classid
     )
@@ -58,10 +58,6 @@ class HerdAuth:
         def __init__(self, herd: models.Herd):
             self.herd = herd
 
-    class StarterHerd:
-        def __init__(self, herd: models.Herd):
-            self.herd = herd
-
     class EnrollmentHerd:
         def __init__(self, herd: models.Herd):
             self.herd = herd
@@ -78,10 +74,9 @@ class HerdAuth:
 def auth_herd(
     class_auth: ClassAuth.Student | ClassAuth.Teacher | ClassAuth.Admin,
     herdid: int,
-    *related: str
+    *related: str,
 ) -> (
     HerdAuth.ClassHerd
-    | HerdAuth.StarterHerd
     | HerdAuth.EnrollmentHerd
     | HerdAuth.EnrollmentHerdAsTeacher
     | HerdAuth.Admin
@@ -95,8 +90,6 @@ def auth_herd(
 
     if connectedclass.class_herd == herd:
         return HerdAuth.ClassHerd(herd)
-    elif connectedclass.starter_herd == herd:
-        return HerdAuth.StarterHerd(herd)
     elif type(class_auth) is ClassAuth.Student and class_auth.enrollment.herd == herd:
         return HerdAuth.EnrollmentHerd(herd)
     elif type(class_auth) is ClassAuth.Teacher and herd.enrollment:
