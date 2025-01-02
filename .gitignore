@@ -5,3 +5,7 @@ db.sqlite3
 staticfiles/
 general.log
 animal_files/*
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
