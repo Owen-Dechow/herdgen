@@ -3,7 +3,7 @@ async function getEnrollments(classid) {
         dataType: "json",
         url: `/class/${classid}/get-enrollments`,
     }).fail((err) => {
-        alert("Error: Could not load enrollments.");
+        sendMessage("Error: Could not load enrollments.", null, true);
         console.log(err);
     });
 }
@@ -22,7 +22,7 @@ function confirmEnrollment(classId, enrollmentRequestId) {
         method: "POST",
         success: (data) => {
             if (data["out of tokens"]) {
-                alert("Out of enrollment tokens. Cannot confirm enrollment until more are issued.");
+                sendMessage("Out of enrollment tokens. Cannot confirm enrollment until more are issued.", null, true);
             } else {
                 $("#id_enrollment_tokens").val($("#id_enrollment_tokens").val() - 1);
                 $(`#enrollment-request-${enrollmentRequestId}`).replaceWith(
@@ -39,7 +39,7 @@ function confirmEnrollment(classId, enrollmentRequestId) {
             }
         }
     }).fail((err) => {
-        alert("Error: Could not confirm enrollment.");
+        sendMessage("Error: Could not confirm enrollment.", null, true);
         console.log(err);
     });
 }
@@ -54,7 +54,7 @@ function denyEnrollment(classId, enrollmentRequestId) {
         method: "POST",
         success: () => { $(`#enrollment-request-${enrollmentRequestId}`).remove(); }
     }).fail((err) => {
-        alert("Error: Could not deny enrollment.");
+        sendMessage("Error: Could not deny enrollment.", null, true);
         console.log(err);
     });
 }
@@ -69,7 +69,7 @@ function removeEnrollment(classId, enrollmentId) {
         method: "POST",
         success: () => { $(`#enrollment-${enrollmentId}`).remove(); }
     }).fail((err) => {
-        alert("Error: Could not remove enrollment.");
+        sendMessage("Error: Could not remove enrollment.", null, true);
         console.log(err);
     });
 }

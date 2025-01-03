@@ -22,6 +22,7 @@
     <script src="{% static 'js/loading.js' %}"></script>
     <script src="{% static 'js/filtering.js' %}"></script>
     <script src="{% static 'js/cookies.js' %}"></script>
+    <script src="{% static 'js/messages.js' %}"></script>
 
     {% block head %}
 
@@ -61,12 +62,20 @@
     <footer class="pad-small background-b">
         <p>Created by Owen Dechow</p>
         <p>Comments/Feedback: <a class="as-link" href="mailto:herdgenetics@gmail.com">herdgenetics@gmail.com</a></p>
-        <p><a class="as-link" href="https://github.com/Owen-Dechow/herdgen?tab=MIT-1-ov-file#readme">MIT License: Copyright (c) 2024 Owen Dechow</a></p>
+        <p><a class="as-link" href="https://github.com/Owen-Dechow/herdgen?tab=MIT-1-ov-file#readme">MIT License:
+                Copyright (c) 2024 Owen Dechow</a></p>
     </footer>
 
     {% block end %}
 
     {% endblock end %}
+
+    {% for message in messages %}
+    <script>
+        sendMessage("{{message}}");
+    </script>
+    {% endfor %}
+
 </body>
 
 </html>

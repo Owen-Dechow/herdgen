@@ -199,3 +199,14 @@ loading-symbol {
 .hide {
     display: none;
 }
+
+.message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 10px;
+    z-index: 99;
+    width: calc(100% - 20px);
+    box-sizing: border-box;
+}
+

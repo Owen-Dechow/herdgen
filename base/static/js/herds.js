@@ -240,10 +240,10 @@ function animalSelected(animal, classId, herdId) {
             let savedMales = getCookie(cookie);
             if (savedMales) {
                 savedMales += "," + animal["id"];
-                alert(`${animal["id"]} saved`);
+                sendMessage(`${animal["id"]} saved`);
             } else {
                 savedMales = animal["id"];
-                alert(`${animal["id"]} saved`);
+                sendMessage(`${animal["id"]} saved`);
             }
             setCookie("savedMales" + classId, savedMales, 10);
         });
@@ -402,7 +402,7 @@ async function setUpAssignments(classId, herdId) {
 
 function confirmBreedingSubmission() {
     if (!MalesValidatedForBreeding) {
-        alert("Breeding selections are invalid.");
+        sendMessage("Breeding selections are invalid.", null, true);
         return false;
     }
 
@@ -471,7 +471,7 @@ async function validateMalesForBreeding(classId, herdId) {
         url: `/class/${classId}/herd/${herdId}/breed/get-validation`,
         dataType: "JSON",
         data: {males: $("#id_males").val(), assignment: $("#id_assignment").val()},
-        fail: () => {alert("Error: Could not validate breeding selections.");}
+        fail: () => {sendMessage("Error: Could not validate breeding selections.", null, true);}
     });
     ValidatingMalesForBreeding = false;
 
@@ -504,11 +504,11 @@ function loadSavedMales(classId, herdId) {
             addMaleForBreeding(classId, herdId, e);
         });
     } else {
-        alert("None saved");
+        sendMessage("No saved breeding males.");
     }
 }
 
 function clearSavedMales(classId) {
     setCookie("savedMales" + classId, "", 10);
-    alert("Clear successful");
+    sendMessage("Successfully cleared saved breeding males.");
 }

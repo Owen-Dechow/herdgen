@@ -1,4 +1,3 @@
-from typing import Any, Iterator
 from django.http import (
     FileResponse,
     Http404,
@@ -6,7 +5,6 @@ from django.http import (
     HttpResponseRedirect,
     HttpResponse,
     JsonResponse,
-    StreamingHttpResponse,
 )
 from django.shortcuts import render, get_object_or_404
 from django.contrib import messages
@@ -17,7 +15,6 @@ from django.contrib.auth.views import LoginView
 
 from django.db import transaction
 from django.views.decorators.http import require_POST
-from numpy import mod
 
 from .templatetags.animal_filters import filter_text_to_default
 from base.traitsets.traitset import Traitset

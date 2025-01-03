@@ -5,6 +5,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+<script src="{% static 'js/openclass.js' %}"></script>
 {% endblock head %}
 
 {% block navpath %}
@@ -92,3 +93,9 @@
 </div>
 
 {% endblock main %}
+
+{% block end %}
+<script>
+    addOutOfEnrollmentTokensWarning();
+</script>
+{% endblock end %}

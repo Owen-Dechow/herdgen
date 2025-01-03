@@ -18,18 +18,16 @@
 
 <div id="assignments" class="assignments">
 </div>
-
 <div class=" main-content pad">
     <div>
         <h1 autofilter>{% auto_filter_text herd_auth.herd.name %}</h1>
-        {% for message in messages %}
-        <p>{{message}}</p>
-        {% endfor %}
+
         <div class="grid-auto-row gap">
             <button class="as-btn background-green pad border-radius" onclick="showSummary()">Show Summary</button>
             <details class="box-shadow border-radius hide" id="breed-herd">
                 <summary class="header">Breed {% auto_filter_text "<Herd>" %}</summary>
-                <form action="/class/{{class.id}}/herd/{{herd_auth.herd.id}}/breed" onsubmit="return confirmBreedingSubmission()" method="POST" class="pad">
+                <form action="/class/{{class.id}}/herd/{{herd_auth.herd.id}}/breed"
+                    onsubmit="return confirmBreedingSubmission()" method="POST" class="pad">
                     <div class="malelist-validation">
                         <span id="malelist-validation-status" class="background-red pad-small flex">Invalid</span>
                         {{breed_form}}
@@ -37,10 +35,18 @@
                     {% csrf_token %}
                     <div class="grid-auto-row gap">
                         <div id="malelist" class="malelist grid-auto-row gap pad"></div>
-                        <button onclick="addMaleForBreeding('{{class.id}}', '{{herd_auth.herd.id}}')" type="button" class="as-btn pad border-radius background-a">Add New {% auto_filter_text "<Male>" %}</button>
-                        <button onclick="loadSavedMales('{{class.id}}', '{{herd_auth.herd.id}}')" type="button" class="as-btn pad border-radius background-a">Load Saved {% auto_filter_text "<Males>" %}</button>
-                        <button onclick="clearSavedMales('{{class.id}}')" type="button" class="as-btn pad border-radius background-a">Clear Saved {% auto_filter_text "<Males>" %}</button>
-                        <button type="submit" class="as-btn pad border-radius background-green">Breed {% auto_filter_text "<Herd>" %}</button>
+                        <button onclick="addMaleForBreeding('{{class.id}}', '{{herd_auth.herd.id}}')" type="button"
+                            class="as-btn pad border-radius background-a">Add New {% auto_filter_text "<Male>"%}
+                        </button>
+                        <button onclick="loadSavedMales('{{class.id}}', '{{herd_auth.herd.id}}')" type="button"
+                            class="as-btn pad border-radius background-a">Load Saved {% auto_filter_text "<Males>" %}
+                        </button>
+                        <button onclick="clearSavedMales('{{class.id}}')" type="button"
+                            class="as-btn pad border-radius background-a">Clear Saved {% auto_filter_text "<Males>" %}
+                        </button>
+                        <button type="submit" class="as-btn pad border-radius background-green">
+                            Breed {% auto_filter_text "<Herd>" %}
+                        </button>
                     </div>
                 </form>
             </details>
@@ -64,7 +70,8 @@
                         </div>
                         <div>
                             <label for="contains">Search Name:</label>
-                            <input type="text" id="contains" oninput="resortAnimals('{{class.id}}', '{{herd_auth.herd.id}}')">
+                            <input type="text" id="contains"
+                                oninput="resortAnimals('{{class.id}}', '{{herd_auth.herd.id}}')">
                         </div>
                     </div>
                     <loading-symbol name="herd"></loading-symbol>

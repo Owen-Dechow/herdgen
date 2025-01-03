@@ -19,3 +19,18 @@ function getCookie(cookieName) {
         }
     }
 }
+
+$(window).on("load", () => {
+    const CookieName = "acceptedcookies";
+    const CookieExperation = 10;
+    const CookieValue = "true"
+    if (getCookie(CookieName) != CookieValue) {
+        sendMessage(
+            "This website uses cookies for authentication and animal caching. "
+            + "Herd Genetics can not run without these cookies. By selecting Ok "
+            + "and using this website you are accepting these cookies. No cookie "
+            + "will be shared outside of Herd Genetics or with third partied.",
+            () => {setCookie(CookieName, CookieValue, CookieExperation)}
+        )
+    }
+})
