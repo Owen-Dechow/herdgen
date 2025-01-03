@@ -23,6 +23,7 @@ from . import models
 from .views_utils import HerdAuth, auth_class, ClassAuth, auth_herd
 from django.utils.timezone import now
 from . import csv
+from . import names as nms
 
 
 #### AUTH PAGE VIEWS ####
@@ -527,9 +528,9 @@ def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
     for row in class_auth.connectedclass.trend_log:
         data.append(
             [
-                row[models.Class.TIME_STAMP_KEY],
-                row[models.Class.POPULATION_SIZE_KEY],
-                row[models.Animal.DataKeys.NetMerit.value],
+                row[nms.TIME_STAMP_KEY],
+                row[nms.POPULATION_SIZE_KEY],
+                row[nms.NETMERIT_KEY],
             ]
             + [row["genotype"][x.uid] for x in traitset.traits]
             + [row["phenotype"][x.uid] for x in traitset.traits]

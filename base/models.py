@@ -38,6 +38,7 @@ class Class(models.Model):
         null=True,
     )
     enrollment_tokens = models.IntegerField(default=0)
+
     def __str__(self) -> str:
         return f"{self.id} | {self.name}"
 
@@ -133,16 +134,19 @@ class Class(models.Model):
                     (val * last_pop) - old_sum + new_sum
                 ) / new_pop
 
-            for key, val in last[nms.PTA_KEY].items():
-                old_sum = 0
-                for animal in old_animals:
-                    old_sum += animal.ptas[key]
+            if nms.PTA_KEY in last:
+                for key, val in last[nms.PTA_KEY].items():
+                    old_sum = 0
+                    for animal in old_animals:
+                        old_sum += animal.ptas[key]
 
-                new_sum = 0
-                for animal in new_animals:
-                    old_sum += animal.ptas[key]
+                    new_sum = 0
+                    for animal in new_animals:
+                        old_sum += animal.ptas[key]
 
-                capture[nms.PTA_KEY][key] = ((val * last_pop) - old_sum + new_sum) / new_pop
+                    capture[nms.PTA_KEY][key] = (
+                        (val * last_pop) - old_sum + new_sum
+                    ) / new_pop
 
             old_nm = 0
             for animal in old_animals:
@@ -153,9 +157,7 @@ class Class(models.Model):
                 new_nm += animal.net_merit
 
             last_nm = last[nms.NETMERIT_KEY]
-            capture[nms.NETMERIT_KEY] = (
-                (last_nm * last_pop) - old_nm + new_nm
-            ) / new_pop
+            capture[nms.NETMERIT_KEY] = ((last_nm * last_pop) - old_nm + new_nm) / new_pop
             capture[nms.POPULATION_SIZE_KEY] = new_pop
 
             capture[nms.TIME_STAMP_KEY] = now().isoformat()
@@ -245,7 +247,7 @@ class Class(models.Model):
                 nms.SIRE_ID_KEY,
                 nms.DAM_ID_KEY,
                 nms.INBREEDING_PERCENTAGE_KEY,
-                nms.NETMERIT_KEY
+                nms.NETMERIT_KEY,
             ]
             + [(nms.GENOTYPE_KEY, x.uid) for x in traitset.traits]
             + [(nms.PHENOTYPE_KEY, x.uid) for x in traitset.traits]
@@ -311,9 +313,6 @@ class Class(models.Model):
             if genomic_test:
                 animal.genomic_tests += 1
 
-            print(
-                f"{animal.number_of_daughters_dam=}, {animal.number_of_daughters_sire=}"
-            )
             animal.recalculate_pta_unsaved(
                 animal.number_of_daughters_sire + animal.number_of_daughters_dam, traitset
             )
@@ -465,9 +464,7 @@ class Herd(models.Model):
                     if self.connectedclass.trait_visibility[key][2]:
                         summary[nms.PTA_KEY][key] += val
 
-            summary[nms.NETMERIT_KEY] = (
-                summary[nms.NETMERIT_KEY] / num_animals
-            )
+            summary[nms.NETMERIT_KEY] = summary[nms.NETMERIT_KEY] / num_animals
 
             for key, val in summary[nms.GENOTYPE_KEY].items():
                 summary[nms.GENOTYPE_KEY][key] = val / num_animals
@@ -693,7 +690,11 @@ class Animal(models.Model):
         dam: "Animal",
     ) -> "Animal":
         new = cls(male=male, herd=herd, connectedclass=connectedclass)
-        new.pedigree = {nms.SIRE_ID_KEY: sire.pedigree, nms.DAM_ID_KEY: dam.pedigree, nms.ID_KEY: None}
+        new.pedigree = {
+            nms.SIRE_ID_KEY: sire.pedigree,
+            nms.DAM_ID_KEY: dam.pedigree,
+            nms.ID_KEY: None,
+        }
         new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
         new.inbreeding = calculate_inbreeding(new.pedigree)
@@ -835,7 +836,7 @@ class Animal(models.Model):
             nms.DAM_ID_KEY,
             nms.SIRE_ID_KEY,
             nms.INBREEDING_COEFFICIENT_KEY,
-            nms.MALE_KEY
+            nms.MALE_KEY,
         ] + ([nms.NETMERIT_KEY] if self.connectedclass.net_merit_visibility else [])
 
         for data_key in data_keys:
