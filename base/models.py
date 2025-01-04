@@ -793,7 +793,7 @@ class Animal(models.Model):
                     return self.herd.name if self.herd else None
                 case nms.CLASS_ID_KEY:
                     return self.connectedclass.id
-                case nms.CLASS_ID_KEY:
+                case nms.CLASS_NAME_KEY:
                     return self.connectedclass.name
                 case nms.NAME_KEY:
                     return self.name
