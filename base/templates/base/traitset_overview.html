@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+{% load path_builder %}
+
+{% block navpath %}
+<a href="/traitsets" class="as-link pad-small">Traitsets/</a>
+{% titled_self_path traitset.name "as-link pad-small" %}
+{% endblock navpath %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock head %}
+
+{% block main %}
+
+<h1>{{traitset.name}}</h1>
+
+<div>
+    <table>
+        <caption>
+            <h2>Traits</h2>
+        </caption>
+        {{traitset.get_html_trait_table}}
+    </table>
+</div>
+
+<div>
+    <table>
+        <caption>
+            <h2>Genotype Correlations</h2>
+        </caption>
+        {{traitset.get_html_genotype_correlation_table}}
+    </table>
+</div>
+
+<div>
+    <table>
+        <caption>
+            <h2>Phenotype Correlations</h2>
+        </caption>
+        {{traitset.get_html_phenotype_correlation_table}}
+    </table>
+</div>
+
+<div>
+    <table>
+        <caption>
+            <h2>Recessives</h2>
+        </caption>
+        {{traitset.get_html_recessive_table}}
+    </table>
+</div>
+
+<div>
+    <table>
+        <caption>
+            <h2>Animals</h2>
+        </caption>
+        {{traitset.get_html_animal_table}}
+    </table>
+</div>
+
+<div>
+    <table>
+        <caption>
+            <h2>Animal Traits</h2>
+        </caption>
+        {{traitset.get_html_animal_trait_table}}
+    </table>
+</div>
+
+<div>
+    <table>
+        <caption>
+            <h2>Animal Recessives</h2>
+        </caption>
+        {{traitset.get_html_animal_recessive_table}}
+    </table>
+</div>
+{% endblock main %}

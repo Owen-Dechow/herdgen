@@ -84,6 +84,9 @@
             "sire": "sire",
             "sires": "sires",
             "dam": "dam",
+            "genotype_prefix": "gen",
+            "phenotype_prefix": "ph",
+            "pta_prefix": "pta",
             "dams": "dams"
         },
         "Dog": {
@@ -118,6 +121,9 @@
             "sire": "sire",
             "sires": "sires",
             "dam": "dam",
+            "genotype_prefix": "gen",
+            "phenotype_prefix": "ph",
+            "pta_prefix": "pta",
             "dams": "dams"
         }
     }

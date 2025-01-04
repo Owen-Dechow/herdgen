@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load path_builder %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock head %}
+
+{% block navpath %}
+{% titled_self_path "Traitsets" "as-link pad-small" %}
+{% endblock navpath %}
+
+{% block main %}
+<h1>Traitsets</h1>
+
+<table>
+    <caption>
+        <h2>Enabled</h2>
+    </caption>
+    {% for traitset in traitsets %}
+    <tr>
+        <td><a class="as-link" href="/traitsets/{{traitset}}">{{traitset}}</a></td>
+    </tr>
+    {% endfor %}
+</table>
+
+<table>
+    <caption>
+        <h2>Deprecated</h2>
+    </caption>
+    {% for traitset in deprecated_traitsets %}
+    <tr>
+        <td><a class="as-link" href="/traitsets/{{traitset}}">{{traitset}}</a></td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% endblock main %}

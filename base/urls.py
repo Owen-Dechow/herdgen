@@ -60,4 +60,7 @@ urlpatterns = [
         "class/<int:classid>/herd/<int:herdid>/assignments/submit-animal/<int:animalid>",
         views.submit_animal,
     ),
+    path("traitsets/<str:traitsetname>", views.traitset_overview),
+    path("traitsets", views.traitsets),
+    path("equations", views.equations),
 ]

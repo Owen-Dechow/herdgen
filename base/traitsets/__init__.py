@@ -1,5 +1,5 @@
 from .registration import Registration
-from .traitset import Traitset
+from .traitset import Traitset, DOCUMENTED_FUNCS
 
 registered = [
     Registration("ANIMAL_SCIENCE_322", True),

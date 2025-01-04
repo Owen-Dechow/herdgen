@@ -11,13 +11,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView
-
-
 from django.db import transaction
+from django.utils.html import SafeString
 from django.views.decorators.http import require_POST
-
 from .templatetags.animal_filters import filter_text_to_default
-from base.traitsets.traitset import Traitset
+from base.traitsets import (
+    Traitset,
+    DOCUMENTED_FUNCS,
+    registered as registered_traitsets,
+)
 from . import forms
 from . import models
 from .views_utils import HerdAuth, auth_class, ClassAuth, auth_herd
@@ -272,6 +274,56 @@ def openherd(request: HttpRequest, classid: int, herdid: int) -> HttpResponse:
     return render(request, "base/openherd.html", context)
 
 
+def equations(request: HttpRequest) -> HttpResponse:
+    equations = {}
+    for header, funcs in DOCUMENTED_FUNCS.items():
+        equations[header] = []
+        for func in funcs:
+            doc_string = ""
+            for line in func.__doc__.split("\n"):
+                stripped = line.strip()
+                if "#" in stripped:
+                    html = stripped.replace("#", "<span>#", 1) + "</span>"
+                else:
+                    html = stripped
+
+                doc_string += html + "<br>"
+
+            sig = ""
+            for line in func._sig.split("\n"):
+                stripped = line.strip()
+                if "#" in stripped:
+                    html = stripped.replace("#", "<span>#", 1) + "</span>"
+                else:
+                    html = stripped
+
+                sig += html + "<br>"
+
+            equations[header].append((SafeString(sig), SafeString(doc_string)))
+
+    return render(request, "base/equations.html", {"equations": equations})
+
+
+def traitset_overview(request: HttpRequest, traitsetname: str) -> HttpResponse:
+    try:
+        traitset = Traitset(traitsetname)
+    except FileNotFoundError as e:
+        raise Http404(e)
+
+    return render(request, "base/traitset_overview.html", {"traitset": traitset})
+
+
+def traitsets(request: HttpRequest) -> HttpResponse:
+    traitsets = [x.name for x in registered_traitsets if x.enabled]
+    deprecated_traitsets = [x.name for x in registered_traitsets if not x.enabled]
+
+    return render(
+        request,
+        "base/traitsets.html",
+        context={"traitsets": traitsets, "deprecated_traitsets": deprecated_traitsets},
+    )
+
+
 #### ACTION VIEWS ####
 @require_POST
 @transaction.atomic
@@ -313,7 +365,7 @@ def delete_assignment(
 @require_POST
 def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     class_auth = auth_class(request, classid)
-    if type(class_auth) in ClassAuth.TEACHER_ADMIN:
+    if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to delete class")
 
     class_auth.connectedclass.delete()

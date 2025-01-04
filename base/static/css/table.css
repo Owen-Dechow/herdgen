@@ -1,0 +1,37 @@
+main {
+    h1 {
+        text-align: center;
+    }
+
+    h2 {
+        margin-bottom: 0;
+        text-align: left;
+    }
+
+    table {
+        width: max-content;
+        min-width: 60%;
+        margin-inline: auto;
+    }
+
+    td,
+    th {
+        outline: 1px solid;
+        padding: 5px;
+    }
+
+    tr:nth-child(odd) {
+        background-color: color-mix(in srgb, var(--background-a) 90%, black)
+    }
+
+    div {
+        padding: 10px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: auto;
+    }
+
+    code span {
+        color: var(--red);
+    }
+}

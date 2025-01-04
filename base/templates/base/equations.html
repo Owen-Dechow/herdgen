@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load path_builder %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/table.css' %}">
+{% endblock head %}
+
+{% block navpath %}
+{% titled_self_path "Equations" "as-link pad-small" %}
+{% endblock navpath %}
+
+{% block main %}
+<h1>Equations</h1>
+
+{% for header, eqs in equations.items %}
+<table>
+    <caption>
+        <h2>{{header}}</h2>
+    </caption>
+    {% for equation_sig, equation in eqs %}
+    <tr>
+        <td><code><pre>{{equation_sig}}</pre></code></td>
+        <td><code><pre>{{equation}}</pre></code></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endfor %}
+{% endblock main %}
