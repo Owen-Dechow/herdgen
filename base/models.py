@@ -5,6 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from random import choice
 from django.utils.timezone import now, datetime
+from django.contrib.admin import ModelAdmin
 
 from base import csv
 from .templatetags.animal_filters import filter_text_to_default
@@ -18,6 +19,11 @@ from . import names as nms
 
 # Create your models here.
 class Class(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["name", "teacher", "classcode", "enrollment_tokens", "traitset"]
+        search_fields = ["name",  "classcode"]
+        list_filter = ["traitset"]
+
     name = models.CharField(max_length=255)
     teacher = models.ForeignKey(to=User, on_delete=models.CASCADE)
     traitset = models.CharField(max_length=255)
@@ -321,6 +327,10 @@ class Class(models.Model):
 
 
 class Herd(models.Model):
+    class Admin(ModelAdmin):
+        search_fields = ["name"]
+        list_display = ["name", "connectedclass", "breedings", "enrollment"]
+
     class BreedingResults:
         recessive_deaths: int
         age_deaths: int
@@ -509,6 +519,9 @@ class Herd(models.Model):
 
 
 class Enrollment(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["student", "connectedclass", "animal", "herd"]
+
     student = models.ForeignKey(to=User, on_delete=models.CASCADE)
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
     animal = models.CharField(max_length=255)
@@ -599,6 +612,9 @@ class Enrollment(models.Model):
 
 
 class EnrollmentRequest(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["student", "connectedclass"]
+
     student = models.ForeignKey(to=User, on_delete=models.CASCADE)
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
 
@@ -624,6 +640,11 @@ class EnrollmentRequest(models.Model):
 
 
 class Animal(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["name", "male", "herd", "connectedclass", "generation", "genomic_tests"]
+        search_fields = ["name"]
+        list_filter = ["male"]
+
     herd = models.ForeignKey(to="Herd", on_delete=models.CASCADE, null=True)
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -873,6 +894,10 @@ class Animal(models.Model):
 
 
 class Assignment(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["name", "startdate", "duedate", "connectedclass"]
+        search_fields = ["name", "startdate", "duedate"]
+
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
     startdate = models.DateTimeField(null=True, blank=True)
     duedate = models.DateTimeField(null=True, blank=True)
@@ -914,6 +939,10 @@ class Assignment(models.Model):
 
 
 class AssignmentStep(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["step", "number", "assignment"]
+        list_filter = ["step"]
+
     CHOICE_MALE_SUBMISSION = "msub"
     CHOICE_FEMALE_SUBMISSION = "fsub"
     CHOICE_BREED = "breed"
@@ -942,6 +971,9 @@ class AssignmentStep(models.Model):
 
 
 class AssignmentFulfillment(models.Model):
+    class Admin(ModelAdmin):
+        list_display = ["assignment", "enrollment", "current_step"]
+
     enrollment = models.ForeignKey(to="Enrollment", on_delete=models.CASCADE)
     assignment = models.ForeignKey(to="Assignment", on_delete=models.CASCADE)
     current_step = models.IntegerField(default=0)
