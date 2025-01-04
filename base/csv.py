@@ -1,12 +1,13 @@
-from random import choice
-import zipfile
 from io import BytesIO
+from random import choice
 from typing import Any, Iterator
+import zipfile
+
+from background_task import background
+import boto3
 from django.conf import settings
 from django.core.mail import send_mail
 from django.http import FileResponse
-from background_task import background
-import boto3
 
 from base import models
 

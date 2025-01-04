@@ -1,14 +1,16 @@
-from django.contrib.auth import forms as auth_forms
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
-from django import forms
-from django.forms import widgets
-from django.http import Http404
 from typing import Optional
-from .templatetags.animal_filters import filter_text_to_default
+
+import background_task
+from django import forms
+from django.contrib.auth import forms as auth_forms
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.http import Http404
 
 from base.views_utils import ClassAuth, HerdAuth, auth_herd
+
 from . import models
+from .templatetags.animal_filters import filter_text_to_default
 from .traitsets import TRAITSET_CHOICES, Traitset
 
 
@@ -92,6 +94,7 @@ class UpdateClassForm(forms.ModelForm):
     traitset = forms.CharField(disabled=True)
     classcode = forms.CharField(disabled=True)
     enrollment_tokens = forms.IntegerField(disabled=True)
+    quarantine_days = forms.IntegerField(min_value=0, max_value=60)
 
     class Meta:
         model = models.Class
@@ -102,6 +105,7 @@ class UpdateClassForm(forms.ModelForm):
             "enrollment_tokens",
             "info",
             "default_animal",
+            "quarantine_days",
             "allow_other_animals",
             "net_merit_visibility",
             "hide_female_pta",
@@ -375,9 +379,22 @@ class SubmitAnimal(forms.Form):
             models.AssignmentStep.CHOICE_FEMALE_SUBMISSION,
         ]
 
-    def save(self, class_auth: ClassAuth.Student, animal: models.Animal) -> None:
-        animal.herd = class_auth.connectedclass.class_herd
+    @background_task.background(schedule=0)
+    @staticmethod
+    def move_animal(animal_id: int):
+        animal = models.Animal.objects.select_related("connectedclass").get(id=animal_id)
+        animal.herd = animal.connectedclass.class_herd
         animal.save()
+
+    def save(self, class_auth: ClassAuth.Student, animal: models.Animal) -> None:
+        animal.herd = None
+        animal.save()
+
+        day = 60 * 60 * 24
+        self.move_animal(
+            animal_id=animal.id,
+            schedule=class_auth.connectedclass.quarantine_days * day,
+        )
 
         self.validation_catch.assignment_fulfillment.current_step += 1
         self.validation_catch.assignment_fulfillment.save()

@@ -64,9 +64,19 @@ Cow Progress only allowed for Bovine Holsteins. Herd Genetics allows for "animal
 Animal filters change the terminology, traits, and recessives used. This is controlled
 by each student.
 
+### 6. Quarantining
+
+After submitting animals in Cow Progress, they were directly transferred to the class
+herd. In Herd Genetics each class has the option to set a quarantine period for animals.
+
 <p align="center">
     <img src="base/static/media/banner8.webp" alt="dog">
 </p>
+
+### 7. Assignments
+
+One of the main advantages of Herd Genetic over Cow Progress is the class based system.
+Updates. In Herd Genetic every breeding and sumbition is run off of assignments.
 
 ## License
 

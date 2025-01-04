@@ -2,6 +2,7 @@ from json import load
 from pathlib import Path
 from random import random
 from typing import Callable, Optional, Type
+
 from django.utils.html import SafeString
 import numpy as np
 from scipy.linalg import cholesky

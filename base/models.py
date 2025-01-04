@@ -1,20 +1,18 @@
 from collections import defaultdict
-from pathlib import Path
-from typing import Any, Optional
-from django.db import models
-from django.contrib.auth.models import User
 from random import choice
-from django.utils.timezone import now, datetime
+from typing import Any, Optional
+
 from django.contrib.admin import ModelAdmin
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils.timezone import datetime, now
 
-from base import csv
+from . import names as nms
+from .inbreeding import calculate_inbreeding
 from .templatetags.animal_filters import filter_text_to_default
-
 from .traitsets import Traitset
 from .traitsets import traitset
 from .traitsets.traitset import HOMOZYGOUS_CARRIER_KEY
-from .inbreeding import calculate_inbreeding
-from . import names as nms
 
 
 # Create your models here.
@@ -36,6 +34,7 @@ class Class(models.Model):
     trend_log = models.JSONField(default=list, blank=True)
     default_animal = models.CharField(max_length=255)
     allow_other_animals = models.BooleanField(default=True)
+    quarantine_days = models.IntegerField(default=0)
 
     class_herd = models.ForeignKey(
         to="Herd",

@@ -1,31 +1,33 @@
+from django.contrib import messages
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
+from django.db import transaction
 from django.http import (
     FileResponse,
     Http404,
     HttpRequest,
-    HttpResponseRedirect,
     HttpResponse,
+    HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import render, get_object_or_404
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login
-from django.contrib.auth.views import LoginView
-from django.db import transaction
+from django.shortcuts import get_object_or_404, render
 from django.utils.html import SafeString
+from django.utils.timezone import now
 from django.views.decorators.http import require_POST
-from .templatetags.animal_filters import filter_text_to_default
+
 from base.traitsets import (
-    Traitset,
     DOCUMENTED_FUNCS,
+    Traitset,
     registered as registered_traitsets,
 )
+
 from . import forms
 from . import models
-from .views_utils import HerdAuth, auth_class, ClassAuth, auth_herd
-from django.utils.timezone import now
 from . import csv
 from . import names as nms
+from .templatetags.animal_filters import filter_text_to_default
+from .views_utils import ClassAuth, HerdAuth, auth_class, auth_herd
 
 
 #### AUTH PAGE VIEWS ####
