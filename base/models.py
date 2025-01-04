@@ -214,8 +214,6 @@ class Class(models.Model):
         if save:
             self.save()
 
-        self.update_animal_file()
-
     def get_animal_file_headers(self) -> list[str]:
         traitset = Traitset(self.traitset)
 
@@ -260,48 +258,6 @@ class Class(models.Model):
             + [(nms.PTA_KEY, x.uid) for x in traitset.traits]
             + [(nms.FORMATTED_RECESSIVES_KEY, x.uid) for x in traitset.recessives]
         )
-
-    def update_animal_file(self) -> None:
-        FILE = Path("animal_files") / f"class-{self.id}"
-
-        if not FILE.exists():
-            with open(FILE, "w") as f:
-                f.write(csv.convert_data_row(self.get_animal_file_headers()) + "\n")
-
-        data_row_order = self.get_animal_file_data_order()
-
-        with open(FILE, "r+") as file:
-            try:
-                row = file.readlines()[-1]
-                first = row.split(csv.COL_SEP)[0]
-                start_id = int(first) + 1
-            except:
-                start_id = 0
-
-            animals = (
-                Animal.objects.select_related("herd", "connectedclass")
-                .filter(connectedclass=self, id__gte=start_id)
-                .order_by("id")
-                .iterator(255)
-            )
-
-            for animal in animals:
-                row = []
-                for key in data_row_order:
-                    value = animal.resolve_data_key(key, self)
-                    if type(value) is str:
-                        value = filter_text_to_default(value, self)
-
-                    row.append(value)
-                file.write(csv.convert_data_row(row) + "\n")
-
-    def get_animal_file(self) -> Path:
-        FILE = Path("animal_files") / f"class-{self.id}"
-
-        if not FILE.exists():
-            self.update_animal_file()
-
-        return Path(FILE)
 
     def recalculate_ptas(self, genomic_test: bool = False):
         traitset = Traitset(self.traitset)
