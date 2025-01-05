@@ -25,6 +25,8 @@ env = Env()
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-(ck%#r(ix+yo*066$s#32ct3$!fmkmc!j3+ui&+#$v4+il*qf*"
 
+SECURE_SSL_REDIRECT = env("SECURE_SSL_REDIRECT", bool)
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG", bool)
 
