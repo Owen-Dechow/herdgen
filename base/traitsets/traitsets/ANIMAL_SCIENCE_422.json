@@ -250,31 +250,31 @@
                 "MILK": {
                     "name": "MILK",
                     "standard_deviation": 567.0,
-                    "phenotype_average": 0,
+                    "phenotype_average": 17000,
                     "unit": ""
                 },
                 "FAT": {
                     "name": "FAT",
                     "standard_deviation": 25.0,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 6120,
+                    "unit": "%"
                 },
                 "PROT": {
                     "name": "PROT",
                     "standard_deviation": 15.0,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 5100,
+                    "unit": "%"
                 },
                 "PL": {
                     "name": "PL",
                     "standard_deviation": 1.7,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 30,
+                    "unit": "months"
                 },
                 "SCS": {
                     "name": "SCS",
                     "standard_deviation": 0.14,
-                    "phenotype_average": 0,
+                    "phenotype_average": 3,
                     "unit": ""
                 },
                 "BWC": {
@@ -298,8 +298,8 @@
                 "DPR": {
                     "name": "DPR",
                     "standard_deviation": 1.4,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average":30,
+                    "unit": "%"
                 },
                 "CA$": {
                     "name": "CA$",
@@ -310,20 +310,20 @@
                 "HCR": {
                     "name": "HCR",
                     "standard_deviation": 1.3,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 60,
+                    "unit": "%"
                 },
                 "CCR": {
                     "name": "CCR",
                     "standard_deviation": 1.6,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 40,
+                    "unit": "%"
                 },
                 "LIV": {
                     "name": "LIV",
                     "standard_deviation": 1.6,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 90,
+                    "unit": "%"
                 },
                 "HTH$": {
                     "name": "HTH$",
@@ -335,24 +335,24 @@
                     "name": "RFI",
                     "standard_deviation": 46.2,
                     "phenotype_average": 0,
-                    "unit": ""
+                    "unit": "lbs"
                 },
                 "EFC": {
                     "name": "EFC",
                     "standard_deviation": 2.05,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 800,
+                    "unit": " days"
                 },
                 "HLV": {
                     "name": "HLV",
                     "standard_deviation": 0.4,
-                    "phenotype_average": 0,
-                    "unit": ""
+                    "phenotype_average": 90,
+                    "unit": "%"
                 },
                 "TYPE": {
                     "name": "TYPE",
                     "standard_deviation": 1.0,
-                    "phenotype_average": 0,
+                    "phenotype_average": 80,
                     "unit": ""
                 }
             },
