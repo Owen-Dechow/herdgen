@@ -2,7 +2,13 @@
     display: grid;
     grid-template-columns: 400px 1fr;
     gap: 20px;
+    
+    @media (max-width: 750px) {
+       grid-template-columns: 100%;
+    }
 }
+
+
 
 .header {
     padding: 10px;

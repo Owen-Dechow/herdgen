@@ -26,6 +26,17 @@ nav {
     top: 0;
     z-index: 1;
     justify-content: space-between;
+
+    @media (max-width: 700px) {
+        align-items: center;
+        flex-direction: column;
+
+        &>div {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    }
 }
 
 input {
@@ -209,4 +220,3 @@ loading-symbol {
     width: calc(100% - 20px);
     box-sizing: border-box;
 }
-
