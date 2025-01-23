@@ -182,7 +182,7 @@ function showSummary() {
             createInfoCard(
                 `${Filter["phenotype_prefix"]}: <${p}>`,
                 formatInfoValue(
-                    Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"],
+                    Herd["summary"]["phenotype"][p] * Filter[p]["standard_deviation"] + Filter[0]["phenotype_average"],
                     PTA_DECIMALS,
                     "",
                     Filter[p]["unit"]
