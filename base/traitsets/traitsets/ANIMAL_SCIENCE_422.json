@@ -256,13 +256,13 @@
                 "FAT": {
                     "name": "FAT",
                     "standard_deviation": 25.0,
-                    "phenotype_average": 6120,
+                    "phenotype_average": 612,
                     "unit": "lbs"
                 },
                 "PROT": {
                     "name": "PROT",
                     "standard_deviation": 15.0,
-                    "phenotype_average": 5100,
+                    "phenotype_average": 510,
                     "unit": "lbs"
                 },
                 "PL": {
