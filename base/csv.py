@@ -116,7 +116,7 @@ def create_animal_csv(classid: int, userid: int):
     link = f"https://{bucketname}.s3.amazonaws.com/{filekey}"
 
     send_mail(
-        "Animal Char Ready",
+        "Animal Chart Ready",
         "The animal chart you requested from HerdGenetics is ready."
         + f" You can download the file at {link}",
         settings.EMAIL_HOST_USER,

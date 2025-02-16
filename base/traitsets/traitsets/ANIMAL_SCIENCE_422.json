@@ -351,7 +351,7 @@
                 },
                 "TYPE": {
                     "name": "TYPE",
-                    "standard_deviation": 1.0,
+                    "standard_deviation": 3.0,
                     "phenotype_average": 80,
                     "unit": ""
                 }

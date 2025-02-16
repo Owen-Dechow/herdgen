@@ -161,23 +161,29 @@ class Trait:
         self.animals = animals
 
     @classmethod
-    @document("""sqrt:
-              x # any real number""")
+    @document(
+        """sqrt:
+              x # any real number"""
+    )
     def sqrt(cls, x: float) -> float:
         """# Yields the square root of x."""
         return np.sqrt(x)
 
     @classmethod
-    @document("""limit:
+    @document(
+        """limit:
               x # any real number
-              max # maximum""")
+              max # maximum"""
+    )
     def limit(cls, x: float, max: float) -> float:
         """# Yields the bounded value of x less than or equal to max."""
         return min(x, max)
 
     @classmethod
-    @document("""nrandom:
-              stdev # standard deviation""")
+    @document(
+        """nrandom:
+              stdev # standard deviation"""
+    )
     def mendelian_sample(cls, scale: float = 1) -> float:
         """# Yields a random value on a normal distribution."""
         return np.random.normal(scale=scale)
@@ -201,23 +207,29 @@ class Trait:
 
         genotype = genotype * self.calculated_standard_deviation
 
-        phenotypic_variance = (self.calculated_standard_deviation**2) / self.heritability
+        phenotypic_variance = (
+            self.calculated_standard_deviation**2
+        ) / self.heritability
         residual_variance = phenotypic_variance * (1 - self.heritability)
         residual_standard_deviation = self.sqrt(residual_variance)
         phenotype = genotype * 2 + self.mendelian_sample(
             scale=residual_standard_deviation
         )
 
-        phenotype += inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
+        phenotype += (
+            inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
+        )
 
         return phenotype / self.calculated_standard_deviation
 
-    @document("""convert_genotype_to_pta:
+    @document(
+        """convert_genotype_to_pta:
               gen # genotype
               nd # number of daughters
               ng # number of genomic tests
               stdev # standard deviation
-              h2 # heritability""")
+              h2 # heritability"""
+    )
     def convert_genotype_to_pta(
         self, genotype: float, number_of_daughters: int, genomic_tests: int
     ) -> float:
@@ -247,10 +259,12 @@ class Trait:
 
         return PTA / self.calculated_standard_deviation
 
-    @document("""get_genotype_from_breeding:
+    @document(
+        """get_genotype_from_breeding:
               s_gen # sire genotype
               d_gen # dam genotype
-              mds # mendelian sample""")
+              mds # mendelian sample"""
+    )
     def get_genotype_from_breeding(
         self, sire_val: float, dam_val: float, mendelian_sample: float
     ) -> float:
@@ -269,9 +283,11 @@ class Trait:
 
         return result / self.calculated_standard_deviation
 
-    @document("""get_net_merit_dollars_addend:
+    @document(
+        """get_net_merit_dollars_addend:
               gen # genotype
-              nmd # net merit dollars""")
+              nmd # net merit dollars"""
+    )
     def get_net_merit_dollars_addend(self, genotype: float):
         """net_merit_dollars = gen * nmd"""
         genotype = genotype * self.calculated_standard_deviation
@@ -302,8 +318,10 @@ class Recessive:
         """#Yields a random value in range [0, 1]"""
         return random()
 
-    @document("""get_random:
-              prev # prevalence percent""")
+    @document(
+        """get_random:
+              prev # prevalence percent"""
+    )
     def get_random(self) -> str:
         """# [true, true], [true, false], or [false, false]
         alleles = [random() * 100 < prev, random() * 100 < prev]"""
@@ -317,8 +335,10 @@ class Recessive:
             return HOMOZYGOUS_FREE_KEY
 
     @classmethod
-    @document("""get_passed_from_parent:
-              p # parent gene""")
+    @document(
+        """get_passed_from_parent:
+              p # parent gene"""
+    )
     def get_passed_from_parent(cls, parent_allele) -> bool:
         """# Yields either first or second allele of p with equal weight."""
         if parent_allele == HOMOZYGOUS_CARRIER_KEY:
@@ -329,9 +349,11 @@ class Recessive:
             return False
 
     @classmethod
-    @document("""get_recessives_from_breeding:
+    @document(
+        """get_recessives_from_breeding:
               s # sire gene
-              d # dam gene""")
+              d # dam gene"""
+    )
     def get_from_breeding(cls, sire_allele, dam_allele) -> str:
         """# [true, true], [true, false], or [false, false]
         alleles = [get_passed_from_parent(s), get_passed_from_parent(d)]"""
@@ -446,9 +468,11 @@ class Traitset:
             for trait, val in zip(self.traits, correlated_values, strict=True)
         }
 
-    @document("""get_genotype_from_breeding:
+    @document(
+        """get_genotype_from_breeding:
               sg # sire genotype
-              dg # dam genotype""")
+              dg # dam genotype"""
+    )
     def get_genotype_from_breeding(
         self, sire_genotype: dict[str, float], dam_genotype: dict[str, float]
     ) -> dict[str, float]:
@@ -467,9 +491,11 @@ class Traitset:
 
         return genotype
 
-    @document("""derive_phenotype_from_genotype:
+    @document(
+        """derive_phenotype_from_genotype:
               gen # genotype
-              inbc # inbreeding coefficient""")
+              inbc # inbreeding coefficient"""
+    )
     def derive_phenotype_from_genotype(
         self,
         genotype: dict[str, float],
@@ -494,10 +520,12 @@ class Traitset:
     def get_null_phenotype(self) -> dict[str, None]:
         return {x.uid: None for x in self.traits}
 
-    @document("""derive_ptas_from_genotype:
+    @document(
+        """derive_ptas_from_genotype:
               gen # genotype
               nd # number of daughters
-              ng # number of genomic tests""")
+              ng # number of genomic tests"""
+    )
     def derive_ptas_from_genotype(
         self, genotype: dict[str, float], number_of_daughters: int, genomic_tests: int
     ) -> dict[str, float]:
@@ -605,7 +633,7 @@ class Traitset:
                 cell = f"name: {filter.name}<br>"
                 cell += f"mean: {filter.phenotype_average}<br>"
                 cell += f"stdev: {filter.standard_deviation}<br>"
-                cell += f"unit: {filter.unit or "~"}"
+                cell += f"unit: {filter.unit or '~'}"
 
                 row += wrap(cell, "td")
 

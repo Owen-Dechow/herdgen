@@ -1,13 +1,25 @@
 {
     "cSpell.words": [
+        "asgiref",
         "assignmentid",
+        "boto",
+        "botocore",
+        "certifi",
         "classid",
         "csrfmiddlewaretoken",
+        "dateutil",
         "enrollmentid",
         "fsub",
         "Gastroesophageal",
+        "gunicorn",
+        "jmespath",
         "msub",
+        "numpy",
         "phen",
-        "requestid"
+        "psycopg",
+        "PYTHONDONTWRITEBYTECODE",
+        "requestid",
+        "scipy",
+        "wcwidth"
     ]
 }
