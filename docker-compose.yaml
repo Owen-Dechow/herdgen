@@ -6,8 +6,46 @@ services:
       - .:/app/
     ports:
       - 8000:8000
+    environment:
+      - DEBUG
+      - ALLOWED_HOSTS
+      - TIME_ZONE
+      - SECURE_SSL_REDIRECT
+      - LOCAL_DB
+      - DB_HOST
+      - DB_NAME
+      - DB_PASSWORD
+      - DB_USER
+      - TERMINAL_EMAIL
+      - EMAIL_HOST_USER
+      - EMAIL_HOST_PASSWORD
+      - LOCAL_STATIC
+      - AWS_ACCESS_KEY_ID
+      - AWS_S3_REGION_NAME
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_STORAGE_BUCKET_NAME
+      - SECRET_KEY
   django-background-tasks:
     image: owendechow/herdgen-django-background-tasks
     command: python3 manage.py process_tasks
     volumes:
       - .:/app/
+    environment:
+      - DEBUG
+      - ALLOWED_HOSTS
+      - TIME_ZONE
+      - SECURE_SSL_REDIRECT
+      - LOCAL_DB
+      - DB_HOST
+      - DB_NAME
+      - DB_PASSWORD
+      - DB_USER
+      - TERMINAL_EMAIL
+      - EMAIL_HOST_USER
+      - EMAIL_HOST_PASSWORD
+      - LOCAL_STATIC
+      - AWS_ACCESS_KEY_ID
+      - AWS_S3_REGION_NAME
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_STORAGE_BUCKET_NAME
+      - SECRET_KEY
