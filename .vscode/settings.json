@@ -8,6 +8,7 @@
         "classid",
         "csrfmiddlewaretoken",
         "dateutil",
+        "ebextensions",
         "enrollmentid",
         "fsub",
         "Gastroesophageal",
@@ -17,9 +18,11 @@
         "numpy",
         "phen",
         "psycopg",
+        "pycache",
         "PYTHONDONTWRITEBYTECODE",
         "requestid",
         "scipy",
+        "venv",
         "wcwidth"
     ]
 }

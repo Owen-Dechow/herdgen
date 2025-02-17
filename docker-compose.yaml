@@ -1,24 +1,13 @@
 services:
   django:
-    build: .
+    image: owendechow/herdgen-django
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app/
     ports:
       - 8000:8000
-    develop:
-      watch:
-        - action: sync
-          path: ./base/
-          target: ./base
-        - action: rebuild
-          path: ./herdgen/.env
-          target: ./herdgen/.env
-        - action: sync
-          path: ./herdgen/
-          target: ./herdgen
   django-background-tasks:
-    build: .
+    image: owendechow/herdgen-django-background-tasks
     command: python3 manage.py process_tasks
     volumes:
       - .:/app/
