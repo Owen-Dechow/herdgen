@@ -15,7 +15,7 @@ async function getHerd(classId, herdId) {
 };
 
 function createAnimalCard(animalId, animalName, animal, classId, herdId) {
-    let btn = $("<button></button>", {id: `anim-${animalId}`, class: "animal-btn", autofilter: true});
+    let btn = $("<button></button>", { id: `anim-${animalId}`, class: "animal-btn", autofilter: true });
     btn.text(animalName);
     btn.click(() => {
         $(".animal-btn.selected").removeClass("selected");
@@ -68,26 +68,34 @@ function loadHerd(sortKey, reversed, contains, classId, herdId) {
         }
     }
 
-    animals.sort((a, b) => {
+    let males = animals.filter(a => a.male);
+    let females = animals.filter(a => !a.male);
+
+    males.sort((a, b) => {
         a = resolveSortKey(sortKey, a);
         b = resolveSortKey(sortKey, b);
         let comp = compareValuesForSort(a, b);
         return comp;
     });
 
-    if (!reversed)
-        animals.reverse();
-
-    animals.forEach((animal) => {
-        if (animal["male"])
-            $("#males").append(createAnimalCard(animal["id"], animal["name"], animal, classId, herdId));
-        else
-            $("#females").append(createAnimalCard(animal["id"], animal["name"], animal, classId, herdId));
+    females.sort((a, b) => {
+        a = resolveSortKey(sortKey, a);
+        b = resolveSortKey(sortKey, b);
+        let comp = compareValuesForSort(a, b);
+        return comp;
     });
+
+    if (!reversed) {
+        males.reverse();
+        females.reverse();
+    }
+
+    males.forEach(animal => $("#males").append(createAnimalCard(animal["id"], animal["name"], animal, classId, herdId)));
+    females.forEach(animal => $("#females").append(createAnimalCard(animal["id"], animal["name"], animal, classId, herdId)));
 }
 
 function createSortOptionCard(text, value) {
-    let opt = $(`<option></option>`, {value: value, autofilter: true});
+    let opt = $(`<option></option>`, { value: value, autofilter: true });
     opt.text(text);
     return opt;
 }
@@ -135,10 +143,10 @@ async function setUpHerd(classId, herdId) {
 
 function createInfoCard(field, value) {
     let div = $("<div></div>");
-    let span1 = $("<span></span>", {autofilter: true});
+    let span1 = $("<span></span>", { autofilter: true });
     span1.text(field);
 
-    let span2 = $("<span></span>", {autofilter: true});
+    let span2 = $("<span></span>", { autofilter: true });
     span2.text(value);
 
     div.append(span1);
@@ -219,7 +227,7 @@ function createSubmitFormCard(animal, classId, herdId) {
         type: "submit"
     });
     button.text("Submit to class herd");
-    form.append($("<input></input>", {type: "hidden", name: "assignment", value: $("#assignment-select").val()}));
+    form.append($("<input></input>", { type: "hidden", name: "assignment", value: $("#assignment-select").val() }));
     form.append($("input[name=csrfmiddlewaretoken]").first().clone());
     form.append(button);
 
@@ -232,8 +240,8 @@ function animalSelected(animal, classId, herdId) {
     let info = $("#info");
     info.html("");
     if (animal["male"]) {
-        let button = $("<button></button>", {class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ")});
-        let div = $("<div></div>", {class: "pad-small"});
+        let button = $("<button></button>", { class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ") });
+        let div = $("<div></div>", { class: "pad-small" });
         button.text("Save");
         button.click(() => {
             let cookie = "savedMales" + classId;
@@ -334,7 +342,7 @@ function resortAnimals(classId, herdId) {
 }
 
 function loadAssignments() {
-    let assignmentSelect = $("<select></select>", {id: "assignment-select"});
+    let assignmentSelect = $("<select></select>", { id: "assignment-select" });
 
     if (Object.keys(Assignments).length == 0) {
         assignmentSelect.remove();
@@ -343,7 +351,7 @@ function loadAssignments() {
 
     for (let assignment in Assignments) {
         assignment = Assignments[assignment];
-        let option = $("<option></option>", {value: assignment["id"]});
+        let option = $("<option></option>", { value: assignment["id"] });
         option.text(assignment["name"]);
         assignmentSelect.append(option);
     }
@@ -368,12 +376,12 @@ function showAssignment() {
     for (let stepIdx in Assignments[assignmentSelected]["steps"]) {
         step = Assignments[assignmentSelected]["steps"][stepIdx];
         let fulfilled = stepIdx < stepsFulfilled ? "complete" : "incomplete";
-        let span = $("<span></span>", {class: ["pad-small", fulfilled, "step"].join(" ")});
+        let span = $("<span></span>", { class: ["pad-small", fulfilled, "step"].join(" ") });
         span.text(step["verbose"]);
         div.append(span);
     }
 
-    let span = $("<span></span>", {class: ["pad-small", "status"].join(" ")});
+    let span = $("<span></span>", { class: ["pad-small", "status"].join(" ") });
     span.text(`${Assignments[assignmentSelected]["fulfillment"]}/${Assignments[assignmentSelected]["steps"].length} steps complete`);
     div.append(span);
 
@@ -414,8 +422,8 @@ function confirmBreedingSubmission() {
 
 function createMaleCardForBreeding(classId, herdId, val) {
     let id = Math.round(Math.random() * Math.pow(10, 16));
-    let div = $("<div></div>", {id: id, class: [].join(" ")});
-    let input = $("<input></input>", {type: "number", min: "max"});
+    let div = $("<div></div>", { id: id, class: [].join(" ") });
+    let input = $("<input></input>", { type: "number", min: "max" });
     input.on("input", () => updateMaleDataForBreeding(classId, herdId));
     input.val(val);
     let button = $(
@@ -470,8 +478,8 @@ async function validateMalesForBreeding(classId, herdId) {
     let data = await $.ajax({
         url: `/class/${classId}/herd/${herdId}/breed/get-validation`,
         dataType: "JSON",
-        data: {males: $("#id_males").val(), assignment: $("#id_assignment").val()},
-        fail: () => {sendMessage("Error: Could not validate breeding selections.", null, true);}
+        data: { males: $("#id_males").val(), assignment: $("#id_assignment").val() },
+        fail: () => { sendMessage("Error: Could not validate breeding selections.", null, true); }
     });
     ValidatingMalesForBreeding = false;
 
