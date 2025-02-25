@@ -2,10 +2,14 @@ from collections import defaultdict
 from random import choice
 from typing import Any, Optional
 
+import background_task
+from django.conf import settings
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.timezone import datetime, now
+from django.core.mail import send_mail
+
 
 from . import names as nms
 from .inbreeding import calculate_inbreeding
@@ -260,8 +264,11 @@ class Class(models.Model):
             + [(nms.FORMATTED_RECESSIVES_KEY, x.uid) for x in traitset.recessives]
         )
 
-    def recalculate_ptas(self, genomic_test: bool = False):
-        traitset = Traitset(self.traitset)
+    @staticmethod
+    @background_task.background(schedule=0)
+    def recalculate_ptas(connectedclass: int, email: str, genomic_test: bool = False):
+        connectedclass = Class.objects.get(id=connectedclass)
+        traitset = Traitset(connectedclass.traitset)
         sire_daughters = models.Count(
             "animal_sire", filter=models.Q(animal_sire__male=False)
         )
@@ -271,7 +278,7 @@ class Class(models.Model):
         animals = Animal.objects.annotate(
             number_of_daughters_sire=sire_daughters,
             number_of_daughters_dam=dam_daughters,
-        ).filter(connectedclass=self, herd__isnull=False)
+        ).filter(connectedclass=connectedclass, herd__isnull=False)
 
         for animal in animals:
             if genomic_test:
@@ -283,6 +290,14 @@ class Class(models.Model):
             )
 
         Animal.objects.bulk_update(animals, ["genomic_tests", "ptas"])
+
+        send_mail(
+            "Genomic Test Complete" if genomic_test else "PTA Calculation Complete",
+            "The task you requested from HerdGenetics is complete.",
+            settings.EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
+        )
 
 
 class Herd(models.Model):

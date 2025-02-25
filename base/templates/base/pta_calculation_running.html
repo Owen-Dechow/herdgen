@@ -8,12 +8,13 @@
 
 {% block navpath %}
 {% build_class_path "as-link pad-small" %}
-{% titled_self_path "Test Complete" "as-link pad-small" %}
+{% titled_self_path "Calculation Complete" "as-link pad-small" %}
 {% endblock navpath %}
 
 {% block main %}
 <form class="std-form margin-auto" method="POST">
-    <h1>Genomic Test Complete</h1>
+    <h1>PTA Calculation Running</h1>
+    <p>PTAs are being calculated. We will email you at {{user.email}} when complete.</p>
     <a href="/" class="as-btn background-green pad border-radius full-width center-text">Return home</a>
 </form>
 

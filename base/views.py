@@ -196,9 +196,9 @@ def assignments(
                 "enrollment__student__first_name", "enrollment__student__last_name"
             ),
         )
-        for a in models.Assignment.objects.filter(connectedclass=connectedclass).order_by(
-            "duedate"
-        )
+        for a in models.Assignment.objects.filter(
+            connectedclass=connectedclass
+        ).order_by("duedate")
     ]
 
     return render(
@@ -422,9 +422,9 @@ def genomic_test(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to genomic test")
 
-    class_auth.connectedclass.recalculate_ptas(True)
+    class_auth.connectedclass.recalculate_ptas(classid, request.user.email, True)
 
-    return HttpResponseRedirect(f"/class/{classid}/ran-genomic-test")
+    return HttpResponseRedirect(f"/class/{classid}/running-genomic-test")
 
 
 @transaction.atomic
@@ -435,9 +435,11 @@ def calculate_ptas(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to calculate ptas")
 
-    class_auth.connectedclass.recalculate_ptas()
+    class_auth.connectedclass.recalculate_ptas(
+        class_auth.connectedclass.id, request.user.email
+    )
 
-    return HttpResponseRedirect(f"/class/{classid}/calculated-ptas")
+    return HttpResponseRedirect(f"/class/{classid}/running-calculate-ptas")
 
 
 @transaction.atomic
@@ -479,12 +481,16 @@ def confirm_enrollment(
 
     if class_auth.connectedclass.enrollment_tokens > 0:
         enrollment_request = get_object_or_404(
-            models.EnrollmentRequest.objects.select_related("connectedclass", "student"),
+            models.EnrollmentRequest.objects.select_related(
+                "connectedclass", "student"
+            ),
             id=requestid,
             connectedclass=class_auth.connectedclass,
         )
 
-        enrollment = models.Enrollment.create_from_enrollment_request(enrollment_request)
+        enrollment = models.Enrollment.create_from_enrollment_request(
+            enrollment_request
+        )
 
         data = enrollment.json_dict()
     else:
@@ -539,21 +545,21 @@ def generating_file(request: HttpRequest, classid: int) -> HttpResponse:
 
 
 @login_required
-def genomic_test_complete(request: HttpRequest, classid: int) -> HttpResponse:
+def genomic_test_running(request: HttpRequest, classid: int) -> HttpResponse:
     class_auth = auth_class(request, classid)
 
     return render(
-        request, "base/genomic_test_complete.html", {"class": class_auth.connectedclass}
+        request, "base/genomic_test_running.html", {"class": class_auth.connectedclass}
     )
 
 
 @login_required
-def pta_calculation_complete(request: HttpRequest, classid: int) -> HttpResponse:
+def pta_calculation_running(request: HttpRequest, classid: int) -> HttpResponse:
     class_auth = auth_class(request, classid)
 
     return render(
         request,
-        "base/pta_calculation_complete.html",
+        "base/pta_calculation_running.html",
         {"class": class_auth.connectedclass},
     )
 
