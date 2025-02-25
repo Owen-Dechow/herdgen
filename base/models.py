@@ -19,7 +19,7 @@ from .traitsets.traitset import HOMOZYGOUS_CARRIER_KEY
 class Class(models.Model):
     class Admin(ModelAdmin):
         list_display = ["name", "teacher", "classcode", "enrollment_tokens", "traitset"]
-        search_fields = ["name",  "classcode"]
+        search_fields = ["name", "classcode"]
         list_filter = ["traitset"]
 
     name = models.CharField(max_length=255)
@@ -162,7 +162,9 @@ class Class(models.Model):
                 new_nm += animal.net_merit
 
             last_nm = last[nms.NETMERIT_KEY]
-            capture[nms.NETMERIT_KEY] = ((last_nm * last_pop) - old_nm + new_nm) / new_pop
+            capture[nms.NETMERIT_KEY] = (
+                (last_nm * last_pop) - old_nm + new_nm
+            ) / new_pop
             capture[nms.POPULATION_SIZE_KEY] = new_pop
 
             capture[nms.TIME_STAMP_KEY] = now().isoformat()
@@ -267,7 +269,8 @@ class Class(models.Model):
             "animal_dam", filter=models.Q(animal_dam__male=False)
         )
         animals = Animal.objects.annotate(
-            number_of_daughters_sire=sire_daughters, number_of_daughters_dam=dam_daughters
+            number_of_daughters_sire=sire_daughters,
+            number_of_daughters_dam=dam_daughters,
         ).filter(connectedclass=self, herd__isnull=False)
 
         for animal in animals:
@@ -275,7 +278,8 @@ class Class(models.Model):
                 animal.genomic_tests += 1
 
             animal.recalculate_pta_unsaved(
-                animal.number_of_daughters_sire + animal.number_of_daughters_dam, traitset
+                animal.number_of_daughters_sire + animal.number_of_daughters_dam,
+                traitset,
             )
 
         Animal.objects.bulk_update(animals, ["genomic_tests", "ptas"])
@@ -400,7 +404,9 @@ class Herd(models.Model):
 
         Animal.objects.bulk_update(total_dead, ["herd"])
 
-        self.connectedclass.update_trend_log(new_animals=animals, old_animals=total_dead)
+        self.connectedclass.update_trend_log(
+            new_animals=animals, old_animals=total_dead
+        )
         self.save()
 
         return self.BreedingResults(len(recessive_deaths), len(age_deaths))
@@ -596,7 +602,14 @@ class EnrollmentRequest(models.Model):
 
 class Animal(models.Model):
     class Admin(ModelAdmin):
-        list_display = ["name", "male", "herd", "connectedclass", "generation", "genomic_tests"]
+        list_display = [
+            "name",
+            "male",
+            "herd",
+            "connectedclass",
+            "generation",
+            "genomic_tests",
+        ]
         search_fields = ["name"]
         list_filter = ["male"]
 
@@ -649,7 +662,9 @@ class Animal(models.Model):
             else traitset.derive_phenotype_from_genotype(new.genotype, new.inbreeding)
         )
 
-        new.ptas = traitset.derive_ptas_from_genotype(new.genotype, 0, new.genomic_tests)
+        new.ptas = traitset.derive_ptas_from_genotype(
+            new.genotype, 0, new.genomic_tests
+        )
         new.recessives = traitset.get_random_recessives()
         new.pedigree = {nms.SIRE_ID_KEY: None, nms.DAM_ID_KEY: None, nms.ID_KEY: None}
 
@@ -718,16 +733,18 @@ class Animal(models.Model):
         adjust_phen = lambda val, uid: (
             val
             if class_traitset is None
-            else val
-            * class_traitset.find_trait_or_null(uid)
-            .animals[connectedclass.default_animal]
-            .standard_deviation
-            * 2
-            + class_traitset.find_trait_or_null(uid)
-            .animals[connectedclass.default_animal]
-            .phenotype_average
-            if val is not None
-            else None
+            else (
+                val
+                * class_traitset.find_trait_or_null(uid)
+                .animals[connectedclass.default_animal]
+                .standard_deviation
+                * 2
+                + class_traitset.find_trait_or_null(uid)
+                .animals[connectedclass.default_animal]
+                .phenotype_average
+                if val is not None
+                else None
+            )
         )
 
         adjust_pta = lambda val, uid: (
@@ -843,6 +860,7 @@ class Animal(models.Model):
         }
 
     def recalculate_pta_unsaved(self, number_of_daughters: int, traitset: Traitset):
+
         self.ptas = traitset.derive_ptas_from_genotype(
             self.genotype, number_of_daughters, self.genomic_tests
         )
@@ -887,7 +905,9 @@ class Assignment(models.Model):
 
         assignment_steps = []
         for idx, step in enumerate(steps):
-            assignment_steps.append(AssignmentStep(number=idx, assignment=new, step=step))
+            assignment_steps.append(
+                AssignmentStep(number=idx, assignment=new, step=step)
+            )
         AssignmentStep.objects.bulk_create(assignment_steps)
 
         return new
