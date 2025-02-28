@@ -452,7 +452,7 @@ def submit_animal(
     class_auth = auth_class(request, classid)
     herd_auth = auth_herd(class_auth, herdid)
     animal = get_object_or_404(
-        models.Animal.defer("pedigree"),
+        models.Animal.objects.defer("pedigree"),
         connectedclass=classid,
         herd=herdid,
         id=animalid,
