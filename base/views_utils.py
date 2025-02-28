@@ -31,7 +31,8 @@ def auth_class(
     request: HttpRequest, classid: int, *related: str
 ) -> ClassAuth.Teacher | ClassAuth.Student | ClassAuth.Admin:
     connectedclass = get_object_or_404(
-        models.Class.objects.select_related("teacher", *related), id=classid
+        models.Class.objects.select_related("teacher", *related).defer("trend_log"),
+        id=classid,
     )
 
     if connectedclass.teacher == request.user:
@@ -41,7 +42,9 @@ def auth_class(
             return ClassAuth.Student(
                 models.Enrollment.objects.select_related(
                     *["connectedclass__" + x for x in related]
-                ).get(
+                )
+                .defer("connectedclass__trend_log")
+                .get(
                     connectedclass=connectedclass,
                     student=request.user,
                 )
@@ -83,7 +86,9 @@ def auth_herd(
 ):
     connectedclass = class_auth.connectedclass
     herd = get_object_or_404(
-        models.Herd.objects.select_related(*related),
+        models.Herd.objects.select_related("connectedclass", *related).defer(
+            "connectedclass__trend_log"
+        ),
         id=herdid,
         connectedclass=connectedclass,
     )

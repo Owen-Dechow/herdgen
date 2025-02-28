@@ -177,7 +177,9 @@ class UpdateClassForm(forms.ModelForm):
             ],
         )
 
-        self.fields["default_animal"] = forms.ChoiceField(choices=traitset.animal_choices)
+        self.fields["default_animal"] = forms.ChoiceField(
+            choices=traitset.animal_choices
+        )
 
     def save(self) -> None:
         self.instance.info = self.cleaned_data["info"]
@@ -382,7 +384,11 @@ class SubmitAnimal(forms.Form):
     @background_task.background(schedule=0)
     @staticmethod
     def move_animal(animal_id: int):
-        animal = models.Animal.objects.select_related("connectedclass").get(id=animal_id)
+        animal = (
+            models.Animal.objects.select_related("connectedclass")
+            .defer("pedigree", "connectedclass__trend_log")
+            .get(id=animal_id)
+        )
         animal.herd = animal.connectedclass.class_herd
         animal.save()
 
@@ -457,7 +463,8 @@ class UpdateAssignment(forms.ModelForm):
         super(UpdateAssignment, self).__init__(*args, **kwargs)
 
         self.fields["steps"].initial = [
-            x.step for x in models.AssignmentStep.objects.filter(assignment=self.instance)
+            x.step
+            for x in models.AssignmentStep.objects.filter(assignment=self.instance)
         ]
 
     class Meta:

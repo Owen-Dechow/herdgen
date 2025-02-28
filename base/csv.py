@@ -58,9 +58,11 @@ def create_animal_csv(classid: int, userid: int):
     data_keys = connectedclass.get_animal_file_data_order()
 
     def iterator() -> Iterator[list[Any]]:
-        for animal in models.Animal.objects.filter(
-            connectedclass=connectedclass
-        ).iterator(chunk_size=5_000):
+        for animal in (
+            models.Animal.objects.filter(connectedclass=connectedclass)
+            .defer("pedigree")
+            .iterator(chunk_size=5_000)
+        ):
             row = []
             for key in data_keys:
                 row.append(animal.resolve_data_key(key))

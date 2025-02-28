@@ -180,7 +180,7 @@ class Class(models.Model):
             }
             net_merit_capture = 0
 
-            animals = Animal.objects.filter(connectedclass=self)
+            animals = Animal.objects.defer("pedigree").filter(connectedclass=self)
             num_animals_alive = 0
             for animal in animals:
                 if animal.herd_id is None:
@@ -275,10 +275,14 @@ class Class(models.Model):
         dam_daughters = models.Count(
             "animal_dam", filter=models.Q(animal_dam__male=False)
         )
-        animals = Animal.objects.annotate(
-            number_of_daughters_sire=sire_daughters,
-            number_of_daughters_dam=dam_daughters,
-        ).filter(connectedclass=connectedclass, herd__isnull=False)
+        animals = (
+            Animal.objects.annotate(
+                number_of_daughters_sire=sire_daughters,
+                number_of_daughters_dam=dam_daughters,
+            )
+            .defer("pedigree")
+            .filter(connectedclass=connectedclass, herd__isnull=False)
+        )
 
         for animal in animals:
             if genomic_test:
@@ -408,7 +412,7 @@ class Herd(models.Model):
             animal.finalize_animal_unsaved(self)
         Animal.objects.bulk_update(animals, ["name", "pedigree", "inbreeding"])
 
-        all_animals = Animal.objects.filter(herd=self)
+        all_animals = Animal.objects.defer("pedigree").filter(herd=self)
         recessive_deaths = self.collect_positive_fatal_recessive_animals(
             all_animals, traitset
         )
@@ -427,7 +431,11 @@ class Herd(models.Model):
         return self.BreedingResults(len(recessive_deaths), len(age_deaths))
 
     def json_dict(self) -> dict[str, Any]:
-        animals = Animal.objects.select_related("connectedclass").filter(herd=self)
+        animals = (
+            Animal.objects.select_related("connectedclass")
+            .defer("pedigree", "connectedclass__trend_log")
+            .filter(herd=self)
+        )
         num_animals = animals.count()
 
         summary = {
@@ -533,7 +541,9 @@ class Enrollment(models.Model):
 
         enrollment_request.delete()
         new.connectedclass.update_trend_log(
-            save=False, new_animals=Animal.objects.filter(herd=new.herd), old_animals=[]
+            save=False,
+            new_animals=Animal.objects.defer("pedigree").filter(herd=new.herd),
+            old_animals=[],
         )
         new.connectedclass.decrement_enrollment_tokens()
 
@@ -810,13 +820,9 @@ class Animal(models.Model):
                 case nms.SEX_KEY:
                     return "male" if self.male else "female"
                 case nms.SIRE_ID_KEY:
-                    sire = self.pedigree[nms.SIRE_ID_KEY]
-                    if sire is not None:
-                        return sire[nms.ID_KEY]
+                    return self.sire_id
                 case nms.DAM_ID_KEY:
-                    dam = self.pedigree[nms.DAM_ID_KEY]
-                    if dam is not None:
-                        return dam[nms.ID_KEY]
+                    return self.dam_id
                 case nms.INBREEDING_COEFFICIENT_KEY:
                     return self.inbreeding
                 case nms.INBREEDING_PERCENTAGE_KEY:
