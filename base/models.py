@@ -714,6 +714,8 @@ class Animal(models.Model):
         new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
         new.inbreeding = calculate_inbreeding(new.pedigree)
+        new.sire = sire
+        new.dam = dam
 
         new.phenotype = (
             dam.phenotype
