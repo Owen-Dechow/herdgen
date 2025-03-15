@@ -56,6 +56,10 @@ urlpatterns = [
         views.breed_herd,
     ),
     path(
+        "class/<int:classid>/herd/<int:herdid>/get-pedigree/<int:animalid>",
+        views.get_pedigree,
+    ),
+    path(
         "class/<int:classid>/herd/<int:herdid>/assignments/get", views.get_assignments
     ),
     path(

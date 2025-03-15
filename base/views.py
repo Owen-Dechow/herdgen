@@ -680,3 +680,14 @@ def get_breeding_validation(
         return JsonResponse({"status": "pass"})
     else:
         return JsonResponse({"status": "fail"})
+
+
+@login_required
+def get_pedigree(
+    request: HttpRequest, classid: int, herdid: int, animalid: int
+) -> JsonResponse:
+    class_auth = auth_class(request, classid, "class_herd")
+    herd_auth = auth_herd(class_auth, herdid)
+    animal = get_object_or_404(models.Animal.objects, id=animalid, herd=herd_auth.herd)
+
+    return JsonResponse(animal.pedigree)

@@ -239,6 +239,16 @@ function animalSelected(animal, classId, herdId) {
 
     let info = $("#info");
     info.html("");
+
+    let pedigreeBtn = $("<button></button>", { class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ") });
+    pedigreeBtn.text("Load Pedigree");
+    pedigreeBtn.click(() => {
+        showPedigree(classId, herdId, animal);
+    });
+    let pedigreeDiv = $("<div></div>", { class: "pad-small" });
+    pedigreeDiv.append(pedigreeBtn);
+    info.append(pedigreeDiv);
+
     if (animal["male"]) {
         let button = $("<button></button>", { class: ["pad", "as-btn", "background-green", "border-radius", "full-width"].join(" ") });
         let div = $("<div></div>", { class: "pad-small" });
@@ -502,6 +512,47 @@ async function validateMalesForBreeding(classId, herdId) {
         MalesValidatedForBreeding = false;
         status.text("Invalid");
     }
+}
+
+async function showPedigree(classId, herdId, animal) {
+    let data = await $.ajax({
+        url: `/class/${classId}/herd/${herdId}/get-pedigree/${animal.id}`,
+        dataType: "JSON",
+        fail: () => { sendMessage("Error: Could not get pedigree.", null, true); }
+    });
+
+    let info = $("#info");
+    let textArea = $("<pre></pre>");
+    let div = $("<div></div>");
+    div.css("font-weight", "bold");
+    textArea.html(`Pedigree: ` + formatPedigreeData(data, animal.male ? "m" : "f", ""));
+
+    div.append(textArea);
+    info.append(div);
+}
+
+function formatPedigreeData(data, sex, pad) {
+    let wrapA = (a) => `<span style="color: grey; font-weight: normal">${a}</span>`;
+
+    let string = `${data.id} (${sex})`;
+
+    let spad = pad + "├─";
+    let dpad = pad + "└─";
+    if (data.sire) {
+        let npad = wrapA(pad + "│ ");
+        string += wrapA("\n" + spad) + "sire: " + formatPedigreeData(data.sire, "m", npad);
+    } else {
+        string += wrapA("\n" + spad + "sire: N/A");
+    }
+
+    if (data.dam) {
+        let npad = pad + "  ";
+        string += wrapA("\n" + dpad) + "dam: " + formatPedigreeData(data.dam, "f", npad);
+    } else {
+        string += wrapA("\n" + dpad + "dam: N/A");
+    }
+
+    return string;
 }
 
 function loadSavedMales(classId, herdId) {
