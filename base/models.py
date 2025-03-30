@@ -469,6 +469,7 @@ class Herd(models.Model):
             for key, val in summary[nms.PTA_KEY].items():
                 summary[nms.PTA_KEY][key] = val / num_animals
 
+        if not self.connectedclass.net_merit_visibility:
             summary.pop(nms.NETMERIT_KEY)
 
         return {
