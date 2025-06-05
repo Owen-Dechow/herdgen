@@ -38,7 +38,7 @@ replaced from the original program.
 
 The original Cow Progress program used an older version of
 [python-inbreeding](https://github.com/Owen-Dechow/inbreeding-python) to calculate
-inbreeding coefficients. Herd Genetics uses an updated version of that some package which
+inbreeding coefficients. Herd Genetics uses an updated version of that same package which
 accounts for inbreeding of common ancestors.
 
 ### 2. XLSX Files
@@ -76,7 +76,7 @@ herd. In Herd Genetics each class has the option to set a quarantine period for 
 ### 7. Assignments
 
 One of the main advantages of Herd Genetic over Cow Progress is the class based system.
-Updates. In Herd Genetic every breeding and sumbition is run off of assignments.
+In Herd Genetic every breeding and sumbition is run off of assignments.
 
 ## License
 
