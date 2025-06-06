@@ -316,8 +316,8 @@ def traitset_overview(request: HttpRequest, traitsetname: str) -> HttpResponse:
 
 
 def traitsets(request: HttpRequest) -> HttpResponse:
-    traitsets = [x.name for x in registered_traitsets if x.enabled]
-    deprecated_traitsets = [x.name for x in registered_traitsets if not x.enabled]
+    traitsets = [(Traitset(x.name)) for x in registered_traitsets if x.enabled]
+    deprecated_traitsets = [Traitset(x.name) for x in registered_traitsets if not x.enabled]
 
     return render(
         request,

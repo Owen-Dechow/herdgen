@@ -19,7 +19,14 @@
     </caption>
     {% for traitset in traitsets %}
     <tr>
-        <td><a class="as-link" href="/traitsets/{{traitset}}">{{traitset}}</a></td>
+        <td>
+            <a class="as-link" href="/traitsets/{{traitset.name}}">{{traitset.name}}</a>
+        </td>
+        <td>
+            {% if traitset.desc %}
+                {{traitset.desc}}
+            {% endif %}
+        </td>
     </tr>
     {% endfor %}
 </table>
@@ -30,7 +37,14 @@
     </caption>
     {% for traitset in deprecated_traitsets %}
     <tr>
-        <td><a class="as-link" href="/traitsets/{{traitset}}">{{traitset}}</a></td>
+        <td>
+            <a class="as-link" href="/traitsets/{{traitset.name}}">{{traitset.name}}</a>
+        </td>
+        <td>
+            {% if traitset.desc %}
+                {{traitset.desc}}
+            {% endif %}
+        </td>
     </tr>
     {% endfor %}
 

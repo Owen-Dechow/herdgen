@@ -26,6 +26,7 @@ def serializable_funcs(klass: Type):
 
 TRAITSET_PATH = Path(__file__).parent / "traitsets"
 
+DESC_KEY = "desc"
 TRAITS_KEY = "traits"
 GENOTYPE_CORRELATIONS_KEY = "genotype_correlations"
 PHENOTYPE_CORRELATIONS_KEY = "phenotype_correlations"
@@ -376,6 +377,7 @@ class Recessive:
 
 class Traitset:
     name: str
+    desc: str | None
     traits: list[Trait]
     recessives: list[Recessive]
     genotype_correlations: list[list[float]]
@@ -392,6 +394,7 @@ class Traitset:
         genotype_correlations_list = full_dict[GENOTYPE_CORRELATIONS_KEY]
         phenotype_correlations_list = full_dict[PHENOTYPE_CORRELATIONS_KEY]
         animals_dict = full_dict[ANIMALS_KEY]
+        self.desc = full_dict.get(DESC_KEY, None)
 
         traits = [
             Trait(

@@ -18,6 +18,7 @@ main {
     th {
         outline: 1px solid;
         padding: 5px;
+        max-width: 400px;
     }
 
     tr:nth-child(odd) {

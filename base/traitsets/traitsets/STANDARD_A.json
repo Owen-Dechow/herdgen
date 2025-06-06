@@ -1,5 +1,6 @@
 {
-    "traitss": [
+    "desc": "Multi animal traitset used for system testing.",
+    "traits": [
         {
             "_": "PL",
             "uid": "t1",
