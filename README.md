@@ -19,6 +19,10 @@ Available at https://herdgenetics.com
     <img src="base/static/media/banner5.webp" alt="cow">
 </p>
 
+## Associations
+This simulation was created for use by Penn State University
+![Penn-State-Logo](https://github.com/user-attachments/assets/d4f7198d-afaa-4454-b7df-6423fc9ce73e)
+
 ## Compatability
 
 Herd Genetics seeks to replace the original
