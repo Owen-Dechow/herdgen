@@ -21,10 +21,11 @@ from .traitsets.traitset import HOMOZYGOUS_CARRIER_KEY
 
 # Create your models here.
 class Class(models.Model):
-    """My Class"""
+    """Classroom object: manages class settings and enrollments."""
 
     class Admin(ModelAdmin):
-        list_display = ["name", "teacher", "classcode", "enrollment_tokens", "traitset"]
+        list_display = ["name", "teacher", "classcode",
+            "enrollment_tokens", "traitset"]
         search_fields = ["name", "classcode"]
         list_filter = ["traitset"]
 
@@ -55,6 +56,8 @@ class Class(models.Model):
 
     @classmethod
     def generate_class_code(cls) -> str:
+        """Generates a UID for the class"""
+
         CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         SECTIONS = 3
         SECTION_LENGTH = 3
@@ -75,6 +78,8 @@ class Class(models.Model):
         initial_males: int,
         initial_females: int,
     ) -> "Class":
+        """Create a new class"""
+
         new = cls(name=name, traitset=traitsetname, info=info, teacher=user)
         new.classcode = cls.generate_class_code()
 
@@ -99,10 +104,14 @@ class Class(models.Model):
         return new
 
     def decrement_enrollment_tokens(self):
+        """Remove one enrollment token"""
+
         self.enrollment_tokens -= 1
         self.save()
 
     def get_open_assignments(self) -> models.manager.BaseManager["Assignment"]:
+        """Get a query of all open assignments"""
+
         return Assignment.objects.filter(
             connectedclass=self, startdate__lte=now(), duedate__gte=now()
         )
@@ -113,12 +122,15 @@ class Class(models.Model):
         new_animals: Optional[list["Animal"]] = None,
         old_animals: Optional[list["Animal"]] = None,
     ) -> None:
+        """Update the class trend log"""
+
         if new_animals is not None and old_animals is not None:
             last = self.trend_log[-1]
             last_pop = last[nms.POPULATION_SIZE_KEY]
             new_pop = last_pop - len(old_animals) + len(new_animals)
 
-            capture = {nms.GENOTYPE_KEY: {}, nms.PHENOTYPE_KEY: {}, nms.PTA_KEY: {}}
+            capture = {nms.GENOTYPE_KEY: {},
+                nms.PHENOTYPE_KEY: {}, nms.PTA_KEY: {}}
             for key, val in last[nms.GENOTYPE_KEY].items():
                 old_sum = 0
                 for animal in old_animals:
@@ -168,7 +180,8 @@ class Class(models.Model):
                 new_nm += animal.net_merit
 
             last_nm = last[nms.NETMERIT_KEY]
-            capture[nms.NETMERIT_KEY] = ((last_nm * last_pop) - old_nm + new_nm) / new_pop
+            capture[nms.NETMERIT_KEY] = (
+                (last_nm * last_pop) - old_nm + new_nm) / new_pop
             capture[nms.POPULATION_SIZE_KEY] = new_pop
 
             capture[nms.TIME_STAMP_KEY] = now().isoformat()
@@ -180,7 +193,8 @@ class Class(models.Model):
             }
             net_merit_capture = 0
 
-            animals = Animal.objects.defer("pedigree").filter(connectedclass=self)
+            animals = Animal.objects.defer(
+                "pedigree").filter(connectedclass=self)
             num_animals_alive = 0
             for animal in animals:
                 if animal.herd_id is None:
@@ -220,6 +234,8 @@ class Class(models.Model):
             self.save()
 
     def get_animal_file_headers(self) -> list[str]:
+        """Get file headers for animal csv file for class"""
+
         traitset = Traitset(self.traitset)
 
         return (
@@ -235,15 +251,20 @@ class Class(models.Model):
                 "Inbreeding Percent",
                 "Net Merit $",
             ]
-            + [filter_text_to_default(f"gen: <{x.uid}>", self) for x in traitset.traits]
-            + [filter_text_to_default(f"ph: <{x.uid}>", self) for x in traitset.traits]
-            + [filter_text_to_default(f"pta: <{x.uid}>", self) for x in traitset.traits]
-            + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.recessives]
+            + [filter_text_to_default(f"gen: <{x.uid}>", self)
+                                      for x in traitset.traits]
+            + [filter_text_to_default(f"ph: <{x.uid}>", self)
+                                      for x in traitset.traits]
+            + [filter_text_to_default(f"pta: <{x.uid}>", self)
+                                      for x in traitset.traits]
+            + [filter_text_to_default(f"<{x.uid}>", self)
+                                      for x in traitset.recessives]
         )
 
     def get_animal_file_data_order(
         self,
     ) -> list[str | tuple[str, str]]:
+        """Get animal file column ordering information"""
         traitset = Traitset(self.traitset)
         return (
             [
@@ -261,12 +282,15 @@ class Class(models.Model):
             + [(nms.GENOTYPE_KEY, x.uid) for x in traitset.traits]
             + [(nms.PHENOTYPE_KEY, x.uid) for x in traitset.traits]
             + [(nms.PTA_KEY, x.uid) for x in traitset.traits]
-            + [(nms.FORMATTED_RECESSIVES_KEY, x.uid) for x in traitset.recessives]
+            + [(nms.FORMATTED_RECESSIVES_KEY, x.uid)
+                for x in traitset.recessives]
         )
 
     @staticmethod
     @background_task.background(schedule=0)
     def recalculate_ptas(connectedclass: int, email: str, genomic_test: bool = False):
+        """Recalculate the PTAs on all male animals"""
+
         connectedclass = Class.objects.get(id=connectedclass)
         traitset = Traitset(connectedclass.traitset)
         sire_daughters = models.Count(
@@ -305,6 +329,8 @@ class Class(models.Model):
 
 
 class Herd(models.Model):
+    "Manages a group of animals"
+
     class Admin(ModelAdmin):
         search_fields = ["name"]
         list_display = ["name", "connectedclass", "breedings", "enrollment"]
@@ -318,7 +344,8 @@ class Herd(models.Model):
             self.age_deaths = age_deaths
 
     name = models.CharField(max_length=255)
-    connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE, null=True)
+    connectedclass = models.ForeignKey(
+        to="Class", on_delete=models.CASCADE, null=True)
     breedings = models.IntegerField(default=0)
     enrollment = models.ForeignKey(
         to="Enrollment",
@@ -340,6 +367,8 @@ class Herd(models.Model):
         traitset: Traitset,
         connectedclass: Class,
     ) -> "Herd":
+        "Create a random herd for new enrollment"
+
         new = cls(name=name, connectedclass=connectedclass)
         new.save()
 
@@ -349,7 +378,8 @@ class Herd(models.Model):
         ]
 
         female_animals = [
-            Animal.generate_random_unsaved(False, new, traitset, connectedclass)
+            Animal.generate_random_unsaved(
+                False, new, traitset, connectedclass)
             for _ in range(females)
         ]
 
@@ -364,6 +394,8 @@ class Herd(models.Model):
 
     @classmethod
     def generate_empty_herd(cls, name: str, connectedclass: Class) -> "Herd":
+        "Create a herd with no animals"
+
         new = cls(name=name, connectedclass=connectedclass)
         new.save()
 
@@ -373,6 +405,9 @@ class Herd(models.Model):
     def get_total_to_be_born(
         cls, target_num_males: int, target_num_females: int, num_mothers: int
     ) -> tuple[int, int, int]:
+        """Calculate the number if male and females to be born to herd.
+        Based on target number and number of possible mothers"""
+
         def total_to_be_born():
             return target_num_males + target_num_females
 
@@ -385,6 +420,8 @@ class Herd(models.Model):
         return target_num_males, target_num_females, total_to_be_born()
 
     def breed_herd(self, sires: list["Animal"]) -> BreedingResults:
+        """Run a breeding on herd"""
+
         NUMBER_OF_MALES = 10
         NUMBER_OF_FEMALES = 70
         MAX_AGE = 5
@@ -430,6 +467,8 @@ class Herd(models.Model):
         return self.BreedingResults(len(recessive_deaths), len(age_deaths))
 
     def json_dict(self) -> dict[str, Any]:
+        """Get herd as json serializable dict"""
+
         animals = (
             Animal.objects.select_related("connectedclass")
             .defer("pedigree", "connectedclass__trend_log")
@@ -482,6 +521,8 @@ class Herd(models.Model):
     def collect_positive_fatal_recessive_animals(
         self, animals: list["Animal"], traitset: Traitset
     ) -> list["Animal"]:
+        """Get a list of all animals with fatal genetic recessives"""
+
         dead = []
         for animal in animals:
             for key, val in animal.recessives.items():
@@ -494,6 +535,8 @@ class Herd(models.Model):
     def collect_deaths_from_age(
         self, animals: list["Animal"], maxage: int
     ) -> list["Animal"]:
+        """Get a list of all animals that are too old"""
+
         dead = []
         for animal in animals:
             if self.breedings - animal.generation >= maxage:

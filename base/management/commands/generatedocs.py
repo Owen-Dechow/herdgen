@@ -1,12 +1,20 @@
+import inspect
 from pathlib import Path
 from types import ModuleType
 from typing import Callable
+from django.db.models.query_utils import DeferredAttribute
+from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
 from django.core.management.base import BaseCommand
-import shutil
 import os
 from inspect import getmodule
+
+from six import class_types
 from herdgen.settings import BASE_DIR
 from ... import models
+
+
+MODELS_FILE = "models.md"
+GENERATED_FILES = [MODELS_FILE]
 
 
 class Command(BaseCommand):
@@ -16,9 +24,12 @@ class Command(BaseCommand):
         docs_folder = BASE_DIR / "docs"
 
         if docs_folder.exists():
-            shutil.rmtree(docs_folder)
+            for file in GENERATED_FILES:
+                if (docs_folder / file).exists():
+                    os.remove(docs_folder / file)
+        else:
+            os.mkdir(docs_folder)
 
-        os.mkdir(docs_folder)
         return docs_folder
 
     def get_direct_objects(self, module: ModuleType) -> list[type | Callable]:
@@ -59,21 +70,48 @@ class Command(BaseCommand):
         output = f"## {klass.__name__}"
 
         if klass.__bases__:
-            output += f"(" + ".".join(x.__name__ for x in klass.__bases__) + ")"
+            output += "(" + ".".join(x.__name__ for x in klass.__bases__) + ")"
 
         output += "\n"
-        output += klass.__doc__ + "\n"
+        output += klass.__doc__ + "\n\n"
+
+        fields = []
+        functions = []
+        classes = []
 
         parent_attrs = self.get_parent_attrs(klass)
         for field in klass.__dict__:
             if field not in parent_attrs:
-                if field.__doc__.__len__() < 100:
-                    print(field.__doc__)
+                obj = klass.__dict__[field]
+                if isinstance(obj, type):
+                    classes.append((field, obj))
+                elif callable(obj) or isinstance(obj, classmethod):
+                    functions.append((field, obj))
+                else:
+                    fields.append((field, obj))
+
+        output += "### Fields\n"
+
+        for name, field in fields:
+            if isinstance(field, DeferredAttribute):
+                type_ = type(klass._meta.get_field(name))
+                output += f"`{name}` {type_.__module__}.{type_.__name__}\n\n"
+            elif not isinstance(field, ReverseManyToOneDescriptor):
+                output += f"`{name}` {type(field).__module__}.{type(field).__name__}\n\n"
+
+        output += "### Methods\n"
+
+        for name, method in functions:
+            output += f"`{name}{inspect.signature(getattr(klass, name))}` {
+                type(method).__module__
+            }.{type(method).__name__}\n\n"
+            if method.__doc__:
+                output += method.__doc__ + "\n\n"
 
         return output
 
     def document_module(self, module: ModuleType) -> str:
-        output = f"# {module.__name__}\n"
+        output = f"# {module.__name__}\n\n"
 
         objs = self.get_direct_objects(module)
         for obj in objs:
@@ -90,6 +128,6 @@ class Command(BaseCommand):
         docs_folder = self.reset_docs()
         models_ = self.document_module(models)
 
-        self.write_to_file(docs_folder / "models.md", models_)
+        self.write_to_file(docs_folder / MODELS_FILE, models_)
 
         self.stdout.write("Generating Documentation")
