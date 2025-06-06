@@ -1,15 +1,20 @@
 from django.test import TestCase
-from ..traitsets import Traitset, TRAITSET_CHOICES
+from ..traitsets import Traitset, REGISTERED
 from ..traitsets.traitset import Trait, Recessive
 from random import random
 
 
 class TestTraitsets(TestCase):
     def _test_on_each(self, func):
-        for registration, _ in TRAITSET_CHOICES:
-            if registration.enabled:
+        for registration in REGISTERED:
+            try:
                 traitset = Traitset(registration.name)
-                func(traitset)
+            except (KeyError, FileNotFoundError) as e:
+                self.fail(
+                    f"Error Loading Traitset '{registration.name}': {type(e).__name__} {e}"
+                )
+
+            func(traitset)
 
     def test_traitset_loading(self):
         self._test_on_each(lambda _: None)

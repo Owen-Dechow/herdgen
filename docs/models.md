@@ -1,0 +1,17 @@
+# base.models
+## Class(Model)
+My Class
+## Herd(Model)
+Herd(id, name, connectedclass, breedings, enrollment)
+## Enrollment(Model)
+Enrollment(id, student, connectedclass, animal, herd)
+## EnrollmentRequest(Model)
+EnrollmentRequest(id, student, connectedclass)
+## Animal(Model)
+Animal(id, herd, connectedclass, name, generation, male, genomic_tests, genotype, phenotype, ptas, recessives, sire, dam, pedigree, inbreeding, net_merit)
+## Assignment(Model)
+Assignment(id, connectedclass, startdate, duedate, name)
+## AssignmentStep(Model)
+AssignmentStep(id, assignment, step, number)
+## AssignmentFulfillment(Model)
+AssignmentFulfillment(id, enrollment, assignment, current_step)

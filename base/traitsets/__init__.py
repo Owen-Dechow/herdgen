@@ -1,10 +1,10 @@
 from .registration import Registration
 from .traitset import Traitset, DOCUMENTED_FUNCS
 
-registered = [
+REGISTERED = [
     Registration("ANIMAL_SCIENCE_322", True),
     Registration("STANDARD_A", False),
     Registration("ANIMAL_SCIENCE_422", True),
 ]
 
-TRAITSET_CHOICES = [(x, x) for x in registered if x.enabled]
+TRAITSET_CHOICES = [(x, x) for x in REGISTERED if x.enabled]

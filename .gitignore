@@ -1,10 +1,12 @@
 venv
+.venv
 __pycache__
 db.sqlite3
 .env
 staticfiles/
 general.log
 animal_files/*
+
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml

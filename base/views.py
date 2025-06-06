@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 from base.traitsets import (
     DOCUMENTED_FUNCS,
     Traitset,
-    registered as registered_traitsets,
+    REGISTERED as registered_traitsets,
 )
 
 from . import forms

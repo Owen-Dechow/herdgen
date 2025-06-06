@@ -137,14 +137,6 @@ If you would like to contribute in some way please create an issue, fork the
 create a pull request be specific about the changes you have made and ensure you have
 tested the program.
 
-No matter the size of your contribution, it is greatly appreciated.
-
-## Documentation
-
-For more information please view the documentation found on the
-[Github repository](https://github.com/Owen-Dechow/herdgen/tree/main/docs) or in the
-[local repository](/docs/).
-
 <p align="center">
     <img src="base/static/media/banner1.webp" alt="rabbit">
 </p>

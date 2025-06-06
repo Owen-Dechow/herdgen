@@ -6,8 +6,9 @@
         "enrollmentid",
         "fsub",
         "Gastroesophageal",
+        "klass",
         "msub",
         "phen",
         "requestid"
-    ]
+    ],
 }
