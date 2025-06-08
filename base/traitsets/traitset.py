@@ -563,7 +563,9 @@ class Traitset:
         """# Gets PTA from each trait's convert_genotype_to_pta function."""
         return {
             key: self.find_trait_or_null(key).convert_genotype_to_pta(
-                val, number_of_daughters, genomic_tests, t=key
+                val,
+                number_of_daughters,
+                genomic_tests,
             )
             for key, val in genotype.items()
         }
