@@ -119,20 +119,7 @@ class Command(BaseCommand):
             if method.__doc__:
                 method_list.append(f"> {method.__doc__}")
 
-            try:
-                source = ""
-                trim = None
-                for line in getsource(method).splitlines():
-                    if trim is None:
-                        source = line.lstrip()
-                        trim = len(line) - len(source)
-                        source += "\n"
-                    else:
-                        source += line[trim:] + "\n"
-
-                method_list.append(f"```python\n{source}\n```")
-            except TypeError:
-                ...
+        output.append(("Source", [f"```python\n{getsource(klass)}\n```"]))
 
         return (classname, output)
 
