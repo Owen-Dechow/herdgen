@@ -136,6 +136,9 @@ class Class(models.Model):
             last_pop = last[nms.POPULATION_SIZE_KEY]
             new_pop = last_pop - len(old_animals) + len(new_animals)
 
+            if new_pop == 0:
+                return
+
             capture = {
                 nms.GENOTYPE_KEY: {},
                 nms.PHENOTYPE_KEY: {},

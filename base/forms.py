@@ -64,8 +64,8 @@ class UserCreationForm(auth_forms.UserCreationForm):
 
 class CreateClassForm(forms.ModelForm):
     traitset = forms.ChoiceField(choices=TRAITSET_CHOICES)
-    initial_males = forms.IntegerField(min_value=0, max_value=100)
-    initial_females = forms.IntegerField(min_value=0, max_value=100)
+    initial_males = forms.IntegerField(min_value=1, max_value=100)
+    initial_females = forms.IntegerField(min_value=1, max_value=25)
 
     class Meta:
         model = models.Class
