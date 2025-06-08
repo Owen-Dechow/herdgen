@@ -1,0 +1,97 @@
+# Adding Traitsets
+
+1. To add a traitset you must add a traitset `json` file to the
+`base/traitsets/traitsets/` folder.
+
+2. Register the traitset in the `base/traitsets/__init__.py` file.
+
+## 1. Adding the traitset file.
+
+The traitset file must have the same name of the traitsets + `.json`.
+For instance if I wanted to name a traitset `MY_TRAITSET`, the traitset
+file name would be `MY_TRAITSET.json`. If a traitset fails to follow
+this system it will not register properly.
+
+Next place the traitset file into the `base/traitsets/traitsets/`
+directory. In our example we would create a the file
+`base/traitsets/traitsets/MY_TRAITSET.json`.
+
+Within the traitset file you must define the traitset information.
+The first thing we must add is a description. The description element
+will be a string element with the key `"desc"`.
+
+`base/traitsets/traitsets/MY_TRAITSET.json`
+```json
+{
+    "desc": "An example traitset used for a tutorial"
+}
+```
+
+The next element we must add are the traits. Traits are added to an
+array with the key `"traits"`. Each trait is a single json object with
+the following attributes:
+
+1. `"uid"` -> A unique identifier (string)
+2. `"heritability"` -> The genetic heritability/h^2 (float)
+3. `"net_merit_dollars"`: -> The net merit dollars value (float)
+4. `"inbreeding_depression_percentage"` -> % depression taken from
+phenotype when multiplies by the inbreeding coefficient (float)
+5. `"calculated_standard_deviation"` -> A standard deviation that the
+above factors are scaled to (float)
+
+Let us add two traits to our traitset.
+
+`base/traitsets/traitsets/MY_TRAITSET.json`
+```
+"desc": ...
+"traits": [
+        {
+            "uid": "PL",
+            "heritability": 0.08,
+            "net_merit_dollars": 34,
+            "inbreeding_depression_percentage": -0.28,
+            "calculated_standard_deviation": 1.7
+        },
+        {
+            "uid": "TY",
+            "heritability": 0.25,
+            "net_merit_dollars": 0,
+            "inbreeding_depression_percentage": 0,
+            "calculated_standard_deviation": 1
+        }
+    ],
+```
+
+For each trait that we create we must also add correlations to each 
+other trait for genotypes and phenotypes. We do this by adding two
+more elements to our traitset: `"genotype_correlations"` &
+`"phenotype_correlations"`.
+
+Both these elements will be two dimensional square arrays of the same
+length as number of registered traits. The order in which the traits
+are listed in `"traits"` corresponds to the index given to each trait
+in the correlation array. These arrays represent the covariance
+matrices. The major diagonal of the matrices should be all `1.00` as
+each trait is 100% correlated to itself. The matrices must be square,
+definate positive, & the same size as number of triats.
+
+"genotype_correlations": [
+        [
+            1.00,
+            -0.1
+        ],
+        [
+            -0.1,
+            1.00
+        ]
+    ],
+    "phenotype_correlations": [
+        [
+            1.00,
+            -0.1
+        ],
+        [
+            -0.1,
+            1.00
+        ]
+    ],

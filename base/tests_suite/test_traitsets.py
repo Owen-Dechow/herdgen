@@ -11,7 +11,9 @@ class TestTraitsets(TestCase):
                 traitset = Traitset(registration.name)
             except (KeyError, FileNotFoundError) as e:
                 self.fail(
-                    f"Error Loading Traitset '{registration.name}': {type(e).__name__} {e}"
+                    f"Error Loading Traitset '{registration.name}': {
+                        type(e).__name__
+                    } {e}"
                 )
 
             func(traitset)
@@ -117,4 +119,3 @@ class TestTraitsets(TestCase):
             self.assertIsNone(x.find_recessive_or_null(str(random())))
 
         self._test_on_each(test)
-
