@@ -1,21 +1,25 @@
 import inspect
+import os
+from inspect import getmodule, getsource
 from pathlib import Path
 from types import ModuleType
 from typing import Callable
-from django.db.models.query_utils import DeferredAttribute
+
+from django.core.management.base import BaseCommand
+from django.db.models.fields.related import ForeignKey
 from django.db.models.fields.related_descriptors import (
+    ForwardManyToOneDescriptor,
     ReverseManyToOneDescriptor,
 )
-from django.core.management.base import BaseCommand
-import os
-from inspect import getmodule, getsource
+from django.db.models.query_utils import DeferredAttribute
 
 from herdgen.settings import BASE_DIR
-from ... import models
 
+from ... import models, forms
 
 MODELS_FILE = "models.md"
-GENERATED_FILES = [MODELS_FILE]
+FORMS_FILE = "forms.md"
+GENERATED_FILES = [MODELS_FILE, FORMS_FILE]
 
 
 class Command(BaseCommand):
@@ -67,16 +71,23 @@ class Command(BaseCommand):
 
         return attrs
 
-    def document_class(self, klass: type) -> tuple[str, list]:
+    def document_class(
+        self, klass: type, mod_classes: list[type]
+    ) -> tuple[str, list]:
         classname = f"{klass.__name__}"
 
-        if klass.__bases__:
-            classname += (
-                "(" + ".".join(x.__name__ for x in klass.__bases__) + ")"
-            )
+        output = [f"> {klass.__doc__}"]
 
-        output = []
-        output.append(f"> {klass.__doc__}")
+        if klass.__bases__:
+            output.append(
+                (
+                    "Bases",
+                    [
+                        f"* {x.__module__}.{x.__name__}"
+                        for x in klass.__bases__
+                    ],
+                )
+            )
 
         fields = []
         functions = []
@@ -99,10 +110,43 @@ class Command(BaseCommand):
         for name, field in fields:
             if isinstance(field, DeferredAttribute):
                 type_ = type(klass._meta.get_field(name))
-                fields_list.append(
-                    f"`{name}` {type_.__module__}.{type_.__name__}"
+
+                module = (
+                    type_.__module__.removesuffix("related")
+                    .removesuffix(".")
+                    .removesuffix("json")
+                    .removesuffix(".")
+                    .removesuffix("fields")
                 )
-            elif not isinstance(field, ReverseManyToOneDescriptor):
+                type_name = type_.__name__
+                type_str = module + type_name
+                link = (
+                    "https://docs.djangoproject.com/en/5.2/ref/models/fields/#"
+                    + type_str
+                )
+
+                fields_list.append(f"`{name}` [{type_str}]({link})")
+
+                if type_ is ForeignKey:
+                    rel = klass._meta.get_field(name).related_model
+
+                    if rel in mod_classes:
+                        fields_list[-1] += (
+                            " to ["
+                            + rel.__module__
+                            + "."
+                            + rel.__name__
+                            + "]"
+                            + f"(#{rel.__name__.lower()})"
+                        )
+                    else:
+                        fields_list[-1] += (
+                            " to " + rel.__module__ + "." + rel.__name__
+                        )
+
+            elif not isinstance(
+                field, (ReverseManyToOneDescriptor, ForwardManyToOneDescriptor)
+            ):
                 fields_list.append(
                     f"`{name}` {type(field).__module__}.{type(field).__name__}"
                 )
@@ -127,9 +171,13 @@ class Command(BaseCommand):
         output = []
 
         objs = self.get_direct_objects(module)
+        classes = []
         for obj in objs:
             if isinstance(obj, type):
-                output.append(self.document_class(obj))
+                classes.append(obj)
+
+        for obj in classes:
+            output.append(self.document_class(obj, classes))
 
         return (f"{module.__name__}", output)
 
@@ -159,10 +207,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         docs_folder = self.reset_docs()
-        models_ = self.document_module(models)
 
         self.write_to_file(
-            docs_folder / MODELS_FILE, self.convert_to_txt(models_)
+            docs_folder / MODELS_FILE,
+            self.convert_to_txt(self.document_module(models)),
+        )
+
+        self.write_to_file(
+            docs_folder / FORMS_FILE,
+            self.convert_to_txt(self.document_module(forms)),
         )
 
         self.stdout.write("Generating Documentation")

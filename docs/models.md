@@ -1,41 +1,40 @@
 # base.models
-## Class(Model)
+## Class
 > Classroom object: manages class settings and enrollments.
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`name` django.db.models.fields.CharField
+`name` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`teacher_id` django.db.models.fields.related.ForeignKey
+`teacher_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to django.contrib.auth.models.User
 
-`teacher` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`traitset` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`traitset` django.db.models.fields.CharField
+`info` [django.db.models.TextField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.TextField)
 
-`info` django.db.models.fields.TextField
+`classcode` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`classcode` django.db.models.fields.CharField
+`trait_visibility` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`trait_visibility` django.db.models.fields.json.JSONField
+`hide_female_pta` [django.db.models.BooleanField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.BooleanField)
 
-`hide_female_pta` django.db.models.fields.BooleanField
+`recessive_visibility` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`recessive_visibility` django.db.models.fields.json.JSONField
+`net_merit_visibility` [django.db.models.BooleanField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.BooleanField)
 
-`net_merit_visibility` django.db.models.fields.BooleanField
+`trend_log` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`trend_log` django.db.models.fields.json.JSONField
+`default_animal` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`default_animal` django.db.models.fields.CharField
+`allow_other_animals` [django.db.models.BooleanField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.BooleanField)
 
-`allow_other_animals` django.db.models.fields.BooleanField
+`quarantine_days` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
-`quarantine_days` django.db.models.fields.IntegerField
+`class_herd_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Herd](#herd)
 
-`class_herd_id` django.db.models.fields.related.ForeignKey
-
-`class_herd` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
-
-`enrollment_tokens` django.db.models.fields.IntegerField
+`enrollment_tokens` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
 ### Methods
 `generate_class_code() -> str` builtins.classmethod
@@ -406,21 +405,20 @@ class Class(models.Model):
 
 ```
 
-## Herd(Model)
+## Herd
 > Manages a group of animals
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`name` django.db.models.fields.CharField
+`name` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`connectedclass_id` django.db.models.fields.related.ForeignKey
+`connectedclass_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Class](#class)
 
-`connectedclass` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`breedings` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
-`breedings` django.db.models.fields.IntegerField
-
-`enrollment_id` django.db.models.fields.related.ForeignKey
-
-`enrollment` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`enrollment_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Enrollment](#enrollment)
 
 ### Methods
 `generate_starter_herd(name: str, females: int, males: int, traitset: base.traitsets.traitset.Traitset, connectedclass: base.models.Class) -> 'Herd'` builtins.classmethod
@@ -676,23 +674,20 @@ class Herd(models.Model):
 
 ```
 
-## Enrollment(Model)
+## Enrollment
 > Enrollment(id, student, connectedclass, animal, herd)
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`student_id` django.db.models.fields.related.ForeignKey
+`student_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to django.contrib.auth.models.User
 
-`student` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`connectedclass_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Class](#class)
 
-`connectedclass_id` django.db.models.fields.related.ForeignKey
+`animal` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`connectedclass` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
-
-`animal` django.db.models.fields.CharField
-
-`herd_id` django.db.models.fields.related.ForeignKey
-
-`herd` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`herd_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Herd](#herd)
 
 ### Methods
 `create_from_enrollment_request(enrollment_request: 'EnrollmentRequest') -> 'Enrollment'` builtins.classmethod
@@ -805,17 +800,16 @@ class Enrollment(models.Model):
 
 ```
 
-## EnrollmentRequest(Model)
+## EnrollmentRequest
 > EnrollmentRequest(id, student, connectedclass)
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`student_id` django.db.models.fields.related.ForeignKey
+`student_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to django.contrib.auth.models.User
 
-`student` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
-
-`connectedclass_id` django.db.models.fields.related.ForeignKey
-
-`connectedclass` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`connectedclass_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Class](#class)
 
 ### Methods
 `create_new(student: django.contrib.auth.models.User, connectedclass: 'Class') -> 'EnrollmentRequest'` builtins.classmethod
@@ -857,47 +851,42 @@ class EnrollmentRequest(models.Model):
 
 ```
 
-## Animal(Model)
+## Animal
 > Animal(id, herd, connectedclass, name, generation, male, genomic_tests, genotype, phenotype, ptas, recessives, sire, dam, pedigree, inbreeding, net_merit)
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`herd_id` django.db.models.fields.related.ForeignKey
+`herd_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Herd](#herd)
 
-`herd` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`connectedclass_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Class](#class)
 
-`connectedclass_id` django.db.models.fields.related.ForeignKey
+`name` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
-`connectedclass` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`generation` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
-`name` django.db.models.fields.CharField
+`male` [django.db.models.BooleanField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.BooleanField)
 
-`generation` django.db.models.fields.IntegerField
+`genomic_tests` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
-`male` django.db.models.fields.BooleanField
+`genotype` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`genomic_tests` django.db.models.fields.IntegerField
+`phenotype` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`genotype` django.db.models.fields.json.JSONField
+`ptas` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`phenotype` django.db.models.fields.json.JSONField
+`recessives` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`ptas` django.db.models.fields.json.JSONField
+`sire_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Animal](#animal)
 
-`recessives` django.db.models.fields.json.JSONField
+`dam_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Animal](#animal)
 
-`sire_id` django.db.models.fields.related.ForeignKey
+`pedigree` [django.db.models.JSONField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.JSONField)
 
-`sire` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`inbreeding` [django.db.models.FloatField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.FloatField)
 
-`dam_id` django.db.models.fields.related.ForeignKey
-
-`dam` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
-
-`pedigree` django.db.models.fields.json.JSONField
-
-`inbreeding` django.db.models.fields.FloatField
-
-`net_merit` django.db.models.fields.FloatField
+`net_merit` [django.db.models.FloatField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.FloatField)
 
 ### Methods
 `generate_random_unsaved(male: bool, herd: base.models.Herd, traitset: base.traitsets.traitset.Traitset, connectedclass: base.models.Class) -> 'Animal'` builtins.classmethod
@@ -1202,19 +1191,20 @@ class Animal(models.Model):
 
 ```
 
-## Assignment(Model)
+## Assignment
 > Assignment(id, connectedclass, startdate, duedate, name)
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`connectedclass_id` django.db.models.fields.related.ForeignKey
+`connectedclass_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Class](#class)
 
-`connectedclass` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`startdate` [django.db.models.DateTimeField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.DateTimeField)
 
-`startdate` django.db.models.fields.DateTimeField
+`duedate` [django.db.models.DateTimeField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.DateTimeField)
 
-`duedate` django.db.models.fields.DateTimeField
-
-`name` django.db.models.fields.CharField
+`name` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
 ### Methods
 `create_new(name: str, startdate: datetime.datetime, duedate: datetime.datetime, steps: list[str], connectedclass: base.models.Class) -> 'Assignment'` builtins.classmethod
@@ -1271,8 +1261,11 @@ class Assignment(models.Model):
 
 ```
 
-## AssignmentStep(Model)
+## AssignmentStep
 > AssignmentStep(id, assignment, step, number)
+
+### Bases
+* django.db.models.base.Model
 
 ### Fields
 `CHOICE_MALE_SUBMISSION` builtins.str
@@ -1283,15 +1276,13 @@ class Assignment(models.Model):
 
 `CHOICES` builtins.tuple
 
-`assignment_id` django.db.models.fields.related.ForeignKey
+`assignment_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Assignment](#assignment)
 
-`assignment` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
-
-`step` django.db.models.fields.CharField
+`step` [django.db.models.CharField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.CharField)
 
 `get_step_display` functools.partialmethod
 
-`number` django.db.models.fields.IntegerField
+`number` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
 ### Methods
 `verbose_step(self) -> Optional[str]` builtins.function
@@ -1331,19 +1322,18 @@ class AssignmentStep(models.Model):
 
 ```
 
-## AssignmentFulfillment(Model)
+## AssignmentFulfillment
 > AssignmentFulfillment(id, enrollment, assignment, current_step)
 
+### Bases
+* django.db.models.base.Model
+
 ### Fields
-`enrollment_id` django.db.models.fields.related.ForeignKey
+`enrollment_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Enrollment](#enrollment)
 
-`enrollment` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
+`assignment_id` [django.db.models.ForeignKey](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.ForeignKey) to [base.models.Assignment](#assignment)
 
-`assignment_id` django.db.models.fields.related.ForeignKey
-
-`assignment` django.db.models.fields.related_descriptors.ForwardManyToOneDescriptor
-
-`current_step` django.db.models.fields.IntegerField
+`current_step` [django.db.models.IntegerField](https://docs.djangoproject.com/en/5.2/ref/models/fields/#django.db.models.IntegerField)
 
 ### Methods
 ### Source
