@@ -241,7 +241,6 @@ class Trait:
         genotype: float,
         number_of_daughters: int,
         genomic_tests: int,
-        t=None,
     ) -> float:
         """n = nd + ng * 2 * (1 / h2)
         k = (4 - h2) / h2
@@ -476,13 +475,13 @@ class Traitset:
 
     @document("get_random_genotype")
     def get_random_genotype(self) -> dict[str, float]:
-        """# Yields random set of values scaled to each traits
+        """# Yields random set of values scaled to each trait's
         #   standard deviation.
         # Correlates values using plotting over cholesky decomposition of
         #   genotype covariance matrix."""
 
         initial_values = np.array(
-            [Trait.mendelian_sample() for x in self.traits]
+            [Trait.mendelian_sample() for _ in self.traits]
         )
         L = np.linalg.cholesky(np.array(self.genotype_correlations))
         correlated_values = L @ initial_values
@@ -500,15 +499,16 @@ class Traitset:
     def get_genotype_from_breeding(
         self, sire_genotype: dict[str, float], dam_genotype: dict[str, float]
     ) -> dict[str, float]:
-        """# Gets correlated mendelian samples using get_random_genotype function.
+        """# Gets correlated mendelian samples using get_random_genotype
+        #   function.
         # Finalizes genotype value using get_genotype_from_breeding
         #   function of each trait."""
-        mendealian_sample = self.get_random_genotype()
+        mendelian_sample = self.get_random_genotype()
         genotype = {
             x.uid: x.get_genotype_from_breeding(
                 sire_genotype[x.uid],
                 dam_genotype[x.uid],
-                mendealian_sample[x.uid],
+                mendelian_sample[x.uid],
             )
             for x in self.traits
         }
@@ -525,8 +525,10 @@ class Traitset:
         genotype: dict[str, float],
         inbreeding_coefficient: float,
     ) -> dict[str, float]:
-        """# Gets phenotypes from each trait's convert_genotype_to_phenotype function.
-        # Correlates using cholesky decomposition of phenotype covariance matrix."""
+        """# Gets phenotypes from each trait's convert_genotype_to_phenotype
+        #   function.
+        # Correlates using cholesky decomposition of phenotype covariance
+        #   matrix."""
         initial_values = np.array(
             [
                 x.convert_genotype_to_phenotype(

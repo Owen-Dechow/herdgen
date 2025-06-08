@@ -118,4 +118,3 @@ class TestTraitsets(TestCase):
 
         self._test_on_each(test)
 
-    def test_correlatio
