@@ -26,7 +26,6 @@ dependencies = [
     "python-dateutil==2.9.0.post0",
     "redis==3.5.3",
     "s3transfer==0.10.4",
-    "scipy==1.15.2",
     "six==1.16.0",
     "sqlparse==0.5.1",
     "types-python-dateutil==2.9.0.20241003",
@@ -38,7 +37,7 @@ dependencies = [
 
 
 [tool.ruff]
-line-length = 90
+line-length = 79
 ignore = ["E741"]
 
 [tool.ruff.lint]
@@ -48,3 +47,7 @@ select = ["DJ"]
 quote-style = "double"
 indent-style = 'space'
 skip-magic-trailing-comma = false
+
+[tool.basedpyright]
+typeCheckingMode = "off"
+

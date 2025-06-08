@@ -5,9 +5,10 @@ from typing import Callable, Optional, Type
 
 from django.utils.html import SafeString
 import numpy as np
-from scipy.linalg import cholesky
 
-wrap = lambda text, tag: f"<{tag}>\n    {text}\n</{tag}>"
+
+def wrap(text, tag):
+    return f"<{tag}>\n    {text}\n</{tag}>"
 
 
 def document(sig: str):
@@ -157,7 +158,9 @@ class Trait:
         self.uid = uid
         self.heritability = heritability
         self.net_merit_dollars = net_merit_dollars
-        self.inbreeding_depression_percentage = inbreeding_depression_percentage
+        self.inbreeding_depression_percentage = (
+            inbreeding_depression_percentage
+        )
         self.calculated_standard_deviation = calculated_standard_deviation
         self.animals = animals
 
@@ -218,7 +221,9 @@ class Trait:
         )
 
         phenotype += (
-            inbreeding_coefficient * 100 * self.inbreeding_depression_percentage
+            inbreeding_coefficient
+            * 100
+            * self.inbreeding_depression_percentage
         )
 
         return phenotype / self.calculated_standard_deviation
@@ -232,7 +237,11 @@ class Trait:
               h2 # heritability"""
     )
     def convert_genotype_to_pta(
-        self, genotype: float, number_of_daughters: int, genomic_tests: int, t=None
+        self,
+        genotype: float,
+        number_of_daughters: int,
+        genomic_tests: int,
+        t=None,
     ) -> float:
         """n = nd + ng * 2 * (1 / h2)
         k = (4 - h2) / h2
@@ -279,7 +288,9 @@ class Trait:
         genotype = pa + scs"""
         sire_val = sire_val * self.calculated_standard_deviation
         dam_val = dam_val * self.calculated_standard_deviation
-        mendelian_sample = mendelian_sample * self.calculated_standard_deviation
+        mendelian_sample = (
+            mendelian_sample * self.calculated_standard_deviation
+        )
 
         scale = self.sqrt(2) / 2
         parent_average = (sire_val + dam_val) / 2
@@ -330,7 +341,9 @@ class Recessive:
     def get_random(self) -> str:
         """# [true, true], [true, false], or [false, false]
         alleles = [random() * 100 < prev, random() * 100 < prev]"""
-        alleles = [self.random() * 100 < self.prevalence_percent for _ in range(2)]
+        alleles = [
+            self.random() * 100 < self.prevalence_percent for _ in range(2)
+        ]
 
         if all(alleles):
             return HOMOZYGOUS_CARRIER_KEY
@@ -463,12 +476,16 @@ class Traitset:
 
     @document("get_random_genotype")
     def get_random_genotype(self) -> dict[str, float]:
-        """# Yields random set of values scaled to each traits standard deviation.
+        """# Yields random set of values scaled to each traits
+        #   standard deviation.
         # Correlates values using plotting over cholesky decomposition of
         #   genotype covariance matrix."""
-        initial_values = np.array([Trait.mendelian_sample() for _ in self.traits])
-        cholesky_decomposition = cholesky(np.array(self.genotype_correlations))
-        correlated_values = np.dot(cholesky_decomposition, initial_values)
+
+        initial_values = np.array(
+            [Trait.mendelian_sample() for x in self.traits]
+        )
+        L = np.linalg.cholesky(np.array(self.genotype_correlations))
+        correlated_values = L @ initial_values
 
         return {
             trait.uid: val
@@ -483,7 +500,7 @@ class Traitset:
     def get_genotype_from_breeding(
         self, sire_genotype: dict[str, float], dam_genotype: dict[str, float]
     ) -> dict[str, float]:
-        """# Gets correlated mendealian samples using get_random_genotype function.
+        """# Gets correlated mendelian samples using get_random_genotype function.
         # Finalizes genotype value using get_genotype_from_breeding
         #   function of each trait."""
         mendealian_sample = self.get_random_genotype()
@@ -512,12 +529,14 @@ class Traitset:
         # Correlates using cholesky decomposition of phenotype covariance matrix."""
         initial_values = np.array(
             [
-                x.convert_genotype_to_phenotype(genotype[x.uid], inbreeding_coefficient)
+                x.convert_genotype_to_phenotype(
+                    genotype[x.uid], inbreeding_coefficient
+                )
                 for x in self.traits
             ]
         )
-        cholesky_decomposition = cholesky(np.array(self.phenotype_correlations))
-        correlated_values = np.dot(cholesky_decomposition, initial_values)
+        L = np.linalg.cholesky(self.phenotype_correlations)
+        correlated_values = L @ initial_values
 
         return {
             trait.uid: val
@@ -534,7 +553,10 @@ class Traitset:
               ng # number of genomic tests"""
     )
     def derive_ptas_from_genotype(
-        self, genotype: dict[str, float], number_of_daughters: int, genomic_tests: int
+        self,
+        genotype: dict[str, float],
+        number_of_daughters: int,
+        genomic_tests: int,
     ) -> dict[str, float]:
         """# Gets PTA from each trait's convert_genotype_to_pta function."""
         return {
@@ -544,10 +566,14 @@ class Traitset:
             for key, val in genotype.items()
         }
 
-    def derive_net_merit_from_genotype(self, genotype: dict[str, float]) -> float:
+    def derive_net_merit_from_genotype(
+        self, genotype: dict[str, float]
+    ) -> float:
         net_merit = 0
         for trait in self.traits:
-            net_merit += trait.get_net_merit_dollars_addend(genotype[trait.uid])
+            net_merit += trait.get_net_merit_dollars_addend(
+                genotype[trait.uid]
+            )
 
         return net_merit
 
@@ -640,7 +666,7 @@ class Traitset:
                 cell = f"name: {filter.name}<br>"
                 cell += f"mean: {filter.phenotype_average}<br>"
                 cell += f"stdev: {filter.standard_deviation}<br>"
-                cell += f"unit: {filter.unit or "~"}"
+                cell += f"unit: {filter.unit or '~'}"
 
                 row += wrap(cell, "td")
 
@@ -689,7 +715,9 @@ class Traitset:
     def get_html_phenotype_correlation_table(self) -> SafeString:
         return self.get_html_correlation_table(self.phenotype_correlations)
 
-    def get_html_correlation_table(self, correlations: list[list[float]]) -> SafeString:
+    def get_html_correlation_table(
+        self, correlations: list[list[float]]
+    ) -> SafeString:
         headers = wrap("", "th")
 
         for trait in self.traits:

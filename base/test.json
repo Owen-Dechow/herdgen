@@ -5635,8 +5635,7 @@
 "POLLED": "he"
 }
 }
-}, 'summary": {"genotype": defaultdict(<class "int">,{}),"phenotype": defaultdict(<class "int">,{"FAT": 0.667615149042312,
-"MILK": 2.1261735169849882,
+}, 'summary": {"genotype": defaultdict(<class "int">,{}),"phenotype": defaultdict(<class "int">,{"FAT": 0.667615149042312,"MILK": 2.1261735169849882,
 "PROT": 0.13539814833377434,
 "TYPE": 0.011927983332423803
 }),

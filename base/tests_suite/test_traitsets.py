@@ -50,7 +50,7 @@ class TestTraitsets(TestCase):
 
         self._test_on_each(test)
 
-    def test_get_default_trait_visiblity(self):
+    def test_get_default_trait_visibility(self):
         def test(x: Traitset):
             vis = x.get_default_trait_visibility()
 
@@ -117,3 +117,5 @@ class TestTraitsets(TestCase):
             self.assertIsNone(x.find_recessive_or_null(str(random())))
 
         self._test_on_each(test)
+
+    def test_correlatio

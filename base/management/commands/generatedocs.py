@@ -3,12 +3,13 @@ from pathlib import Path
 from types import ModuleType
 from typing import Callable
 from django.db.models.query_utils import DeferredAttribute
-from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
+from django.db.models.fields.related_descriptors import (
+    ReverseManyToOneDescriptor,
+)
 from django.core.management.base import BaseCommand
 import os
-from inspect import getmodule
+from inspect import getmodule, getsource
 
-from six import class_types
 from herdgen.settings import BASE_DIR
 from ... import models
 
@@ -66,14 +67,16 @@ class Command(BaseCommand):
 
         return attrs
 
-    def document_class(self, klass: type) -> str:
-        output = f"## {klass.__name__}"
+    def document_class(self, klass: type) -> tuple[str, list]:
+        classname = f"{klass.__name__}"
 
         if klass.__bases__:
-            output += "(" + ".".join(x.__name__ for x in klass.__bases__) + ")"
+            classname += (
+                "(" + ".".join(x.__name__ for x in klass.__bases__) + ")"
+            )
 
-        output += "\n"
-        output += klass.__doc__ + "\n\n"
+        output = []
+        output.append(f"> {klass.__doc__}")
 
         fields = []
         functions = []
@@ -90,44 +93,89 @@ class Command(BaseCommand):
                 else:
                     fields.append((field, obj))
 
-        output += "### Fields\n"
+        fields_list = []
+        output.append(("Fields", fields_list))
 
         for name, field in fields:
             if isinstance(field, DeferredAttribute):
                 type_ = type(klass._meta.get_field(name))
-                output += f"`{name}` {type_.__module__}.{type_.__name__}\n\n"
+                fields_list.append(
+                    f"`{name}` {type_.__module__}.{type_.__name__}"
+                )
             elif not isinstance(field, ReverseManyToOneDescriptor):
-                output += f"`{name}` {type(field).__module__}.{type(field).__name__}\n\n"
+                fields_list.append(
+                    f"`{name}` {type(field).__module__}.{type(field).__name__}"
+                )
 
-        output += "### Methods\n"
+        method_list = []
+        output.append(("Methods", method_list))
 
         for name, method in functions:
-            output += f"`{name}{inspect.signature(getattr(klass, name))}` {
-                type(method).__module__
-            }.{type(method).__name__}\n\n"
+            method_list.append(
+                f"`{name}{inspect.signature(getattr(klass, name))}` {
+                    type(method).__module__
+                }.{type(method).__name__}"
+            )
             if method.__doc__:
-                output += method.__doc__ + "\n\n"
+                method_list.append(f"> {method.__doc__}")
 
-        return output
+            try:
+                source = ""
+                trim = None
+                for line in getsource(method).splitlines():
+                    if trim is None:
+                        source = line.lstrip()
+                        trim = len(line) - len(source)
+                        source += "\n"
+                    else:
+                        source += line[trim:] + "\n"
 
-    def document_module(self, module: ModuleType) -> str:
-        output = f"# {module.__name__}\n\n"
+                method_list.append(f"```python\n{source}\n```")
+            except TypeError:
+                ...
+
+        return (classname, output)
+
+    def document_module(self, module: ModuleType) -> tuple[str, list]:
+        output = []
 
         objs = self.get_direct_objects(module)
         for obj in objs:
             if isinstance(obj, type):
-                output += self.document_class(obj)
+                output.append(self.document_class(obj))
 
-        return output
+        return (f"{module.__name__}", output)
 
     def write_to_file(self, path: Path, contents: str):
         with open(path, "w") as file:
             file.write(contents)
 
+    def convert_to_txt(self, data: tuple[str, list], layer=1) -> str:
+        pad = "#" * layer + " "
+        output = pad + data[0] + "\n"
+        layer += 1
+        pad += "| "
+        pad = ""
+
+        for obj in data[1]:
+            if isinstance(obj, tuple):
+                output += self.convert_to_txt(obj, layer)
+            else:
+                if "\n" in obj:
+                    for line in obj.split("\n"):
+                        output += pad + line + "\n"
+                    output += "\n"
+                else:
+                    output += pad + obj + "\n\n"
+
+        return output
+
     def handle(self, *args, **kwargs):
         docs_folder = self.reset_docs()
         models_ = self.document_module(models)
 
-        self.write_to_file(docs_folder / MODELS_FILE, models_)
+        self.write_to_file(
+            docs_folder / MODELS_FILE, self.convert_to_txt(models_)
+        )
 
         self.stdout.write("Generating Documentation")
