@@ -286,7 +286,7 @@ class BreedHerd(forms.Form):
                 return False
 
             try:
-                herd_auth = auth_herd(class_auth, animal.herd_id)
+                _herd_auth = auth_herd(class_auth, animal.herd_id)
             except Http404:
                 return False
 
@@ -331,7 +331,14 @@ class BreedHerd(forms.Form):
         return self.validate_assignment(class_auth)
 
     def save(self, herd_auth: HerdAuth.EnrollmentHerd) -> models.Herd.BreedingResults:
-        breeding_result = herd_auth.herd.breed_herd(self.validation_catch.males)
+        assignment =self.validation_catch.assignment 
+        assignment = f"{assignment.id}: {assignment.name}"
+        max_len = models.Animal._meta.get_field("assignment").max_length
+
+        if len(assignment) > max_len:
+            assignment = assignment[:max_len]
+
+        breeding_result = herd_auth.herd.breed_herd(self.validation_catch.males, assignment)
         self.validation_catch.assignment_fulfillment.current_step += 1
         self.validation_catch.assignment_fulfillment.save()
         return breeding_result

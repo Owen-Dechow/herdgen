@@ -4,7 +4,6 @@ var CurrentAssignmentStep;
 var RevalidateMalesForBreeding = false;
 var ValidatingMalesForBreeding = false;
 var MalesValidatedForBreeding = false;
-
 const PTA_DECIMALS = 3;
 
 async function getHerd(classId, herdId) {
@@ -103,6 +102,7 @@ function createSortOptionCard(text, value) {
 function loadSortOptions() {
     $("#sort-options").append(createSortOptionCard("Id", `id`));
     $("#sort-options").append(createSortOptionCard("Generation", `generation`));
+    $("#sort-options").append(createSortOptionCard("Assignment", `assignment`));
     $("#sort-options").append(createSortOptionCard("Inbreeding Percentage", `inbreeding`));
     $("#sort-options").append(createSortOptionCard(Filter["Sire"], `sire`));
     $("#sort-options").append(createSortOptionCard(Filter["Dam"], `dam`));
@@ -282,6 +282,12 @@ function animalSelected(animal, classId, herdId) {
     info.append(createInfoCard("Id", animal["id"]));
     info.append(createInfoCard("Name", animal["name"]));
     info.append(createInfoCard("Generation", animal["generation"]));
+    info.append(createInfoCard(
+        "Assignment",
+        animal["assignment"] === null
+            ? "~"
+            : animal["assignment"]
+    ));
     info.append(createInfoCard(Filter["Sire"], animal["sire"] ? animal["sire"] : "N/A"));
     info.append(createInfoCard(Filter["Dam"], animal["dam"] ? animal["dam"] : "N/A"));
     info.append(createInfoCard("Inbreeding Percentage", animal["inbreeding"] * 100 + "%"));

@@ -1,3 +1,4 @@
+from background_task import background
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -27,7 +28,7 @@ from . import models
 from . import csv
 from . import names as nms
 from .templatetags.animal_filters import filter_text_to_default
-from .views_utils import ClassAuth, HerdAuth, auth_class, auth_herd
+from .views_utils import ClassAuth, HerdAuth, auth_class, auth_herd, deleteclass_background
 
 
 #### AUTH PAGE VIEWS ####
@@ -76,10 +77,10 @@ def account(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
 def homepage(request: HttpRequest) -> HttpResponse:
     if request.user.is_authenticated:
         owned_classes = models.Class.objects.select_related("teacher").filter(
-            teacher=request.user
+            teacher=request.user, deleted=False
         )
         enrollments = models.Enrollment.objects.select_related("connectedclass").filter(
-            student=request.user
+            student=request.user, connectedclass__deleted=False,
         )
         classes = list(owned_classes) + [x.connectedclass for x in enrollments]
         classes = {x: x.get_open_assignments() for x in classes}
@@ -370,7 +371,10 @@ def deleteclass(request: HttpRequest, classid: int) -> HttpResponseRedirect:
     if type(class_auth) not in ClassAuth.TEACHER_ADMIN:
         raise Http404("Must be teacher to delete class")
 
-    class_auth.connectedclass.delete()
+    class_auth.connectedclass.deleted = True
+    class_auth.connectedclass.save()
+    deleteclass_background(class_auth.connectedclass.id)
+
     return HttpResponseRedirect("/")
 
 
@@ -599,7 +603,7 @@ def get_trend_chart(request: HttpRequest, classid: int) -> FileResponse:
             + [row["phenotype"][x.uid] for x in traitset.traits]
         )
 
-    return csv.create_csv_response("tendlog.csv", headers, data)
+    return csv.create_csv_response("trendlog.csv", headers, data)
 
 
 @login_required

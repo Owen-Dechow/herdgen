@@ -19,4 +19,4 @@ FORMATTED_RECESSIVES_KEY = "nicerecessive"
 MALE_KEY = "male"
 ID_KEY = "id"
 NETMERIT_KEY = "NM$"
-
+ASSIGNMENT_KEY = "assignment"

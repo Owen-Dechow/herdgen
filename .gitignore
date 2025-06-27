@@ -6,6 +6,7 @@ db.sqlite3
 staticfiles/
 general.log
 animal_files/*
+zappa_settings.json
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*

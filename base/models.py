@@ -47,6 +47,7 @@ class Class(models.Model):
     default_animal = models.CharField(max_length=255)
     allow_other_animals = models.BooleanField(default=True)
     quarantine_days = models.IntegerField(default=0)
+    deleted = models.BooleanField(default=False)
 
     class_herd = models.ForeignKey(
         to="Herd",
@@ -257,6 +258,7 @@ class Class(models.Model):
                 "Herd",
                 "Class",
                 "Generation",
+                "Assignment",
                 "Sex",
                 "Sire",
                 "Dam",
@@ -293,6 +295,7 @@ class Class(models.Model):
                 nms.HERD_NAME_KEY,
                 nms.CLASS_NAME_KEY,
                 nms.GENERATION_KEY,
+                nms.ASSIGNMENT_KEY,
                 nms.SEX_KEY,
                 nms.SIRE_ID_KEY,
                 nms.DAM_ID_KEY,
@@ -448,7 +451,7 @@ class Herd(models.Model):
 
         return target_num_males, target_num_females, total_to_be_born()
 
-    def breed_herd(self, sires: list["Animal"]) -> BreedingResults:
+    def breed_herd(self, sires: list["Animal"], assignment: str) -> BreedingResults:
         """Run a breeding on herd"""
 
         NUMBER_OF_MALES = 10
@@ -470,7 +473,7 @@ class Herd(models.Model):
             dam = mothers[i]
 
             animal = Animal.generate_from_breeding_unsaved(
-                male, self, traitset, self.connectedclass, sire, dam
+                male, self, traitset, self.connectedclass, sire, dam, assignment
             )
             animals.append(animal)
 
@@ -717,6 +720,7 @@ class Animal(models.Model):
             "herd",
             "connectedclass",
             "generation",
+            "assignment",
             "genomic_tests",
         ]
         search_fields = ["name"]
@@ -725,6 +729,7 @@ class Animal(models.Model):
     herd = models.ForeignKey(to="Herd", on_delete=models.CASCADE, null=True)
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    assignment = models.CharField(max_length=255, null=True, blank=True)
     generation = models.IntegerField(default=0)
     male = models.BooleanField()
     genomic_tests = models.IntegerField(default=0)
@@ -794,6 +799,7 @@ class Animal(models.Model):
         connectedclass: Class,
         sire: "Animal",
         dam: "Animal",
+        assignment: str,
     ) -> "Animal":
         new = cls(male=male, herd=herd, connectedclass=connectedclass)
         new.pedigree = {
@@ -823,6 +829,7 @@ class Animal(models.Model):
             sire.recessives, dam.recessives
         )
         new.generation = herd.breedings
+        new.assignment = assignment
 
         return new
 
@@ -943,6 +950,8 @@ class Animal(models.Model):
                     return self.net_merit
                 case nms.ID_KEY:
                     return self.id
+                case nms.ASSIGNMENT_KEY:
+                    return self.assignment
 
     def json_dict(self) -> dict[str, Any]:
         json = {}
@@ -951,6 +960,7 @@ class Animal(models.Model):
             nms.ID_KEY,
             nms.NAME_KEY,
             nms.GENERATION_KEY,
+            nms.ASSIGNMENT_KEY,
             nms.DAM_ID_KEY,
             nms.SIRE_ID_KEY,
             nms.INBREEDING_COEFFICIENT_KEY,

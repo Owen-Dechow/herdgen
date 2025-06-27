@@ -1,6 +1,7 @@
 from . import models
 from django.shortcuts import get_object_or_404
 from django.http import Http404, HttpRequest
+from background_task import background
 
 
 class ClassAuth:
@@ -34,6 +35,9 @@ def auth_class(
         models.Class.objects.select_related("teacher", *related).defer("trend_log"),
         id=classid,
     )
+
+    if connectedclass.deleted:
+        raise Http404("Class no longer exists.")
 
     if connectedclass.teacher == request.user:
         return ClassAuth.Teacher(connectedclass)
@@ -103,3 +107,7 @@ def auth_herd(
         return HerdAuth.Admin(herd)
     else:
         raise Http404("User does not have access to this herd")
+
+@background(schedule=0)
+def deleteclass_background(classid: int):
+    models.Class.objects.get(id=classid).delete()
