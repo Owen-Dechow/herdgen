@@ -141,7 +141,6 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = "staticfiles"
 
-print(env("LOCAL_STATIC", bool))
 if not env("LOCAL_STATIC", bool):
     STORAGES = {
         # Media file (image) management
