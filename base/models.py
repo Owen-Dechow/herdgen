@@ -3,6 +3,8 @@ from random import choice
 from typing import Any, Optional
 
 import background_task
+import inbreeding_calculator
+
 from django.conf import settings
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.models import User
@@ -12,7 +14,6 @@ from django.core.mail import send_mail
 
 
 from . import names as nms
-from .inbreeding import calculate_inbreeding
 from .templatetags.animal_filters import filter_text_to_default
 from .traitsets import Traitset
 from .traitsets import traitset
@@ -771,7 +772,7 @@ class Animal(models.Model):
         }
         new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
-        new.inbreeding = calculate_inbreeding(new.pedigree)
+        new.inbreeding = inbreeding_calculator.InbreedingCalculator(new.pedigree).get_coefficient() 
         new.sire = sire
         new.dam = dam
 

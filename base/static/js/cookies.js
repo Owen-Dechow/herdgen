@@ -1,6 +1,6 @@
-function setCookie(cookieName, cookieValue, experationDays) {
+function setCookie(cookieName, cookieValue, expirationDays) {
     const d = new Date();
-    d.setTime(d.getTime() + (experationDays * 24 * 60 * 60 * 1000));
+    d.setTime(d.getTime() + (expirationDays * 24 * 60 * 60 * 1000));
     let expires = "expires=" + d.toUTCString();
     document.cookie = cookieName + "=" + cookieValue + ";" + expires + ";path=/";
 }
@@ -22,7 +22,7 @@ function getCookie(cookieName) {
 
 $(window).on("load", () => {
     const CookieName = "acceptedcookies";
-    const CookieExperation = 10;
+    const CookieExpiration = 10;
     const CookieValue = "true"
     if (getCookie(CookieName) != CookieValue) {
         sendMessage(
@@ -30,7 +30,7 @@ $(window).on("load", () => {
             + "Herd Genetics can not run without these cookies. By selecting Ok "
             + "and using this website you are accepting these cookies. No cookie "
             + "will be shared outside of Herd Genetics or with third partied.",
-            () => {setCookie(CookieName, CookieValue, CookieExperation)}
+            () => {setCookie(CookieName, CookieValue, CookieExpiration)}
         )
     }
 })

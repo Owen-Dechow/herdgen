@@ -1,7 +1,6 @@
 from typing import Any
 from django import template
-from django.utils.safestring import mark_safe, SafeText
-from numpy import take
+from django.utils.safestring import SafeText
 
 from .animal_filters import auto_filter_text
 

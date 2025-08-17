@@ -166,7 +166,7 @@
             "phenotype_prefix": "ph",
             "traits": {
                 "MILK": {
-                    "name": "Socialability",
+                    "name": "Sociability",
                     "standard_deviation": 5,
                     "phenotype_average": 100,
                     "unit": ""

@@ -5,7 +5,7 @@ function addOutOfEnrollmentTokensWarning() {
         sendMessage(
             "You can not accept any enrollment request "
             + "until you have more enrollment tokens. "
-            + "Email herdgenetics@gamil.com with "
+            + "Email herdgenetics@gmail.com with "
             + "your class code to get more tokens."
         );
     }

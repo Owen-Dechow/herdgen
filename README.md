@@ -23,19 +23,19 @@ Available at https://herdgenetics.com
 This simulation was created for use by Penn State University
 ![Penn-State-Logo](https://github.com/user-attachments/assets/d4f7198d-afaa-4454-b7df-6423fc9ce73e)
 
-## Compatability
+## Compatibility
 
 Herd Genetics seeks to replace the original
 [Cow Progress](https://github.com/Owen-Dechow/cow_progress/tree/main) application. While
 Cow Progress only had support for Holstein Breeding programs, Herd Genetics make it a
 goal to diversify the possible animals through front end animal filters. To maintain
-compatability legacy traitsets from the original simulation program have been imported
+compatibility legacy traitsets from the original simulation program have been imported
 into Herd Genetics. Those traitsets only allow for Bovine (Holstein) filters.
 
 
 ## System Changes
 
-Although backwards compatability is impotent to Herd Genetics, certain systems have been
+Although backwards compatibility is impotent to Herd Genetics, certain systems have been
 replaced from the original program.
 
 ### 1. Inbreeding Calculator
@@ -59,7 +59,7 @@ PTAs.
 ### 4. Bull Phenotypes
 
 In Cow Progress both males (bulls) and females (cows) had phenotypes. In Herd Genetics
-male phenotypes are equivilent to their mother's (dam) or `null` if they do not have a
+male phenotypes are equivalent to their mother's (dam) or `null` if they do not have a
 known mother. 
 
 ### 5. Multi Animal Support
@@ -80,7 +80,7 @@ herd. In Herd Genetics each class has the option to set a quarantine period for 
 ### 7. Assignments
 
 One of the main advantages of Herd Genetic over Cow Progress is the class based system.
-In Herd Genetic every breeding and sumbition is run off of assignments.
+In Herd Genetic every breeding and submission is run off of assignments.
 
 ## License
 
@@ -113,8 +113,6 @@ codebase of Herd Genetics.
 * [gunicorn](https://gunicorn.org/) - Webserver Management
 * [whitenoise](https://github.com/evansd/whitenoise) - Static File Service
 * [certifi](https://github.com/certifi/python-certifi) - SSL Certificate Management
-* [NGINX](https://nginx.org/en/) - Webserver Management
-* [Supervisor](http://supervisord.org/introduction.html) - NGINX & Gunicorn Management
 
 ### Data Processing
 * [scipy](https://scipy.org/) - Genetic Data Processing
