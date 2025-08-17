@@ -1,4 +1,11 @@
 class InbreedingCalculator:
+    "A class to calculate the inbreeding coefficient of a pedigree"
+
+    pedigree: dict[str, str]
+    sire_key: str
+    dam_key: str
+    id_key: str
+
     def __init__(
         self,
         pedigree: dict[str, str] = {},

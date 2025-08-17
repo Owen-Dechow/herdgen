@@ -15,6 +15,8 @@ from .traitsets import TRAITSET_CHOICES, Traitset
 
 
 class EmailAuthenticationForm(auth_forms.AuthenticationForm):
+    """A form to authenticate users using email instead of username."""
+
     username = forms.EmailField(
         required=True,
         label="Email",
@@ -43,6 +45,8 @@ class EmailAuthenticationForm(auth_forms.AuthenticationForm):
 
 
 class UserCreationForm(auth_forms.UserCreationForm):
+    "A form to create new users."
+
     class Meta:
         model = User
         fields = [
@@ -63,6 +67,8 @@ class UserCreationForm(auth_forms.UserCreationForm):
 
 
 class CreateClassForm(forms.ModelForm):
+    "A form to create a new class (base.models.Class)."
+
     traitset = forms.ChoiceField(choices=TRAITSET_CHOICES)
     initial_males = forms.IntegerField(min_value=1, max_value=100)
     initial_females = forms.IntegerField(min_value=1, max_value=25)
@@ -91,6 +97,8 @@ class CreateClassForm(forms.ModelForm):
 
 
 class UpdateClassForm(forms.ModelForm):
+    "A form to update a class (base.models.Class)."
+
     traitset = forms.CharField(disabled=True)
     classcode = forms.CharField(disabled=True)
     enrollment_tokens = forms.IntegerField(disabled=True)
@@ -207,6 +215,8 @@ class UpdateClassForm(forms.ModelForm):
 
 
 class ClassReadonlyForm(forms.ModelForm):
+    "A form for the students view of the class (base.models.Class)."
+
     name = forms.CharField(disabled=True)
     traitset = forms.CharField(disabled=True)
     info = forms.CharField(disabled=True, widget=forms.Textarea)
@@ -217,6 +227,8 @@ class ClassReadonlyForm(forms.ModelForm):
 
 
 class JoinClass(forms.Form):
+    "A form to enroll in a class (base.models.Class)."
+
     classcode = forms.CharField()
 
     def __init__(self, user: User = None, *args, **kwargs):
@@ -254,6 +266,8 @@ class JoinClass(forms.Form):
 
 
 class BreedHerd(forms.Form):
+    "A form to breed herds."
+
     class ValidationCatch:
         males: list[models.Animal]
         assignment: models.Assignment
@@ -331,20 +345,24 @@ class BreedHerd(forms.Form):
         return self.validate_assignment(class_auth)
 
     def save(self, herd_auth: HerdAuth.EnrollmentHerd) -> models.Herd.BreedingResults:
-        assignment =self.validation_catch.assignment 
+        assignment = self.validation_catch.assignment
         assignment = f"{assignment.id}: {assignment.name}"
         max_len = models.Animal._meta.get_field("assignment").max_length
 
         if len(assignment) > max_len:
             assignment = assignment[:max_len]
 
-        breeding_result = herd_auth.herd.breed_herd(self.validation_catch.males, assignment)
+        breeding_result = herd_auth.herd.breed_herd(
+            self.validation_catch.males, assignment
+        )
         self.validation_catch.assignment_fulfillment.current_step += 1
         self.validation_catch.assignment_fulfillment.save()
         return breeding_result
 
 
 class SubmitAnimal(forms.Form):
+    "A form for animal submissions."
+
     class ValidationCatch:
         assignment: models.Assignment
         assignment_fulfillment: models.AssignmentFulfillment
@@ -414,6 +432,8 @@ class SubmitAnimal(forms.Form):
 
 
 class NewAssignment(forms.ModelForm):
+    "A form to create new assignments."
+
     startdate = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
     )
@@ -458,6 +478,8 @@ class NewAssignment(forms.ModelForm):
 
 
 class UpdateAssignment(forms.ModelForm):
+    "A form to update assignments."
+
     startdate = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
     )
@@ -480,6 +502,8 @@ class UpdateAssignment(forms.ModelForm):
 
 
 class UpdateEnrollmentForm(forms.ModelForm):
+    "A form to update an enrollment."
+
     def __init__(self, *args, **kwargs):
         super(UpdateEnrollmentForm, self).__init__(*args, **kwargs)
 
@@ -501,6 +525,8 @@ class UpdateEnrollmentForm(forms.ModelForm):
 
 
 class Account(forms.ModelForm):
+    "A form to update accounts."
+
     username = forms.CharField(disabled=True)
     email = forms.EmailField(disabled=True)
     first_name = forms.CharField(disabled=True)
@@ -512,6 +538,8 @@ class Account(forms.ModelForm):
 
 
 class DeleteAccount(forms.Form):
+    "A form to delete accounts."
+
     password = forms.CharField(strip=False, widget=forms.PasswordInput)
 
     def is_valid(self, user: User) -> bool:

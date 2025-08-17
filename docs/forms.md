@@ -1,15 +1,25 @@
 # base.forms
 ## EmailAuthenticationForm
-> None
+> A form to authenticate users using email instead of username.
 
 ### Bases
 * django.contrib.auth.forms.AuthenticationForm
 
 ### Fields
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
+
 ### Methods
+`clean(self)` builtins.function
+
 ### Source
 ```python
 class EmailAuthenticationForm(auth_forms.AuthenticationForm):
+    """A form to authenticate users using email instead of username."""
+
     username = forms.EmailField(
         required=True,
         label="Email",
@@ -39,18 +49,26 @@ class EmailAuthenticationForm(auth_forms.AuthenticationForm):
 ```
 
 ## UserCreationForm
-> None
+> A form to create new users.
 
 ### Bases
 * django.contrib.auth.forms.UserCreationForm
 
 ### Fields
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
+
 ### Methods
 `clean_email(self) -> str` builtins.function
 
 ### Source
 ```python
 class UserCreationForm(auth_forms.UserCreationForm):
+    "A form to create new users."
+
     class Meta:
         model = User
         fields = [
@@ -72,13 +90,17 @@ class UserCreationForm(auth_forms.UserCreationForm):
 ```
 
 ## CreateClassForm
-> None
+> A form to create a new class (base.models.Class).
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `clean_name(self)` builtins.function
@@ -88,6 +110,8 @@ class UserCreationForm(auth_forms.UserCreationForm):
 ### Source
 ```python
 class CreateClassForm(forms.ModelForm):
+    "A form to create a new class (base.models.Class)."
+
     traitset = forms.ChoiceField(choices=TRAITSET_CHOICES)
     initial_males = forms.IntegerField(min_value=1, max_value=100)
     initial_females = forms.IntegerField(min_value=1, max_value=25)
@@ -117,13 +141,17 @@ class CreateClassForm(forms.ModelForm):
 ```
 
 ## UpdateClassForm
-> None
+> A form to update a class (base.models.Class).
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `clean_name(self)` builtins.function
@@ -135,6 +163,8 @@ class CreateClassForm(forms.ModelForm):
 ### Source
 ```python
 class UpdateClassForm(forms.ModelForm):
+    "A form to update a class (base.models.Class)."
+
     traitset = forms.CharField(disabled=True)
     classcode = forms.CharField(disabled=True)
     enrollment_tokens = forms.IntegerField(disabled=True)
@@ -252,18 +282,24 @@ class UpdateClassForm(forms.ModelForm):
 ```
 
 ## ClassReadonlyForm
-> None
+> A form for the students view of the class (base.models.Class).
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 ### Source
 ```python
 class ClassReadonlyForm(forms.ModelForm):
+    "A form for the students view of the class (base.models.Class)."
+
     name = forms.CharField(disabled=True)
     traitset = forms.CharField(disabled=True)
     info = forms.CharField(disabled=True, widget=forms.Textarea)
@@ -275,12 +311,18 @@ class ClassReadonlyForm(forms.ModelForm):
 ```
 
 ## JoinClass
-> None
+> A form to enroll in a class (base.models.Class).
 
 ### Bases
 * django.forms.forms.Form
 
 ### Fields
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
+
 ### Methods
 `__init__(self, user: django.contrib.auth.models.User = None, *args, **kwargs)` builtins.function
 
@@ -291,6 +333,8 @@ class ClassReadonlyForm(forms.ModelForm):
 ### Source
 ```python
 class JoinClass(forms.Form):
+    "A form to enroll in a class (base.models.Class)."
+
     classcode = forms.CharField()
 
     def __init__(self, user: User = None, *args, **kwargs):
@@ -329,7 +373,7 @@ class JoinClass(forms.Form):
 ```
 
 ## BreedHerd
-> None
+> A form to breed herds.
 
 ### Bases
 * django.forms.forms.Form
@@ -338,6 +382,12 @@ class JoinClass(forms.Form):
 `__annotations__` builtins.dict
 
 `validation_catch` builtins.NoneType
+
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `validate_males(self, class_auth: base.views_utils.ClassAuth.Student) -> bool` builtins.function
@@ -351,6 +401,8 @@ class JoinClass(forms.Form):
 ### Source
 ```python
 class BreedHerd(forms.Form):
+    "A form to breed herds."
+
     class ValidationCatch:
         males: list[models.Animal]
         assignment: models.Assignment
@@ -383,7 +435,7 @@ class BreedHerd(forms.Form):
                 return False
 
             try:
-                herd_auth = auth_herd(class_auth, animal.herd_id)
+                _herd_auth = auth_herd(class_auth, animal.herd_id)
             except Http404:
                 return False
 
@@ -428,7 +480,16 @@ class BreedHerd(forms.Form):
         return self.validate_assignment(class_auth)
 
     def save(self, herd_auth: HerdAuth.EnrollmentHerd) -> models.Herd.BreedingResults:
-        breeding_result = herd_auth.herd.breed_herd(self.validation_catch.males)
+        assignment = self.validation_catch.assignment
+        assignment = f"{assignment.id}: {assignment.name}"
+        max_len = models.Animal._meta.get_field("assignment").max_length
+
+        if len(assignment) > max_len:
+            assignment = assignment[:max_len]
+
+        breeding_result = herd_auth.herd.breed_herd(
+            self.validation_catch.males, assignment
+        )
         self.validation_catch.assignment_fulfillment.current_step += 1
         self.validation_catch.assignment_fulfillment.save()
         return breeding_result
@@ -436,7 +497,7 @@ class BreedHerd(forms.Form):
 ```
 
 ## SubmitAnimal
-> None
+> A form for animal submissions.
 
 ### Bases
 * django.forms.forms.Form
@@ -445,6 +506,12 @@ class BreedHerd(forms.Form):
 `__annotations__` builtins.dict
 
 `validation_catch` builtins.NoneType
+
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `is_valid(self, class_auth: base.views_utils.ClassAuth.Student) -> bool` builtins.function
@@ -456,6 +523,8 @@ class BreedHerd(forms.Form):
 ### Source
 ```python
 class SubmitAnimal(forms.Form):
+    "A form for animal submissions."
+
     class ValidationCatch:
         assignment: models.Assignment
         assignment_fulfillment: models.AssignmentFulfillment
@@ -526,13 +595,17 @@ class SubmitAnimal(forms.Form):
 ```
 
 ## NewAssignment
-> None
+> A form to create new assignments.
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `clean_steps(self) -> list[str]` builtins.function
@@ -544,6 +617,8 @@ class SubmitAnimal(forms.Form):
 ### Source
 ```python
 class NewAssignment(forms.ModelForm):
+    "A form to create new assignments."
+
     startdate = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
     )
@@ -589,13 +664,17 @@ class NewAssignment(forms.ModelForm):
 ```
 
 ## UpdateAssignment
-> None
+> A form to update assignments.
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `__init__(self, *args, **kwargs)` builtins.function
@@ -603,6 +682,8 @@ class NewAssignment(forms.ModelForm):
 ### Source
 ```python
 class UpdateAssignment(forms.ModelForm):
+    "A form to update assignments."
+
     startdate = forms.DateTimeField(
         widget=forms.DateTimeInput(attrs={"type": "datetime-local"})
     )
@@ -626,13 +707,17 @@ class UpdateAssignment(forms.ModelForm):
 ```
 
 ## UpdateEnrollmentForm
-> None
+> A form to update an enrollment.
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 `__init__(self, *args, **kwargs)` builtins.function
@@ -640,6 +725,8 @@ class UpdateAssignment(forms.ModelForm):
 ### Source
 ```python
 class UpdateEnrollmentForm(forms.ModelForm):
+    "A form to update an enrollment."
+
     def __init__(self, *args, **kwargs):
         super(UpdateEnrollmentForm, self).__init__(*args, **kwargs)
 
@@ -662,18 +749,24 @@ class UpdateEnrollmentForm(forms.ModelForm):
 ```
 
 ## Account
-> None
+> A form to update accounts.
 
 ### Bases
 * django.forms.models.ModelForm
 
 ### Fields
-`_meta` django.forms.models.ModelFormOptions
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
 
 ### Methods
 ### Source
 ```python
 class Account(forms.ModelForm):
+    "A form to update accounts."
+
     username = forms.CharField(disabled=True)
     email = forms.EmailField(disabled=True)
     first_name = forms.CharField(disabled=True)
@@ -686,12 +779,18 @@ class Account(forms.ModelForm):
 ```
 
 ## DeleteAccount
-> None
+> A form to delete accounts.
 
 ### Bases
 * django.forms.forms.Form
 
 ### Fields
+`declared_fields` builtins.dict
+
+`media` builtins.property
+
+`base_fields` builtins.dict
+
 ### Methods
 `is_valid(self, user: django.contrib.auth.models.User) -> bool` builtins.function
 
@@ -700,6 +799,8 @@ class Account(forms.ModelForm):
 ### Source
 ```python
 class DeleteAccount(forms.Form):
+    "A form to delete accounts."
+
     password = forms.CharField(strip=False, widget=forms.PasswordInput)
 
     def is_valid(self, user: User) -> bool:

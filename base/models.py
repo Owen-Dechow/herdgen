@@ -64,9 +64,7 @@ class Class(models.Model):
     def generate_class_code(cls) -> str:
         """Generates a UID for the class"""
 
-        CHARACTERS = (
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-        )
+        CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
         SECTIONS = 3
         SECTION_LENGTH = 3
         return "-".join(
@@ -205,9 +203,7 @@ class Class(models.Model):
             }
             net_merit_capture = 0
 
-            animals = Animal.objects.defer("pedigree").filter(
-                connectedclass=self
-            )
+            animals = Animal.objects.defer("pedigree").filter(connectedclass=self)
             num_animals_alive = 0
             for animal in animals:
                 if animal.herd_id is None:
@@ -265,22 +261,10 @@ class Class(models.Model):
                 "Inbreeding Percent",
                 "Net Merit $",
             ]
-            + [
-                filter_text_to_default(f"gen: <{x.uid}>", self)
-                for x in traitset.traits
-            ]
-            + [
-                filter_text_to_default(f"ph: <{x.uid}>", self)
-                for x in traitset.traits
-            ]
-            + [
-                filter_text_to_default(f"pta: <{x.uid}>", self)
-                for x in traitset.traits
-            ]
-            + [
-                filter_text_to_default(f"<{x.uid}>", self)
-                for x in traitset.recessives
-            ]
+            + [filter_text_to_default(f"gen: <{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"ph: <{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"pta: <{x.uid}>", self) for x in traitset.traits]
+            + [filter_text_to_default(f"<{x.uid}>", self) for x in traitset.recessives]
         )
 
     def get_animal_file_data_order(
@@ -305,17 +289,12 @@ class Class(models.Model):
             + [(nms.GENOTYPE_KEY, x.uid) for x in traitset.traits]
             + [(nms.PHENOTYPE_KEY, x.uid) for x in traitset.traits]
             + [(nms.PTA_KEY, x.uid) for x in traitset.traits]
-            + [
-                (nms.FORMATTED_RECESSIVES_KEY, x.uid)
-                for x in traitset.recessives
-            ]
+            + [(nms.FORMATTED_RECESSIVES_KEY, x.uid) for x in traitset.recessives]
         )
 
     @staticmethod
     @background_task.background(schedule=0)
-    def recalculate_ptas(
-        connectedclass: int, email: str, genomic_test: bool = False
-    ):
+    def recalculate_ptas(connectedclass: int, email: str, genomic_test: bool = False):
         """Recalculate the PTAs on all male animals"""
 
         connectedclass = Class.objects.get(id=connectedclass)
@@ -340,17 +319,14 @@ class Class(models.Model):
                 animal.genomic_tests += 1
 
             animal.recalculate_pta_unsaved(
-                animal.number_of_daughters_sire
-                + animal.number_of_daughters_dam,
+                animal.number_of_daughters_sire + animal.number_of_daughters_dam,
                 traitset,
             )
 
         Animal.objects.bulk_update(animals, ["genomic_tests", "ptas"])
 
         send_mail(
-            "Genomic Test Complete"
-            if genomic_test
-            else "PTA Calculation Complete",
+            "Genomic Test Complete" if genomic_test else "PTA Calculation Complete",
             "The task you requested from HerdGenetics is complete.",
             settings.EMAIL_HOST_USER,
             [email],
@@ -374,9 +350,7 @@ class Herd(models.Model):
             self.age_deaths = age_deaths
 
     name = models.CharField(max_length=255)
-    connectedclass = models.ForeignKey(
-        to="Class", on_delete=models.CASCADE, null=True
-    )
+    connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE, null=True)
     breedings = models.IntegerField(default=0)
     enrollment = models.ForeignKey(
         to="Enrollment",
@@ -409,9 +383,7 @@ class Herd(models.Model):
         ]
 
         female_animals = [
-            Animal.generate_random_unsaved(
-                False, new, traitset, connectedclass
-            )
+            Animal.generate_random_unsaved(False, new, traitset, connectedclass)
             for _ in range(females)
         ]
 
@@ -591,9 +563,7 @@ class Enrollment(models.Model):
     )
 
     def __str__(self) -> str:
-        return (
-            f"{self.id} | {self.student.email} in {self.connectedclass.name}"
-        )
+        return f"{self.id} | {self.student.email} in {self.connectedclass.name}"
 
     @classmethod
     def create_from_enrollment_request(
@@ -627,9 +597,7 @@ class Enrollment(models.Model):
         new.connectedclass.decrement_enrollment_tokens()
 
         assignment_fulfilments = []
-        for assignment in Assignment.objects.filter(
-            connectedclass=new.connectedclass
-        ):
+        for assignment in Assignment.objects.filter(connectedclass=new.connectedclass):
             assignment_fulfilments.append(
                 AssignmentFulfillment(assignment=assignment, enrollment=new)
             )
@@ -688,14 +656,10 @@ class EnrollmentRequest(models.Model):
     connectedclass = models.ForeignKey(to="Class", on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return (
-            f"{self.id} | {self.student.email} for {self.connectedclass.name}"
-        )
+        return f"{self.id} | {self.student.email} for {self.connectedclass.name}"
 
     @classmethod
-    def create_new(
-        cls, student: User, connectedclass: "Class"
-    ) -> "EnrollmentRequest":
+    def create_new(cls, student: User, connectedclass: "Class") -> "EnrollmentRequest":
         new = cls(student=student, connectedclass=connectedclass)
         new.save()
         return new
@@ -773,9 +737,7 @@ class Animal(models.Model):
         new.phenotype = (
             traitset.get_null_phenotype()
             if male
-            else traitset.derive_phenotype_from_genotype(
-                new.genotype, new.inbreeding
-            )
+            else traitset.derive_phenotype_from_genotype(new.genotype, new.inbreeding)
         )
 
         new.ptas = traitset.derive_ptas_from_genotype(
@@ -807,9 +769,7 @@ class Animal(models.Model):
             nms.DAM_ID_KEY: dam.pedigree,
             nms.ID_KEY: None,
         }
-        new.genotype = traitset.get_genotype_from_breeding(
-            sire.genotype, dam.genotype
-        )
+        new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
         new.inbreeding = calculate_inbreeding(new.pedigree)
         new.sire = sire
@@ -818,9 +778,7 @@ class Animal(models.Model):
         new.phenotype = (
             dam.phenotype
             if male
-            else traitset.derive_phenotype_from_genotype(
-                new.genotype, new.inbreeding
-            )
+            else traitset.derive_phenotype_from_genotype(new.genotype, new.inbreeding)
         )
 
         new.ptas = traitset.derive_ptas_from_genotype(new.genotype, 0, 0)
@@ -847,9 +805,7 @@ class Animal(models.Model):
         connectedclass: Optional[Class] = None,
     ) -> Any:
         class_traitset = (
-            None
-            if connectedclass is None
-            else Traitset(connectedclass.traitset)
+            None if connectedclass is None else Traitset(connectedclass.traitset)
         )
 
         def adjust_gen(val, uid):
@@ -899,9 +855,7 @@ class Animal(models.Model):
                 case nms.GENOTYPE_KEY:
                     return adjust_gen(self.genotype[data_key[1]], data_key[1])
                 case nms.PHENOTYPE_KEY:
-                    return adjust_phen(
-                        self.phenotype[data_key[1]], data_key[1]
-                    )
+                    return adjust_phen(self.phenotype[data_key[1]], data_key[1])
                 case nms.RECESSIVES_KEY:
                     return self.recessives[data_key[1]]
                 case nms.PTA_KEY:
@@ -965,11 +919,7 @@ class Animal(models.Model):
             nms.SIRE_ID_KEY,
             nms.INBREEDING_COEFFICIENT_KEY,
             nms.MALE_KEY,
-        ] + (
-            [nms.NETMERIT_KEY]
-            if self.connectedclass.net_merit_visibility
-            else []
-        )
+        ] + ([nms.NETMERIT_KEY] if self.connectedclass.net_merit_visibility else [])
 
         for data_key in data_keys:
             json[data_key] = self.resolve_data_key(data_key)
@@ -998,9 +948,7 @@ class Animal(models.Model):
             },
         }
 
-    def recalculate_pta_unsaved(
-        self, number_of_daughters: int, traitset: Traitset
-    ):
+    def recalculate_pta_unsaved(self, number_of_daughters: int, traitset: Traitset):
         self.ptas = traitset.derive_ptas_from_genotype(
             self.genotype, number_of_daughters, self.genomic_tests
         )
@@ -1037,9 +985,7 @@ class Assignment(models.Model):
         new.save()
 
         assignment_fulfilments = []
-        for enrollment in Enrollment.objects.filter(
-            connectedclass=connectedclass
-        ):
+        for enrollment in Enrollment.objects.filter(connectedclass=connectedclass):
             assignment_fulfilments.append(
                 AssignmentFulfillment(enrollment=enrollment, assignment=new)
             )

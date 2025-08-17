@@ -6,6 +6,7 @@ from types import ModuleType
 from typing import Callable
 
 from django.core.management.base import BaseCommand
+from django.db.models import Model
 from django.db.models.fields.related import ForeignKey
 from django.db.models.fields.related_descriptors import (
     ForwardManyToOneDescriptor,
@@ -15,10 +16,16 @@ from django.db.models.query_utils import DeferredAttribute
 
 from herdgen.settings import BASE_DIR
 
-from ... import models, forms
+from ... import models, forms, csv, inbreeding, names, views, views_utils
 
 MODELS_FILE = "models.md"
 FORMS_FILE = "forms.md"
+CSV_FILE = "csv.md"
+INBREEDING_FILE = "inbreeding.md"
+NAMES_FILE = "names.md"
+VIEWS_FILE = "views.md"
+VIEWS_UTILS_FILES = "views_utils.md"
+
 GENERATED_FILES = [MODELS_FILE, FORMS_FILE]
 
 
@@ -71,9 +78,7 @@ class Command(BaseCommand):
 
         return attrs
 
-    def document_class(
-        self, klass: type, mod_classes: list[type]
-    ) -> tuple[str, list]:
+    def document_class(self, klass: type, mod_classes: list[type]) -> tuple[str, list]:
         classname = f"{klass.__name__}"
 
         output = [f"> {klass.__doc__}"]
@@ -82,10 +87,7 @@ class Command(BaseCommand):
             output.append(
                 (
                     "Bases",
-                    [
-                        f"* {x.__module__}.{x.__name__}"
-                        for x in klass.__bases__
-                    ],
+                    [f"* {x.__module__}.{x.__name__}" for x in klass.__bases__],
                 )
             )
 
@@ -93,16 +95,27 @@ class Command(BaseCommand):
         functions = []
         classes = []
 
-        parent_attrs = self.get_parent_attrs(klass)
         for field in klass.__dict__:
-            if field not in parent_attrs:
-                obj = klass.__dict__[field]
-                if isinstance(obj, type):
-                    classes.append((field, obj))
-                elif callable(obj) or isinstance(obj, classmethod):
-                    functions.append((field, obj))
-                else:
-                    fields.append((field, obj))
+            if field in [
+                "__module__",
+                "__firstlineno__",
+                "__doc__",
+                "__static_attributes__",
+                "_meta",
+                "__str__",
+            ]:
+                continue
+
+            if Model in klass.__bases__ and field in ["objects"]:
+                continue
+
+            obj = klass.__dict__[field]
+            if isinstance(obj, type):
+                classes.append((field, obj))
+            elif callable(obj) or isinstance(obj, classmethod):
+                functions.append((field, obj))
+            else:
+                fields.append((field, obj))
 
         fields_list = []
         output.append(("Fields", fields_list))
@@ -140,9 +153,7 @@ class Command(BaseCommand):
                             + f"(#{rel.__name__.lower()})"
                         )
                     else:
-                        fields_list[-1] += (
-                            " to " + rel.__module__ + "." + rel.__name__
-                        )
+                        fields_list[-1] += " to " + rel.__module__ + "." + rel.__name__
 
             elif not isinstance(
                 field, (ReverseManyToOneDescriptor, ForwardManyToOneDescriptor)
@@ -172,6 +183,7 @@ class Command(BaseCommand):
 
         objs = self.get_direct_objects(module)
         classes = []
+
         for obj in objs:
             if isinstance(obj, type):
                 classes.append(obj)
@@ -216,6 +228,31 @@ class Command(BaseCommand):
         self.write_to_file(
             docs_folder / FORMS_FILE,
             self.convert_to_txt(self.document_module(forms)),
+        )
+
+        self.write_to_file(
+            docs_folder / CSV_FILE,
+            self.convert_to_txt(self.document_module(csv)),
+        )
+
+        self.write_to_file(
+            docs_folder / INBREEDING_FILE,
+            self.convert_to_txt(self.document_module(inbreeding)),
+        )
+
+        self.write_to_file(
+            docs_folder / NAMES_FILE,
+            self.convert_to_txt(self.document_module(names)),
+        )
+
+        self.write_to_file(
+            docs_folder / VIEWS_FILE,
+            self.convert_to_txt(self.document_module(views)),
+        )
+
+        self.write_to_file(
+            docs_folder / VIEWS_UTILS_FILES,
+            self.convert_to_txt(self.document_module(views_utils)),
         )
 
         self.stdout.write("Generating Documentation")
