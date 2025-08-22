@@ -69,4 +69,5 @@ urlpatterns = [
     path("traitsets/<str:traitsetname>", views.traitset_overview),
     path("traitsets", views.traitsets),
     path("equations", views.equations),
+    path("about", views.about),
 ]

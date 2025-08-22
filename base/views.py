@@ -99,6 +99,9 @@ def homepage(request: HttpRequest) -> HttpResponse:
         {"classes": classes, "requested_classes": requested_classes},
     )
 
+def about(request: HttpRequest) -> HttpResponse:
+    return render(request, "base/about.html")
+
 
 @login_required
 @transaction.atomic

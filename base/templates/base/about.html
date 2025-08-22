@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load path_builder %}
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock head %}
+{% block navpath %}
+    {% titled_self_path "About" "as-link pad-small" %}
+{% endblock navpath %}
+{% block main %}
+    <div class="about grid-auto-row margin-auto pad">
+        <h1>Learning Heredity & Biology with Herd Genetics</h1>
+        <img class = "full-width"src="{% static 'media/banner5.webp' %}">
+        <p>
+            Learning genetics can be complicated, especially when it comes to teaching the
+            intricacies of breeding programs in a classroom. Observing genetic progress in real-time
+            is not practical when generations take years to develop. This makes learning by example
+            almost impossible in the classroom when limited to a single semester. Herd Genetics
+            offers the solution. Utilizing powerful technology, Herd Genetics creates a classroom-level
+            simulation of an animal population. Each student will have their own breeding program
+            to manage and make progress with. Students will be able to share animals with the
+            rest of the class and breed their own animals with other students’ animals.
+        </p>
+        <p>
+            Herd Genetics allows users to view their herds through the lens of many different
+            kinds of animals. While one student may be working with bovine dairy cattle, another
+            student may prefer working with dogs, horses, or even deer. The Herd Genetics simulation
+            manages all of this behind the scenes, making sure data is converted seamlessly across
+            all species. In addition to allowing different animals per user, Herd Genetics allows
+            a different set of traits for each class using the “traitset” system. Traitsets are
+            set at the class level, ensuring that every student in the class is looking at the
+            same recessives and traits (despite looking through different animal lenses), while
+            also allowing different classes to select and study different aspects of genetics.
+            Some classes may need an industry-tied exhaustive set of traits, such as the dairy
+            cattle industry’s “ANIMAL_SCIENCE_422” traitset, but other classes may need access
+            to a more general set of traits and more animals with traitsets like “ANIMAL_SCIENCE_322.”
+            You can explore the various options for your class using the
+            <a href="/traitsets" class="as-link" target="_blank">traitset reference</a>.
+        </p>
+        <p>
+            Another major advantage of Herd Genetics is the ability of the teacher to restrict
+            what information is available to the students. While Herd Genetics by default shows
+            the genotype, phenotype, PTA/EPD, and Net Merit (NM$) for each animal, the teacher
+            may choose to only show the phenotypes or hide certain traits and recessives altogether.
+            This allows for a more realistic representation of what a breeding program would
+            look like, forcing students to make choices based on visible/observable phenotypes
+            instead of raw genetic data. Herd Genetics is, of course, a computer-based simulation.
+            While it makes every attempt to be true and accurate what is expected in the real
+            world, it is still based on a number of mathematical equations. Herd Genetics provides
+            full transparency on how it evaluates and calculates these biological systems. A
+            list of equations used for calculations can be found in the
+            <a href="/equations" class="as-link" target="_blank">calculations reference</a>.
+        </p>
+        <p>
+            Herd Genetics represents a groundbreaking approach to teaching genetics, bridging
+            the gap between theoretical concepts and practical application. By enabling students
+            to manage personalized breeding programs and collaborate using diverse animal populations,
+            it creates an engaging and interactive learning experience. The flexibility of the
+            traitset system further enhances its versatility, catering to the unique needs of
+            different classes and industries. With its innovative design, Herd Genetics not only
+            simplifies complex genetic principles but also inspires the next generation of geneticists
+            to explore, experiment, and understand the intricacies of breeding and heredity like
+            never before.
+        </p>
+    </div>
+{% endblock main %}
