@@ -27,9 +27,9 @@ $(window).on("load", () => {
     if (getCookie(CookieName) != CookieValue) {
         sendMessage(
             "This website uses cookies for authentication and animal caching. "
-            + "Herd Genetics can not run without these cookies. By selecting Ok "
+            + 'Herd Genetics can not run without these cookies. By selecting "Ok" '
             + "and using this website you are accepting these cookies. No cookie "
-            + "will be shared outside of Herd Genetics or with third partied.",
+            + "will be shared outside of Herd Genetics or with third parties.",
             () => {setCookie(CookieName, CookieValue, CookieExpiration)}
         )
     }

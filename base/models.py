@@ -56,7 +56,7 @@ class Class(models.Model):
         related_name="class_class_herd",
         null=True,
     )
-    enrollment_tokens = models.IntegerField(default=0)
+    enrollment_tokens = models.IntegerField(default=10)
 
     def __str__(self) -> str:
         return f"{self.id} | {self.name}"
