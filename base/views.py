@@ -1,3 +1,4 @@
+from sys import prefix
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -27,7 +28,13 @@ from . import models
 from . import csv
 from . import names as nms
 from .templatetags.animal_filters import filter_text_to_default
-from .views_utils import ClassAuth, HerdAuth, auth_class, auth_herd, deleteclass_background
+from .views_utils import (
+    ClassAuth,
+    HerdAuth,
+    auth_class,
+    auth_herd,
+    deleteclass_background,
+)
 
 
 #### AUTH PAGE VIEWS ####
@@ -54,19 +61,26 @@ class EmailLoginView(LoginView):
 @transaction.atomic
 @login_required
 def account(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
+    delete_form = forms.DeleteAccount(prefix="delete")
+    form = forms.Account(instance=request.user, prefix="normal")
+
     if request.method == "POST":
-        delete_form = forms.DeleteAccount(request.POST)
-        if delete_form.is_valid(request.user):
-            request.user.delete()
-            return HttpResponseRedirect("/")
-    else:
-        delete_form = forms.DeleteAccount()
+        if "delete-form" in request.POST:
+            delete_form = forms.DeleteAccount(request.POST, prefix="delete")
+            if delete_form.is_valid(request.user):
+                request.user.delete()
+                return HttpResponseRedirect("/")
+        else:
+            form = forms.Account(request.POST, prefix="normal", instance=request.user)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect("/auth/account")
 
     return render(
         request,
         "registration/account.html",
         {
-            "form": forms.Account(instance=request.user),
+            "form": form,
             "delete_form": delete_form,
         },
     )
@@ -79,7 +93,8 @@ def homepage(request: HttpRequest) -> HttpResponse:
             teacher=request.user, deleted=False
         )
         enrollments = models.Enrollment.objects.select_related("connectedclass").filter(
-            student=request.user, connectedclass__deleted=False,
+            student=request.user,
+            connectedclass__deleted=False,
         )
         classes = list(owned_classes) + [x.connectedclass for x in enrollments]
         classes = {x: x.get_open_assignments() for x in classes}
@@ -98,6 +113,7 @@ def homepage(request: HttpRequest) -> HttpResponse:
         "base/homepage.html",
         {"classes": classes, "requested_classes": requested_classes},
     )
+
 
 def about(request: HttpRequest) -> HttpResponse:
     return render(request, "base/about.html")
@@ -320,7 +336,9 @@ def traitset_overview(request: HttpRequest, traitsetname: str) -> HttpResponse:
 
 def traitsets(request: HttpRequest) -> HttpResponse:
     traitsets = [(Traitset(x.name)) for x in registered_traitsets if x.enabled]
-    deprecated_traitsets = [Traitset(x.name) for x in registered_traitsets if not x.enabled]
+    deprecated_traitsets = [
+        Traitset(x.name) for x in registered_traitsets if not x.enabled
+    ]
 
     return render(
         request,

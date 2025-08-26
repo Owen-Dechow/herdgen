@@ -1,3 +1,4 @@
+from gc import disable
 from typing import Optional
 
 import background_task
@@ -504,20 +505,34 @@ class UpdateAssignment(forms.ModelForm):
 class UpdateEnrollmentForm(forms.ModelForm):
     "A form to update an enrollment."
 
+    team_name = forms.CharField()  # Overwritten Later
+
     def __init__(self, *args, **kwargs):
         super(UpdateEnrollmentForm, self).__init__(*args, **kwargs)
 
-        if self.instance.connectedclass.allow_other_animals:
-            self.fields["animal"] = forms.ChoiceField(
-                label="Animal Filter",
-                choices=Traitset(self.instance.connectedclass.traitset).animal_choices,
-            )
-        else:
-            self.fields["animal"] = forms.ChoiceField(
-                label="Animal Filter",
-                choices=Traitset(self.instance.connectedclass.traitset).animal_choices,
-                disabled=True,
-            )
+        self.fields["animal"] = forms.ChoiceField(
+            label="Animal Filter",
+            choices=Traitset(self.instance.connectedclass.traitset).animal_choices,
+            disabled=not self.instance.connectedclass.allow_other_animals,
+        )
+
+        self.fields["team_name"] = forms.CharField(
+            max_length=200,
+            label="Team Name",
+            disabled=not self.instance.connectedclass.allow_herd_rename,
+            initial=self.instance.herd.name.removesuffix("'s <herd>").removesuffix(
+                "' <herd>"
+            ),
+        )
+
+    def save(self, *args, **kwargs):
+        super(UpdateEnrollmentForm, self).save(*args, **kwargs)
+
+        self.instance.herd.name = models.Enrollment.generate_herd_from_team_name(
+            self.cleaned_data["team_name"]
+        )
+
+        self.instance.herd.save()
 
     class Meta:
         model = models.Enrollment
@@ -529,8 +544,8 @@ class Account(forms.ModelForm):
 
     username = forms.CharField(disabled=True)
     email = forms.EmailField(disabled=True)
-    first_name = forms.CharField(disabled=True)
-    last_name = forms.CharField(disabled=True)
+    first_name = forms.CharField()
+    last_name = forms.CharField()
 
     class Meta:
         model = User

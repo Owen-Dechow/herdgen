@@ -47,6 +47,7 @@ class Class(models.Model):
     trend_log = models.JSONField(default=list, blank=True)
     default_animal = models.CharField(max_length=255)
     allow_other_animals = models.BooleanField(default=True)
+    allow_herd_rename = models.BooleanField(default=True)
     quarantine_days = models.IntegerField(default=0)
     deleted = models.BooleanField(default=False)
 
@@ -566,16 +567,28 @@ class Enrollment(models.Model):
     def __str__(self) -> str:
         return f"{self.id} | {self.student.email} in {self.connectedclass.name}"
 
+    @staticmethod
+    def generate_herd_from_team_name(name: str) -> str:
+        name = name.strip()
+
+        if name[-1] == "s":
+            return name + "' <herd>"
+        elif name.endswith("'s"):
+            return name + " <herd>"
+        elif name.endswith("<herd>"):
+            return name
+        else:
+            return name + "'s <herd>"
+
     @classmethod
     def create_from_enrollment_request(
         cls, enrollment_request: "EnrollmentRequest"
     ) -> "Enrollment":
         traitset = Traitset(enrollment_request.connectedclass.traitset)
 
-        if enrollment_request.student.last_name[-1] == "s":
-            name = enrollment_request.student.get_full_name() + "' <herd>"
-        else:
-            name = enrollment_request.student.get_full_name() + "'s <herd>"
+        name = cls.generate_herd_from_team_name(
+            enrollment_request.student.get_full_name()
+        )
 
         new = cls(
             student=enrollment_request.student,
@@ -772,7 +785,9 @@ class Animal(models.Model):
         }
         new.genotype = traitset.get_genotype_from_breeding(sire.genotype, dam.genotype)
         new.net_merit = traitset.derive_net_merit_from_genotype(new.genotype)
-        new.inbreeding = inbreeding_calculator.InbreedingCalculator(new.pedigree).get_coefficient() 
+        new.inbreeding = inbreeding_calculator.InbreedingCalculator(
+            new.pedigree
+        ).get_coefficient()
         new.sire = sire
         new.dam = dam
 

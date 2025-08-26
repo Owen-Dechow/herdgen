@@ -1,28 +1,37 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block head %}
-<link rel="stylesheet" href="{% static 'css/stdform.css' %}" type="text/css">
+    <link rel="stylesheet"
+          href="{% static 'css/stdform.css' %}"
+          type="text/css">
 {% endblock head %}
-
 {% block main %}
-
-<form class="std-form margin-auto">
-    <h1>Account</h1>
-    {{form}}
-    <p>
-    <p><a class="as-link" href="/auth/password_change">Change Password</a></p>
-    <p>If you would like to make a change to your account (ie. name, username, or email) please email <a class="as-link" href="mailto:herdgenetics@gmail.com">herdgenetics@gmail.com</a>.</p>
-
-    </p>
-</form>
-
-<form method="POST" class="std-form margin-auto" onsubmit="return confirm('Are you sure you want to delete your account? THIS ACTION CANNOT BE UNDONE!') && confirm('Are you absolutely certain you want to delete your account?')">
-    <h2>Delete Account</h2>
-    {% csrf_token %}
-    {{delete_form}}
-    <button class="as-btn pad border-radius background-red" type="submit">Delete Account</button>
-
-</form>
-
+    <form method="POST" class="std-form margin-auto">
+        <h1>Account</h1>
+        {% csrf_token %}
+        {{ form }}
+        <p>
+            <p>
+                <a class="as-link" href="/auth/password_change">Change Password</a>
+            </p>
+            <p>
+                If you would like to make a change to your account (i.e. username, or email) please email <a class="as-link" href="mailto:herdgenetics@gmail.com">herdgenetics@gmail.com</a>.
+            </p>
+        </p>
+        <button class="as-btn pad border-radius background-green full-width"
+                type="submit">Update Account</button>
+    </form>
+    <form method="POST"
+          class="std-form margin-auto"
+          onsubmit="return confirm('Are you sure you want to delete your account? THIS ACTION CANNOT BE UNDONE!') && confirm('Are you absolutely certain you want to delete your account?')">
+        <h2>Delete Account</h2>
+        {% csrf_token %}
+        {{ delete_form }}
+        <p>
+            Once your account has been deleted it can not be reactivated. No data will be saved.
+        </p>
+        <button name="delete-form"
+                class="as-btn pad border-radius background-red full-width"
+                type="submit">Delete Account</button>
+    </form>
 {% endblock main %}

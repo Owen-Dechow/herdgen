@@ -69,7 +69,7 @@
         </fieldset>
 
         {% if teacher_status %}
-        <button type="submit" class="full-width pad background-green as-btn border-radius">Update</button>
+        <button type="submit" class="full-width pad background-green as-btn border-radius">Save Class Info</button>
         {% endif %}
     </form>
 
@@ -78,7 +78,7 @@
         {% csrf_token %}
         {{enrollment_form}}
         {% if class.allow_other_animals %}
-        <button class="as-btn background-green pad border-radius full-width" type="submit">Update Animal Filter</button>
+        <button class="as-btn background-green pad border-radius full-width" type="submit">Save Enrollment Info</button>
         {% endif %}
     </form>
     {% endif %}
