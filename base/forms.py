@@ -1,4 +1,3 @@
-from gc import disable
 from typing import Optional
 
 import background_task
@@ -116,6 +115,7 @@ class UpdateClassForm(forms.ModelForm):
             "default_animal",
             "quarantine_days",
             "allow_other_animals",
+            "allow_herd_rename",
             "net_merit_visibility",
             "hide_female_pta",
         ]
